@@ -22,6 +22,24 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 
 El valor real utilizado en producción deberá configurarse desde la plataforma de despliegue.
 
+### CORS
+
+Si frontend y backend se encuentran desplegados en orígenes diferentes, el backend deberá habilitar CORS para el dominio del frontend.
+
+El origen permitido debe configurarse mediante una variable de entorno:
+
+```text
+CORS_ORIGIN
+```
+
+Ejemplo local:
+
+```text
+CORS_ORIGIN=http://localhost:3000
+```
+
+No se debe hardcodear el dominio de producción en el código.
+
 ## Health Check del Backend
 
 El backend debe exponer el endpoint:
@@ -120,6 +138,7 @@ Debe:
 - ejecutarse desde `apps/api`;
 - exponer `GET /health`;
 - utilizar `DATABASE_URL` para acceder a PostgreSQL;
+- habilitar CORS para el origen permitido mediante `CORS_ORIGIN`;
 - no exponer secretos al frontend.
 
 ### Base de datos
