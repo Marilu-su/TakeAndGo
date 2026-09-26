@@ -1,36 +1,73 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Take&Go — Frontend
 
-## Getting Started
+Aplicación web de Take&Go, desarrollada con Next.js y TypeScript.
 
-First, run the development server:
+En el Checkpoint 1, la página principal verifica la comunicación con el backend consultando el endpoint `GET /health`, según lo definido en `docs/architecture/CHK1-INTEGRATION-CONTRACT.md`.
+
+## Requisitos
+
+- Node.js 20 o superior
+- npm
+
+## Configuración
+
+Todos los comandos se ejecutan desde `apps/web`.
+
+1. Instalar dependencias:
+
+```bash
+   npm install
+```
+
+2. Crear el archivo de variables de entorno a partir del ejemplo:
+
+```bash
+   cp .env.example .env.local
+```
+
+   En Windows (PowerShell): `copy .env.example .env.local`
+
+3. Ajustar los valores de `.env.local` si es necesario.
+
+## Variables de entorno
+
+| Variable | Descripción | Ejemplo |
+| --- | --- | --- |
+| `NEXT_PUBLIC_API_URL` | URL base del backend, sin barra final | `http://localhost:3001` |
+
+El archivo `.env.local` no se versiona. En producción, las variables se configuran desde la plataforma de despliegue.
+
+Las variables `NEXT_PUBLIC_*` se incorporan al código durante el build: si se modifica su valor en producción, es necesario volver a desplegar.
+
+## Ejecución local
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+La aplicación queda disponible en http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts disponibles
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Comando | Descripción |
+| --- | --- |
+| `npm run dev` | Servidor de desarrollo |
+| `npm run build` | Build de producción |
+| `npm run start` | Ejecuta el build de producción |
+| `npm run lint` | Análisis estático con ESLint |
 
-## Learn More
+## Estado del sistema
 
-To learn more about Next.js, take a look at the following resources:
+La página principal muestra el estado del backend:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- 🟡 **Consultando:** la solicitud está en curso.
+- 🟢 **Backend operativo:** `GET /health` respondió `{ "status": "ok" }`.
+- 🔴 **Backend no disponible:** error de conexión, timeout (5 segundos), código HTTP distinto de 2xx o respuesta inesperada.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Si el backend incluye el campo `database` en la respuesta, también se muestra el estado de la base de datos.
 
-## Deploy on Vercel
+Para que la consulta funcione desde el navegador, el backend debe permitir el origen del frontend mediante CORS.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Despliegue
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Pendiente (issue #14).
