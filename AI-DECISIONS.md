@@ -99,3 +99,54 @@ Durante la validación humana se realizaron los siguientes ajustes:
 - se estableció que cualquier integrante distinto del autor puede aprobar una Pull Request;
 - se definió una aprobación mínima obligatoria;
 - GitHub Actions y los status checks obligatorios se configurarán cuando existan frontend y backend mínimos sobre los cuales ejecutar validaciones reales.
+
+---
+
+### 2026-09-26 — Inicialización del frontend y consumo del health check
+
+**TDD / Issue:** #10 — Inicializar frontend  
+**Autor humano:** Flores Lautaro  
+**Herramienta/modelo:** Claude (Anthropic) — Claude Opus 5.5  
+**Prompt / instrucción utilizada:** Guiar paso a paso la inicialización del frontend de Take&Go en `apps/web` con Next.js y TypeScript, y la implementación de una página que consulte `GET /health` del backend según el contrato de integración del Checkpoint 1.
+
+#### Problema
+
+Era necesario crear la base del frontend y demostrar la comunicación frontend → backend requerida por el Checkpoint 1, sin depender de que el backend estuviera terminado.
+
+#### Contexto dado a la IA
+
+Se consideraron:
+
+- la consigna oficial del Trabajo Práctico Integrador;
+- el One-Pager de Take&Go;
+- la división de tareas del Checkpoint 1;
+- `docs/architecture/CHK1-INTEGRATION-CONTRACT.md`;
+- la convención de ramas y Conventional Commits.
+
+#### Propuesta de la IA
+
+Se propuso:
+
+- inicializar el proyecto con `create-next-app` (TypeScript, ESLint, App Router, Tailwind, carpeta `src`);
+- obtener la URL del backend desde `NEXT_PUBLIC_API_URL`, con un `.env.example` versionado;
+- separar la consulta al backend en `src/lib/health.ts`, con timeout de 5 segundos y mensajes de error diferenciados;
+- implementar la consulta desde el navegador, para validar la comunicación real frontend → backend;
+- contemplar un campo opcional `database` en la respuesta de `/health`;
+
+
+#### Validación humana
+
+Se verificó:
+
+- ejecución local con `npm run dev`;
+- estado de error sin backend disponible;
+- estado operativo mediante un servidor mock local de `/health`, ubicado fuera del repositorio;
+- bloqueo de la solicitud por el navegador al quitar el encabezado CORS del mock;
+- que `.env.local` no quedara versionado;
+- ejecución exitosa de `npm run lint` y `npm run build`.
+
+#### Correcciones o cambios hechos por el equipo
+
+- La IA sugirió inicialmente mensajes de commit en inglés; se corrigieron a español para respetar la convención definida por el equipo.
+- Se decidió conservar los archivos `AGENTS.md` y `CLAUDE.md` generados por Next.js en `apps/web`, ya que son regenerados por la herramienta.
+- Se sugirió en la revisión del contrato de integración (PR #24) documentar la configuración de CORS y agregar el estado de la base de datos al health check.
