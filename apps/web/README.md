@@ -70,4 +70,14 @@ Para que la consulta funcione desde el navegador, el backend debe permitir el or
 
 ## Despliegue
 
-Pendiente (issue #14).
+Producción: https://take-and-go-web.vercel.app
+
+El frontend está desplegado en Vercel. Actualmente el despliegue se realiza de forma manual con la CLI de Vercel, desde `apps/web`:
+
+```bash
+npx vercel --prod
+```
+
+La variable `NEXT_PUBLIC_API_URL` se configura en el panel del proyecto en Vercel (**Settings → Environment Variables**). Después de modificarla, es necesario volver a desplegar.
+
+El despliegue automático mediante GitHub Actions queda pendiente de integración con el pipeline de CI/CD.

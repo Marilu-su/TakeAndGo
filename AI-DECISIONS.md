@@ -150,3 +150,40 @@ Se verificó:
 - La IA sugirió inicialmente mensajes de commit en inglés; se corrigieron a español para respetar la convención definida por el equipo.
 - Se decidió conservar los archivos `AGENTS.md` y `CLAUDE.md` generados por Next.js en `apps/web`, ya que son regenerados por la herramienta.
 - Se sugirió en la revisión del contrato de integración (PR #24) documentar la configuración de CORS y agregar el estado de la base de datos al health check.
+
+---
+
+### 2026-09-26 — Despliegue del frontend en Vercel
+
+**TDD / Issue:** #14 — Desplegar frontend  
+**Autor humano:** Flores Lautaro  
+**Herramienta/modelo:** Claude (Anthropic) — Claude Opus 5.5  
+**Prompt / instrucción utilizada:** Despliegue del frontend de `apps/web` en Vercel.
+
+#### Problema
+
+Era necesario desplegar el frontend para el Checkpoint 1. La integración de Vercel con GitHub no permitía importar el repositorio, ya que pertenece a la cuenta de otra integrante y la app de Vercel solo tenía acceso a los repositorios propios.
+
+#### Contexto dado a la IA
+
+- contrato de integración del Checkpoint 1;
+- estructura del monorepo con el frontend en `apps/web`.
+
+#### Propuesta de la IA
+
+- desplegar mediante la CLI de Vercel desde `apps/web`, sin depender de la integración con GitHub;
+- no conectar el repositorio a Vercel durante la configuración, por falta de permisos sobre la cuenta dueña del repositorio;
+- configurar `NEXT_PUBLIC_API_URL` desde el panel de Vercel y no desde archivos locales;
+- dejar el despliegue automático para una etapa posterior mediante GitHub Actions.
+
+#### Validación humana
+
+Se verificó:
+
+- que el proyecto quedó publicado en https://take-and-go-web.vercel.app;
+- que el sitio muestra el estado de error esperado al no tener configurada la URL del backend, lo que confirma que `.env.local` no fue incluido en el despliegue;
+- que la carpeta `.vercel` generada por la CLI quedó excluida de Git.
+
+#### Correcciones o cambios hechos por el equipo
+
+- El despliegue automático queda pendiente de coordinación con la integrante responsable de CI/CD.
