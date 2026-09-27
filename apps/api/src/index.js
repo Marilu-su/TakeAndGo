@@ -5,15 +5,14 @@ require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:3000';
 
-// Habilitar CORS para el frontend (puerto 3000)
-app.use(cors({ origin: 'http://localhost:3000' }));
+app.use(cors({ origin: CORS_ORIGIN }));
 app.use(express.json());
 
-// Configurar Morgan para el logging base de peticiones HTTP
+// Morgan para logging base
 app.use(morgan('dev'));
 
-// Endpoint de Health Check
 app.get('/health', (req, res) => {
     res.status(200).json({ 
         status: 'ok', 
