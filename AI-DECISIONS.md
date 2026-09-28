@@ -216,4 +216,4 @@ Era necesario definir, formalizar y documentar la arquitectura cloud-native del 
 
 #### Correcciones o cambios hechos por el equipo
 
-- Se realizaron ajustes de formato en el código Mermaid del diagrama para garantizar su correcta visualización y se mantuvieron los mensajes de commit en español según las convenciones del equipo.
+- Se realizaron ajustes de formato en el código Mermaid del diagrama para garantizar su correcta visualización y se mantuvieron los mensajes de commit en ingles.
