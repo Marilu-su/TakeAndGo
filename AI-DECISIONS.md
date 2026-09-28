@@ -187,3 +187,33 @@ Se verificó:
 #### Correcciones o cambios hechos por el equipo
 
 - El despliegue automático queda pendiente de coordinación con la integrante responsable de CI/CD.
+
+### 2026-09-27 — Definición de Arquitectura Cloud y ADR-0001
+
+**TDD / Issue:** Checkpoint 1 - Infraestructura y Arquitectura Cloud (Issues #2, #18, #19, #31)  
+**Autor humano:** Romero Olmo Macarena  
+**Herramienta/modelo:** Asistente de IA (Compañero colaborativo guiado)  
+**Prompt / instrucción utilizada:** Guiar paso a paso la creación del ADR-0001 y el diagrama de infraestructura Cloud en formato Mermaid cumpliendo con el Checkpoint 1.
+
+#### Problema
+
+Era necesario definir, formalizar y documentar la arquitectura cloud-native del sistema Take&Go exigida para el Checkpoint 1, asegurando la trazabilidad de las decisiones de infraestructura (Node.js, TypeScript, PostgreSQL gestionado y Prisma ORM bajo arquitectura hexagonal).
+
+#### Contexto dado a la IA
+
+- Fuentes de verdad oficiales: `TAKEANDGO_MASTER_V2_0.md` (Sección 9 y 10), el One-Pager del proyecto y las reglas de higiene de ingeniería (`AGENTS.md`).
+- Restricción estricta: Operar bajo un flujo iterativo y pausado ("regla de oro"), sin inventar reglas de negocio ni saltarse validaciones técnicas.
+
+#### Propuesta de la IA
+
+- Estructuración de la especificación técnica para el archivo `docs/architecture/ADR-0001-cloud-stack.md`.
+- Generación de la especificación visual de la infraestructura en código Mermaid para el archivo `docs/diagrams/cloud-architecture.md`, separando la capa de cliente (PaaS), CDN, cómputo (API modular), IA (MenIA y CocIA) y persistencia gestionada.
+
+#### Validación humana
+
+- Revisión y validación de los componentes arquitectónicos frente a los requerimientos funcionales del MVP (transacciones ACID de todo o nada para stock y puntos).
+- Ejecución manual de los commits siguiendo estrictamente el estándar de Conventional Commits (`docs(architecture): ...` y `docs(diagrams): ...`) y apertura del Pull Request hacia `develop`.
+
+#### Correcciones o cambios hechos por el equipo
+
+- Se realizaron ajustes de formato en el código Mermaid del diagrama para garantizar su correcta visualización y se mantuvieron los mensajes de commit en ingles.
