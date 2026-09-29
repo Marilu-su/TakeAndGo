@@ -41,7 +41,7 @@ La arquitectura definitiva y las decisiones tecnológicas se documentan mediante
 docs/architecture/
 ```
 
-Para el Checkpoint 1 se busca validar inicialmente la siguiente integración:
+La integración base del sistema es:
 
 ```text
 Usuario
@@ -89,6 +89,149 @@ git clone git@github.com:Marilu-su/TakeAndGo.git
 cd TakeAndGo
 ```
 
+## Entorno de desarrollo local
+
+### Requisitos
+
+Para ejecutar Take&Go localmente es necesario contar con:
+
+- Git;
+- Node.js;
+- npm.
+
+### Instalar dependencias del backend
+
+Desde la raíz del repositorio:
+
+```bash
+cd apps/api
+npm install
+```
+
+En PowerShell, si la política de ejecución de Windows impide ejecutar `npm`, se puede utilizar:
+
+```powershell
+npm.cmd install
+```
+
+### Configurar el frontend
+
+El frontend utiliza la variable de entorno `NEXT_PUBLIC_API_URL` para conocer la URL del backend.
+
+Desde `apps/web`, crear el archivo local a partir del ejemplo:
+
+```powershell
+Copy-Item .env.example .env.local
+```
+
+El entorno local utiliza:
+
+```text
+NEXT_PUBLIC_API_URL=http://localhost:3001
+```
+
+El archivo `.env.local` es configuración local y no debe versionarse.
+
+### Instalar dependencias del frontend
+
+Desde la raíz del repositorio:
+
+```bash
+cd apps/web
+npm install
+```
+
+En PowerShell también puede utilizarse:
+
+```powershell
+npm.cmd install
+```
+
+### Levantar el backend
+
+Desde `apps/api`:
+
+```bash
+npm start
+```
+
+En PowerShell:
+
+```powershell
+npm.cmd start
+```
+
+Por defecto, el backend queda disponible en:
+
+```text
+http://localhost:3001
+```
+
+### Verificar el backend
+
+Con el backend ejecutándose:
+
+```text
+http://localhost:3001/health
+```
+
+La API debe responder con estado `200` e indicar:
+
+```json
+{
+  "status": "ok"
+}
+```
+
+Desde PowerShell también puede verificarse mediante:
+
+```powershell
+Invoke-RestMethod http://localhost:3001/health
+```
+
+### Levantar el frontend
+
+En una segunda terminal, desde `apps/web`:
+
+```bash
+npm run dev
+```
+
+En PowerShell:
+
+```powershell
+npm.cmd run dev
+```
+
+Por defecto, el frontend queda disponible en:
+
+```text
+http://localhost:3000
+```
+
+### Verificar la integración local
+
+Con frontend y backend ejecutándose simultáneamente, acceder a:
+
+```text
+http://localhost:3000
+```
+
+La pantalla inicial debe indicar que el backend se encuentra disponible.
+
+El flujo local esperado es:
+
+```text
+Frontend :3000
+      │
+      │ NEXT_PUBLIC_API_URL
+      ▼
+Backend :3001
+      │
+      ▼
+GET /health
+```
+
 ## Flujo de trabajo Git
 
 El proyecto utiliza:
@@ -118,7 +261,7 @@ Ejemplo:
 ```bash
 git switch develop
 git pull origin develop
-git switch -c feature/CHK1-api-bootstrap
+git switch -c feature/C2-01-project-setup
 ```
 
 También se utilizan:
@@ -182,6 +325,7 @@ No versionar:
 
 ```text
 .env
+.env.local
 passwords
 API keys
 tokens
@@ -193,7 +337,7 @@ Los archivos `.env.example` pueden utilizarse para documentar las variables requ
 
 ## Contrato de integración
 
-Durante el Checkpoint 1 se utilizan como contratos mínimos:
+Los contratos base de integración son:
 
 ```text
 Frontend → NEXT_PUBLIC_API_URL → Backend
@@ -204,7 +348,7 @@ GET /health
 Backend → DATABASE_URL → PostgreSQL
 ```
 
-La definición completa se encuentra en:
+La definición inicial se encuentra en:
 
 ```text
 docs/architecture/CHK1-INTEGRATION-CONTRACT.md
@@ -224,7 +368,7 @@ Toda propuesta generada mediante IA debe ser revisada y validada por un integran
 
 ## Checkpoint 1
 
-El objetivo del primer checkpoint es dejar establecida la base técnica del proyecto:
+El objetivo del primer checkpoint fue dejar establecida la base técnica del proyecto:
 
 - arquitectura Cloud;
 - repositorio con actividad individual;
