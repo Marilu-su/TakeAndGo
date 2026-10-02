@@ -1,3 +1,6 @@
+
+const express = require('express');
+const errorHandler = require('../src/middlewares/errorHandler');
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const request = require('supertest');
@@ -19,5 +22,21 @@ test('una ruta inexistente responde 404', async () => {
     assert.equal(response.status, 404);
     assert.deepEqual(response.body, {
         error: 'Ruta no encontrada'
+    });
+});
+test('el middleware de errores responde 500', async () => {
+    const testApp = express();
+
+    testApp.get('/forzar-error', () => {
+        throw new Error('Error de prueba');
+    });
+
+    testApp.use(errorHandler);
+
+    const response = await request(testApp).get('/forzar-error');
+
+    assert.equal(response.status, 500);
+    assert.deepEqual(response.body, {
+        error: 'Error interno del servidor'
     });
 });
