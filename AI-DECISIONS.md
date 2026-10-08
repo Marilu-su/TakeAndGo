@@ -217,3 +217,47 @@ Era necesario definir, formalizar y documentar la arquitectura cloud-native del 
 #### Correcciones o cambios hechos por el equipo
 
 - Se realizaron ajustes de formato en el código Mermaid del diagrama para garantizar su correcta visualización y se mantuvieron los mensajes de commit en ingles.
+
+---
+
+### 2026-10-07 — Configuración de PostgreSQL y Prisma
+
+**TDD / Issue:** C2-07 — Configurar PostgreSQL + Prisma  
+**Autor humano:** Flores Lautaro  
+**Herramienta/modelo:** Claude (Anthropic) — Claude Opus 5.5  
+**Prompt / instrucción utilizada:** Dudas en onfiguración de PostgreSQL y Prisma en `apps/api`
+
+#### Problema
+
+Era necesario incorporar la capa de base de datos compartida del backend: conexión a PostgreSQL, Prisma, cliente único, migraciones, seed y verificación de la conexión.
+
+#### Contexto dado a la IA
+
+- definición de alcance de C2-07 acordada por el equipo;
+- documentación oficial de Prisma ORM 7, consultada durante la sesión.
+
+#### Propuesta de la IA
+
+- Utilizar Prisma ORM 7 en lugar de Prisma 8, por ser la versión estable con documentación y ecosistema más maduros, frente a una versión 8 recién publicada con cambios de paradigma.
+- Utilizar Neon como PostgreSQL gestionado para desarrollo, con una base por integrante y estructura compartida mediante migraciones.
+- Corregir el orden de carga de variables de entorno en `index.ts`.
+- Diferir la primera migración a C2-06, ya que C2-07 no incluye modelos de negocio.
+
+#### Validación humana
+
+Se verificó:
+
+- versión 7.10.0 de `prisma` y `@prisma/client`;
+- conexión a Neon mediante `prisma migrate status`;
+- que `.env` y `src/generated` no se versionan;
+- ejecución exitosa de `npm run typecheck` y de los tests;
+- `GET /health` con `database: "ok"` usando la base real;
+- integración local Frontend → Backend → PostgreSQL desde la página del frontend;
+- ejecución de `npm run db:seed`.
+
+#### Correcciones o cambios hechos por el equipo
+
+- `prisma init` generó carpetas de skills para asistentes de IA (`.agents`, `.claude`, `.windsurf`) y `skills-lock.json`; se eliminaron por no formar parte de la tarea.
+- Se reemplazó la conexión con pooler de Neon por la conexión directa, requerida por las migraciones.
+- Se detectó que `.env.example` quedaba ignorado por una regla `.env*`; se agregó la excepción `!.env.example` en `apps/api/.gitignore`.
+- El equipo definió que la primera migración y el seed con datos se incorporen en C2-06.
