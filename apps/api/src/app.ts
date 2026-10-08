@@ -4,16 +4,31 @@ import morgan from 'morgan';
 
 import errorHandler from './middlewares/errorHandler';
 import { checkDatabaseConnection } from './infrastructure/database/checkDatabase';
+import { domainErrorHandler } from './shared/http/domainErrorHandler';
+import { unauthenticatedActorResolver, type ActorResolver } from './shared/http/actorResolver';
+import { createOrganizationRouter } from './modules/organization/infrastructure/http/organizationRoutes';
+import {
+  createPrismaCreateStore,
+  type CreateStore,
+} from './modules/organization/infrastructure/organizationModule';
 
 export type AppDependencies = {
   checkDatabase: () => Promise<boolean>;
+  resolveActor: ActorResolver;
+  createStore: CreateStore;
 };
 
-const defaultDependencies: AppDependencies = {
-  checkDatabase: checkDatabaseConnection,
-};
+function defaultDependencies(): AppDependencies {
+  return {
+    checkDatabase: checkDatabaseConnection,
+    resolveActor: unauthenticatedActorResolver,
+    createStore: createPrismaCreateStore(),
+  };
+}
 
-export function createApp(dependencies: AppDependencies = defaultDependencies) {
+export function createApp(overrides: Partial<AppDependencies> = {}) {
+  const dependencies: AppDependencies = { ...defaultDependencies(), ...overrides };
+
   const app = express();
 
   const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:3000';
@@ -39,12 +54,21 @@ export function createApp(dependencies: AppDependencies = defaultDependencies) {
     });
   });
 
+  app.use(
+    '/api/v1',
+    createOrganizationRouter({
+      createStore: dependencies.createStore,
+      resolveActor: dependencies.resolveActor,
+    }),
+  );
+
   app.use((_req, res) => {
     res.status(404).json({
       error: 'Ruta no encontrada',
     });
   });
 
+  app.use(domainErrorHandler);
   app.use(errorHandler);
 
   return app;
