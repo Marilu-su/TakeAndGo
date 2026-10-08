@@ -13,3 +13,33 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum StoreStatus {
+  PENDING_SETUP
+  ACTIVE
+  INACTIVE
+}
+
+model Organization {
+  id             String   @id @default(uuid())
+  name           String
+  maxAdvanceDays Int      @default(7)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  stores Store[]
+}
+
+model Store {
+  id             String      @id @default(uuid())
+  organizationId String
+  name           String
+  code           String      @unique
+  status         StoreStatus @default(PENDING_SETUP)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId])
+}

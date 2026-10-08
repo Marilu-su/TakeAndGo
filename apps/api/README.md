@@ -36,7 +36,7 @@ Todos los comandos se ejecutan desde `apps/api`.
 | --- | --- | --- |
 | `PORT` | Puerto del servidor | `3001` |
 | `CORS_ORIGIN` | Origen permitido para CORS (URL del frontend) | `http://localhost:3000` |
-| `DATABASE_URL` | Conexión a PostgreSQL | `postgresql://USER:PASSWORD@HOST:5432/takeandgo?sslmode=require` |
+| `DATABASE_URL` | Conexión a PostgreSQL | `postgresql://USER:PASSWORD@HOST:5432/takeandgo?sslmode=verify-full` |
 
 El archivo `.env` no se versiona. Nunca subir connection strings reales al repositorio.
 
@@ -48,7 +48,7 @@ Para crear una base gratuita en Neon:
 
 1. Crear una cuenta en https://neon.tech y un proyecto nuevo.
 2. En **Connect**, desactivar **Connection pooling** y copiar la connection string. Las migraciones de Prisma requieren conexión directa.
-3. Pegarla en `DATABASE_URL` dentro de `.env`.
+3. Pegarla en `DATABASE_URL` dentro de `.env`, reemplazando `sslmode=require` por `sslmode=verify-full` (mantiene la verificación del certificado y evita el aviso de seguridad de `pg`).
 
 ## Comandos de base de datos
 
@@ -73,8 +73,10 @@ npm run db:seed
 2. Crear la migración con un nombre descriptivo:
 
 ```bash
-   npm run db:migrate -- --name agregar_organization
+   npx prisma migrate dev --name agregar_organization
 ```
+
+   En PowerShell no usar `npm run db:migrate -- --name ...`: PowerShell descarta el `--` y Prisma termina pidiendo el nombre de forma interactiva.
 
 3. Versionar el cambio en `schema.prisma` junto con la carpeta generada en `prisma/migrations`.
 
@@ -114,3 +116,32 @@ No crear instancias propias de `PrismaClient` ni conexiones directas a PostgreSQ
 ```
 
 `database` vale `"error"` si la base no responde dentro de 3 segundos o si `DATABASE_URL` no está configurada.
+
+## Endpoints
+
+### Organización y buffets
+
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| `POST` | `/api/v1/organizations/:organizationId/stores` | Crea un buffet en la organización (solo ORGANIZATION_ADMIN de esa organización) |
+
+Cuerpo:
+
+```json
+{
+  "name": "Buffet Sistemas",
+  "code": "SIS001"
+}
+```
+
+| Código | Caso |
+| --- | --- |
+| `201` | Buffet creado, en estado `PENDING_SETUP` |
+| `400` | Faltan `name` o `code` (`INVALID_REQUEST`) |
+| `401` | Usuario no autenticado (`UNAUTHENTICATED`) |
+| `403` | El usuario no administra esa organización (`FORBIDDEN`) |
+| `404` | La organización no existe (`ORGANIZATION_NOT_FOUND`) |
+| `409` | El código ya existe (`STORE_CODE_ALREADY_EXISTS`) |
+| `422` | Código o nombre inválidos (`INVALID_STORE_CODE`, `INVALID_STORE_NAME`) |
+
+**Autenticación pendiente (TDD-0001):** las reglas de autorización están implementadas y testeadas, pero todavía no existe la autenticación. Hasta entonces, el resolver de actor (`src/shared/http/actorResolver.ts`) no identifica a ningún usuario y el endpoint responde `401`.
