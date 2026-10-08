@@ -39,8 +39,9 @@ test('el middleware de errores responde 500', async () => {
   assert.deepEqual(response.body, {
     error: 'Error interno del servidor',
   });
+});
 
-  test('GET /health informa la base de datos como ok cuando responde', async () => {
+test('GET /health informa la base de datos como ok cuando responde', async () => {
   const testApp = createApp({ checkDatabase: async () => true });
 
   const response = await request(testApp).get('/health');
@@ -58,6 +59,4 @@ test('GET /health informa la base de datos con error cuando no responde', async 
   assert.equal(response.status, 200);
   assert.equal(response.body.status, 'ok');
   assert.equal(response.body.database, 'error');
-});
-
 });
