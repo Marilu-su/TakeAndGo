@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import request from 'supertest';
 
-import app from '../src/app';
+import app, { createApp } from '../src/app';
 import errorHandler from '../src/middlewares/errorHandler';
 
 test('GET /health responde 200 y estado ok', async () => {
@@ -39,4 +39,25 @@ test('el middleware de errores responde 500', async () => {
   assert.deepEqual(response.body, {
     error: 'Error interno del servidor',
   });
+
+  test('GET /health informa la base de datos como ok cuando responde', async () => {
+  const testApp = createApp({ checkDatabase: async () => true });
+
+  const response = await request(testApp).get('/health');
+
+  assert.equal(response.status, 200);
+  assert.equal(response.body.status, 'ok');
+  assert.equal(response.body.database, 'ok');
+});
+
+test('GET /health informa la base de datos con error cuando no responde', async () => {
+  const testApp = createApp({ checkDatabase: async () => false });
+
+  const response = await request(testApp).get('/health');
+
+  assert.equal(response.status, 200);
+  assert.equal(response.body.status, 'ok');
+  assert.equal(response.body.database, 'error');
+});
+
 });
