@@ -261,3 +261,41 @@ Se verificó:
 - Se reemplazó la conexión con pooler de Neon por la conexión directa, requerida por las migraciones.
 - Se detectó que `.env.example` quedaba ignorado por una regla `.env*`; se agregó la excepción `!.env.example` en `apps/api/.gitignore`.
 - El equipo definió que la primera migración y el seed con datos se incorporen en C2-06.
+
+---
+
+### 2026-10-07 — Organización y buffets (TDD-0003)
+
+**TDD / Issue:** C2-06 — Implementar Organization y Buffet 
+**Autor humano:** Flores Lautaro  
+**Herramienta/modelo:** Claude (Anthropic) — Claude Opus 5.5  
+**Prompt / instrucción utilizada:** Preguntas sobre la implementación de Organization y Store en etapas, con arquitectura hexagonal y tests en cada etapa.
+
+#### Problema
+
+Implementar el organizaciones y buffets sin que exista todavía la autenticación, sin dejar afuera las reglas de autorización.
+
+#### Propuesta de la IA
+
+- Estructura por módulo: `src/modules/organization/{domain,application,infrastructure}`, con `src/shared` para errores de dominio y el `Actor`.
+- Unicidad del código garantizada por la constraint de la base (P2002 → `STORE_CODE_ALREADY_EXISTS`), para cubrir pedidos concurrentes.
+- `GetStoreConfiguration` como contrato interno entre módulos, sin control de permisos de usuario.
+- Traducción centralizada de errores de dominio a códigos HTTP.
+- Resolver de actor inyectable que, hasta TDD-0001, no identifica usuarios (`401`).
+
+
+#### Validación humana
+
+Se verificó:
+
+- migración desde base vacía (`prisma migrate reset`) y seed idempotente ejecutado dos veces;
+- 37 tests (dominio, casos de uso, HTTP e integración con PostgreSQL);
+- `401` del endpoint sin autenticación mediante una request manual.
+
+#### Correcciones o cambios hechos por el equipo
+
+- La IA propuso inicialmente implementar los endpoints sin control de permisos y dejar el RBAC pendiente. El equipo lo rechazó porque contradice lo planificado, y definió separar autenticación de autorización (implementada y testeada ahora mediante un `Actor`).
+- Se decidió normalizar el código de buffet a mayúsculas, ya que el master no define si distingue mayúsculas y minúsculas; queda a validar con C2-04 (asociación por código).
+- Los códigos de error `INVALID_STORE_CODE`, `INVALID_STORE_NAME`, `INVALID_REQUEST`, `ORGANIZATION_NOT_FOUND` y `STORE_NOT_FOUND` se nombraron siguiendo el estilo de los existentes.
+- Solo se expuso por HTTP la creación de buffets; los casos de uso de baja y configuración de anticipación quedan implementados y testeados, pendientes de exponer.
+- Se reemplazó `sslmode=require` por `sslmode=verify-full` a partir de un aviso de seguridad de `pg`.
