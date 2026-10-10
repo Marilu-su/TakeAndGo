@@ -299,3 +299,56 @@ Se verificó:
 - Los códigos de error `INVALID_STORE_CODE`, `INVALID_STORE_NAME`, `INVALID_REQUEST`, `ORGANIZATION_NOT_FOUND` y `STORE_NOT_FOUND` se nombraron siguiendo el estilo de los existentes.
 - Solo se expuso por HTTP la creación de buffets; los casos de uso de baja y configuración de anticipación quedan implementados y testeados, pendientes de exponer.
 - Se reemplazó `sslmode=require` por `sslmode=verify-full` a partir de un aviso de seguridad de `pg`.
+
+---
+
+### 2026-10-09 — Customer y persistencia
+
+**TDD / Issue:** C2-03 — Customer + persistencia  
+**Autor humano:** Suarez Luana  
+**Herramienta/modelo:** ChatGPT — GPT-5.6 Sol  
+**Prompt / instrucción utilizada:** Asistir en las decisiones de diseño para implementar Customer y su persistencia respetando la arquitectura y el alcance definido para C2-03.
+
+#### Problema
+
+Era necesario definir cómo incorporar Customer al backend sin mezclar responsabilidades correspondientes a autenticación o a la asociación Customer-Buffet.
+
+#### Contexto dado a la IA
+
+Se consideraron:
+
+- la arquitectura modular existente `domain / application / infrastructure`;
+- el módulo `organization` de C2-06 como referencia;
+- PostgreSQL + Prisma ya configurados en C2-07;
+- la separación de alcance entre C2-03, C2-04 y TDD-0001.
+
+#### Propuesta de la IA
+
+Se propusieron las siguientes decisiones:
+
+- modelar `Customer` inicialmente con `id`, `name` y `email`;
+- mantener contraseña y demás datos de autenticación fuera del dominio Customer hasta implementar TDD-0001;
+- mantener la relación Customer-Buffet fuera de C2-03 y resolverla en C2-04;
+- normalizar el email antes de persistirlo y garantizar su unicidad mediante una constraint de PostgreSQL;
+- mantener la capa de aplicación desacoplada de Prisma mediante `CustomerRepositoryPort`;
+- traducir la violación de unicidad de Prisma a un error de dominio `CUSTOMER_EMAIL_ALREADY_EXISTS`;
+- mantener para Customer la misma separación `domain / application / infrastructure` utilizada por el módulo Organization;
+- no exponer todavía un endpoint HTTP de registro de Customer, ya que el registro completo depende de autenticación y de la asociación inicial a un buffet.
+
+#### Validación humana
+
+El equipo revisó estas decisiones contra el alcance de C2-03 y la arquitectura ya implementada.
+
+Se verificó además que la solución mantiene separados dominio, aplicación e infraestructura y que la persistencia y la unicidad del email funcionan mediante pruebas automatizadas.
+
+#### Correcciones o cambios hechos por el equipo
+
+- Se descartó implementar contraseña o autenticación dentro de Customer por pertenecer a TDD-0001.
+- Se descartó incorporar la relación Customer-Buffet dentro de C2-03 por pertenecer a C2-04.
+- Se decidió no crear un endpoint HTTP parcial de registro para evitar definir prematuramente un contrato que dependa de funcionalidades todavía no implementadas.---
+
+ #### Correcciones o cambios hechos por el equipo
+
+- Se descartó implementar contraseña o autenticación dentro de Customer por pertenecer a TDD-0001.
+- Se descartó incorporar la relación Customer-Buffet dentro de C2-03 por pertenecer a C2-04.
+- Se decidió no crear un endpoint HTTP parcial de registro para evitar definir prematuramente un contrato que dependa de funcionalidades todavía no implementadas.
