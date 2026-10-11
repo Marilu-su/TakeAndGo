@@ -5,6 +5,12 @@ import { getPrisma } from '../src/infrastructure/database/prisma';
 const SEED_ORGANIZATION_ID = '11111111-1111-4111-8111-111111111111';
 const SEED_STORE_CODE = 'SIS001';
 
+const SEED_CATEGORIES = [
+    { id: '22222222-2222-4222-8222-222222222221', name: 'Bebidas' },
+    { id: '22222222-2222-4222-8222-222222222222', name: 'Sándwiches' },
+    { id: '22222222-2222-4222-8222-222222222223', name: 'Panadería' },
+];
+
 async function main() {
     const prisma = getPrisma();
 
@@ -28,7 +34,21 @@ async function main() {
         },
     });
 
-    console.log(`Seed ejecutado: organización "${organization.name}" y buffet "${store.name}" (${store.code}).`);
+    for (const category of SEED_CATEGORIES) {
+        await prisma.category.upsert({
+            where: { id: category.id },
+            update: {},
+            create: {
+                id: category.id,
+                storeId: store.id,
+                name: category.name,
+            },
+        });
+    }
+
+    console.log(
+        `Seed ejecutado: organización "${organization.name}", buffet "${store.name}" (${store.code}) y ${SEED_CATEGORIES.length} categorías.`,
+    );
 }
 
 main()
@@ -42,6 +62,6 @@ main()
         try {
             await getPrisma().$disconnect();
         } catch {
-        // No hay conexión para cerrar.
+            // No hay conexión para cerrar.
         }
     });
