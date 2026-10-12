@@ -448,3 +448,53 @@ Se verificó:
 - Se evitó agregar `joinedAt`, estado u otros atributos a `CustomerStoreMembership` porque no son necesarios para el alcance actual.
 - Se reutilizó la validación existente de `StoreCode` en lugar de crear una segunda regla dentro del módulo Customer.
 - Se mantuvo fuera de C2-04 la exposición HTTP dependiente de autenticación para no definir prematuramente cómo se obtiene la identidad del Customer.
+
+---
+
+### 2026-10-12 — Estrategia de pruebas integradas Customer-Buffet
+
+**TDD / Issue:** C2-05 — Tests Customer/Buffet
+**Autor humano:** Suarez Luana
+**Herramienta/modelo:** ChatGPT — GPT-5.6 Sol
+**Prompt / instrucción utilizada:** Definir qué pruebas adicionales aportarían valor para Customer-Buffet sin duplicar la cobertura unitaria e integración ya desarrollada en C2-03 y C2-04.
+
+#### Problema
+
+Era necesario completar la cobertura de Customer-Buffet sin repetir pruebas ya existentes sobre dominio, casos de uso y repositorios.
+
+#### Contexto dado a la IA
+
+Se consideraron:
+
+- las pruebas existentes de Customer de C2-03;
+- las pruebas unitarias e integración de Customer-Buffet desarrolladas en C2-04;
+- los casos de uso conectados mediante `customerModule`;
+- la persistencia real en PostgreSQL mediante Prisma.
+
+#### Propuesta de la IA
+
+Se decidió concentrar C2-05 en pruebas de flujo integrado que atraviesen aplicación, repositorios Prisma y PostgreSQL.
+
+Se cubrieron:
+
+- creación de Customer, asociación mediante código y posterior consulta del buffet;
+- asociación de un mismo Customer a buffets de distintas organizaciones;
+- normalización del código y rechazo de asociaciones duplicadas;
+- aislamiento de asociaciones entre distintos Customers.
+
+Se descartó agregar más pruebas que repitieran escenarios ya cubiertos en C2-03 y C2-04.
+
+#### Validación humana
+
+Se verificó:
+
+- ejecución exitosa de `npm run typecheck`;
+- ejecución exitosa de 94 pruebas automatizadas;
+- ejecución real de los nuevos flujos contra PostgreSQL;
+- limpieza de los datos creados por cada prueba.
+
+#### Correcciones o cambios hechos por el equipo
+
+- Se evitó duplicar pruebas unitarias ya existentes.
+- Se concentró C2-05 en escenarios integrados de mayor alcance.
+- No se agregaron pruebas HTTP de Customer-Buffet porque esos endpoints dependen todavía de la integración de autenticación.
