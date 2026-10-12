@@ -201,6 +201,189 @@ test(
     },
 );
 
+test(
+    'flujo integrado: normaliza el código y rechaza una asociación duplicada',
+    { skip: hasDatabase ? false : 'Requiere DATABASE_URL' },
+    async () => {
+        const prisma = getPrisma();
+
+        const organization = await prisma.organization.create({
+            data: {
+                name: `Organización duplicado C2-05 ${randomUUID()}`,
+            },
+        });
+
+        const storeCode = randomStoreCode();
+
+        const store = await prisma.store.create({
+            data: {
+                organizationId: organization.id,
+                name: 'Buffet duplicado C2-05',
+                code: storeCode,
+            },
+        });
+
+        let customerId: string | undefined;
+
+        try {
+            const createCustomer = createPrismaCreateCustomer();
+
+            const customer = await createCustomer({
+                name: 'Customer duplicado integración',
+                email: `c2-05-duplicate-${randomUUID()}@test.com`,
+            });
+
+            customerId = customer.id;
+
+            const associateCustomerToStore =
+                createPrismaAssociateCustomerToStore();
+
+            await associateCustomerToStore({
+                customerId: customer.id,
+                storeCode: ` ${storeCode.toLowerCase()} `,
+            });
+
+            await assert.rejects(
+                associateCustomerToStore({
+                    customerId: customer.id,
+                    storeCode,
+                }),
+                {
+                    code: 'CUSTOMER_ALREADY_ASSOCIATED_TO_STORE',
+                },
+            );
+
+            const memberships =
+                await prisma.customerStoreMembership.findMany({
+                    where: {
+                        customerId: customer.id,
+                    },
+                });
+
+            assert.equal(memberships.length, 1);
+            assert.equal(memberships[0]?.storeId, store.id);
+        } finally {
+            if (customerId) {
+                await prisma.customerStoreMembership.deleteMany({
+                    where: { customerId },
+                });
+
+                await prisma.customer.deleteMany({
+                    where: { id: customerId },
+                });
+            }
+
+            await prisma.store.deleteMany({
+                where: { id: store.id },
+            });
+
+            await prisma.organization.deleteMany({
+                where: { id: organization.id },
+            });
+        }
+    },
+);
+
+test(
+    'flujo integrado: cada customer consulta solamente sus propios buffets',
+    { skip: hasDatabase ? false : 'Requiere DATABASE_URL' },
+    async () => {
+        const prisma = getPrisma();
+
+        const organization = await prisma.organization.create({
+            data: {
+                name: `Organización aislamiento C2-05 ${randomUUID()}`,
+            },
+        });
+
+        const storeOne = await prisma.store.create({
+            data: {
+                organizationId: organization.id,
+                name: 'Buffet customer uno',
+                code: randomStoreCode(),
+            },
+        });
+
+        const storeTwo = await prisma.store.create({
+            data: {
+                organizationId: organization.id,
+                name: 'Buffet customer dos',
+                code: randomStoreCode(),
+            },
+        });
+
+        const customerIds: string[] = [];
+
+        try {
+            const createCustomer = createPrismaCreateCustomer();
+
+            const customerOne = await createCustomer({
+                name: 'Customer uno',
+                email: `c2-05-one-${randomUUID()}@test.com`,
+            });
+
+            const customerTwo = await createCustomer({
+                name: 'Customer dos',
+                email: `c2-05-two-${randomUUID()}@test.com`,
+            });
+
+            customerIds.push(customerOne.id, customerTwo.id);
+
+            const associateCustomerToStore =
+                createPrismaAssociateCustomerToStore();
+
+            await associateCustomerToStore({
+                customerId: customerOne.id,
+                storeCode: storeOne.code,
+            });
+
+            await associateCustomerToStore({
+                customerId: customerTwo.id,
+                storeCode: storeTwo.code,
+            });
+
+            const listCustomerStores = createPrismaListCustomerStores();
+
+            const storesOne = await listCustomerStores(customerOne.id);
+            const storesTwo = await listCustomerStores(customerTwo.id);
+
+            assert.equal(storesOne.length, 1);
+            assert.equal(storesOne[0]?.id, storeOne.id);
+
+            assert.equal(storesTwo.length, 1);
+            assert.equal(storesTwo[0]?.id, storeTwo.id);
+        } finally {
+            await prisma.customerStoreMembership.deleteMany({
+                where: {
+                    customerId: {
+                        in: customerIds,
+                    },
+                },
+            });
+
+            await prisma.customer.deleteMany({
+                where: {
+                    id: {
+                        in: customerIds,
+                    },
+                },
+            });
+
+            await prisma.store.deleteMany({
+                where: {
+                    id: {
+                        in: [storeOne.id, storeTwo.id],
+                    },
+                },
+            });
+
+            await prisma.organization.deleteMany({
+                where: { id: organization.id },
+            });
+        }
+    },
+);
+
 after(async () => {
     if (hasDatabase) {
         await getPrisma().$disconnect();
