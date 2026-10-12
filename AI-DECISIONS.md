@@ -396,9 +396,9 @@ Se verificó:
 
 ### 2026-10-12 — Asociación Customer-Buffet
 
-**TDD / Issue:** C2-04 — Customer ↔ Buffet  
-**Autor humano:** Suarez Luana  
-**Herramienta/modelo:** ChatGPT — GPT-5.6 Sol  
+**TDD / Issue:** C2-04 — Customer ↔ Buffet
+**Autor humano:** Suarez Luana
+**Herramienta/modelo:** ChatGPT — GPT-5.6 Sol
 **Prompt / instrucción utilizada:** Asistir en las decisiones de diseño para implementar la asociación entre Customer y Buffet mediante código, respetando las reglas funcionales y la arquitectura modular existente.
 
 #### Problema
