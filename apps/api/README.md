@@ -164,4 +164,60 @@ Solo el administrador del buffet (STORE_ADMIN) puede administrar sus categorías
 | `404` | El buffet o la categoría no existen (`STORE_NOT_FOUND`, `CATEGORY_NOT_FOUND`) |
 | `422` | Nombre inválido (`INVALID_CATEGORY_NAME`) |
 
+### Productos
+
+Solo el administrador del buffet (STORE_ADMIN) puede administrar sus productos. Los precios se expresan en **centavos** como números enteros (por ejemplo, `150000` = $1.500) para evitar errores de redondeo. El tiempo base de preparación se expresa en **segundos**.
+
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| `POST` | `/api/v1/stores/:storeId/products` | Crea un producto |
+| `GET` | `/api/v1/stores/:storeId/products` | Lista los productos del buffet, activos e inactivos |
+| `PATCH` | `/api/v1/stores/:storeId/products/:productId` | Modifica uno o más campos de un producto |
+| `POST` | `/api/v1/stores/:storeId/products/:productId/deactivate` | Desactiva un producto sin borrarlo |
+| `GET` | `/api/v1/stores/:storeId/products/:productId/additions` | Lista los adicionales configurados para el producto |
+| `PUT` | `/api/v1/stores/:storeId/products/:productId/additions` | Reemplaza la lista de adicionales del producto |
+
+Cuerpo para crear un producto (`description` es opcional):
+
+```json
+{
+  "categoryId": "id-de-la-categoria",
+  "name": "Café con leche",
+  "description": "Taza grande",
+  "priceCents": 150000,
+  "basePreparationSeconds": 120
+}
+```
+
+Cuerpo para configurar adicionales (una lista vacía quita todos):
+
+```json
+{
+  "additionIds": ["id-adicional-1", "id-adicional-2"]
+}
+```
+
+La categoría y los adicionales deben pertenecer al mismo buffet que el producto. Esta regla también está garantizada por la base de datos mediante claves foráneas compuestas. Configurar adicionales es una operación atómica: si algún adicional es inválido, no se guarda ningún cambio.
+
+### Adicionales
+
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| `POST` | `/api/v1/stores/:storeId/additions` | Crea un adicional (cuerpo: `{ "name": "Queso", "priceCents": 30000 }`) |
+| `GET` | `/api/v1/stores/:storeId/additions` | Lista los adicionales del buffet, activos e inactivos |
+| `PATCH` | `/api/v1/stores/:storeId/additions/:additionId` | Modifica el nombre o el precio |
+| `POST` | `/api/v1/stores/:storeId/additions/:additionId/deactivate` | Desactiva un adicional sin borrarlo |
+
+El tiempo extra de preparación por adicional no se configura en cada adicional: es un único valor por buffet (30 segundos por defecto), que se incorporará junto con los parámetros de planificación de cocina.
+
+### Errores de productos y adicionales
+
+| Código | Caso |
+| --- | --- |
+| `400` | Faltan campos, tienen un tipo incorrecto o la modificación no indica ningún campo (`INVALID_REQUEST`) |
+| `401` | Usuario no autenticado (`UNAUTHENTICATED`) |
+| `403` | El usuario no administra ese buffet (`FORBIDDEN`) |
+| `404` | El buffet, el producto o el adicional no existen (`STORE_NOT_FOUND`, `PRODUCT_NOT_FOUND`, `ADDITION_NOT_FOUND`) |
+| `422` | Nombre, precio o tiempo inválidos (`INVALID_PRODUCT_NAME`, `INVALID_ADDITION_NAME`, `INVALID_PRICE`, `INVALID_PREPARATION_TIME`), o categoría o adicional de otro buffet (`INVALID_CATEGORY_SCOPE`, `INVALID_ADDITION_SCOPE`) |
+
 **Autenticación pendiente:** las reglas de autorización están implementadas y testeadas, pero todavía no existe la autenticación. Hasta entonces, el resolver de actor (`src/shared/http/actorResolver.ts`) no identifica a ningún usuario y los endpoints protegidos responden `401`.

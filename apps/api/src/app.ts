@@ -13,15 +13,23 @@ import {
 } from './modules/organization/infrastructure/organizationModule';
 import { createCategoryRouter } from './modules/catalog/infrastructure/http/categoryRoutes';
 import {
+  createPrismaAdditionUseCases,
   createPrismaCategoryUseCases,
+  createPrismaProductUseCases,
+  type AdditionUseCases,
   type CategoryUseCases,
+  type ProductUseCases,
 } from './modules/catalog/infrastructure/catalogModule';
+import { createProductRouter } from './modules/catalog/infrastructure/http/productRoutes';
+import { createAdditionRouter } from './modules/catalog/infrastructure/http/additionRoutes';
 
 export type AppDependencies = {
   checkDatabase: () => Promise<boolean>;
   resolveActor: ActorResolver;
   createStore: CreateStore;
   categoryUseCases: CategoryUseCases;
+  productUseCases: ProductUseCases;
+  additionUseCases: AdditionUseCases;
 };
 
 function defaultDependencies(): AppDependencies {
@@ -30,6 +38,8 @@ function defaultDependencies(): AppDependencies {
     resolveActor: unauthenticatedActorResolver,
     createStore: createPrismaCreateStore(),
     categoryUseCases: createPrismaCategoryUseCases(),
+    productUseCases: createPrismaProductUseCases(),
+    additionUseCases: createPrismaAdditionUseCases(),
   };
 }
 
@@ -73,6 +83,22 @@ export function createApp(overrides: Partial<AppDependencies> = {}) {
     '/api/v1',
     createCategoryRouter({
       useCases: dependencies.categoryUseCases,
+      resolveActor: dependencies.resolveActor,
+    }),
+  );
+
+  app.use(
+    '/api/v1',
+    createProductRouter({
+      useCases: dependencies.productUseCases,
+      resolveActor: dependencies.resolveActor,
+    }),
+  );
+
+  app.use(
+    '/api/v1',
+    createAdditionRouter({
+      useCases: dependencies.additionUseCases,
       resolveActor: dependencies.resolveActor,
     }),
   );
