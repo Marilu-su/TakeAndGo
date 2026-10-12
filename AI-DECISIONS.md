@@ -448,3 +448,44 @@ Se verificó:
 - Se evitó agregar `joinedAt`, estado u otros atributos a `CustomerStoreMembership` porque no son necesarios para el alcance actual.
 - Se reutilizó la validación existente de `StoreCode` en lugar de crear una segunda regla dentro del módulo Customer.
 - Se mantuvo fuera de C2-04 la exposición HTTP dependiente de autenticación para no definir prematuramente cómo se obtiene la identidad del Customer.
+
+---
+
+### 2026-10-12 — Productos y adicionales
+
+**TDD / Issue:** C2-09 — Implementar productos y adicionales  
+**Autor humano:** Flores Lautaro  
+**Herramienta/modelo:** Claude (Anthropic) — Claude Opus 5.5  
+**Prompt / instrucción utilizada:** Asistir en la implementación de productos y adicionales del catálogo, con precios seguros, aislamiento entre buffets y configuración atómica de adicionales por producto.
+
+#### Problema
+
+Cada buffet necesita cargar productos con precio y tiempo de preparación, y adicionales con precio propio asociables a sus productos. Había que impedir que productos, categorías y adicionales de distintos buffets se mezclaran, y manejar el dinero sin errores de redondeo.
+
+#### Contexto dado a la IA
+
+- reglas del documento funcional del equipo: cada producto pertenece a una única categoría, un producto puede tener cero o más adicionales con precio propio, los precios los define el administrador del buffet, el dinero no se maneja con decimales binarios y desactivar no elimina;
+- módulo de catálogo y patrones de C2-08;
+- decisión del equipo sobre el tiempo extra de preparación de los adicionales.
+
+#### Propuesta de la IA
+
+- Precios en centavos como enteros (`priceCents`), tanto en la base como en la API, para evitar errores de redondeo de los números decimales.
+- Tiempo base de preparación en segundos (`basePreparationSeconds`), para usar la misma unidad que el tiempo extra de los adicionales.
+- Claves foráneas compuestas (`id` + `storeId`) para que la base de datos impida asociar un producto a una categoría de otro buffet, o un adicional de otro buffet a un producto, como segunda línea de defensa además de la validación del dominio.
+- Reemplazo de los adicionales de un producto dentro de una transacción, para que la operación sea atómica.
+- Mismo error para recursos inexistentes y de otro buffet, para no revelar información de otros buffets.
+- `PUT` para reemplazar la lista completa de adicionales y `PATCH` para modificaciones parciales.
+
+#### Validación humana
+
+Se verificó:
+
+- migración con las claves compuestas y seed idempotente con productos, adicionales y sus asociaciones;
+- 139 tests, incluido un test de integración contra PostgreSQL que comprueba que la base rechaza mezclar buffets y que la transacción deshace los cambios cuando un adicional es inválido;
+- respuesta `401` de los endpoints sin autenticación mediante una request manual.
+
+#### Correcciones o cambios hechos por el equipo
+
+- El documento funcional y la especificación técnica del catálogo no coincidían sobre el tiempo extra de los adicionales. El equipo definió un único valor por buffet (30 segundos por defecto), por lo que el adicional no tiene tiempo de preparación propio; ese parámetro se incorporará junto con la planificación de cocina.
+- La descripción del producto se definió como opcional.
