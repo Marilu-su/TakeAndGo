@@ -11,11 +11,17 @@ import {
   createPrismaCreateStore,
   type CreateStore,
 } from './modules/organization/infrastructure/organizationModule';
+import { createCategoryRouter } from './modules/catalog/infrastructure/http/categoryRoutes';
+import {
+  createPrismaCategoryUseCases,
+  type CategoryUseCases,
+} from './modules/catalog/infrastructure/catalogModule';
 
 export type AppDependencies = {
   checkDatabase: () => Promise<boolean>;
   resolveActor: ActorResolver;
   createStore: CreateStore;
+  categoryUseCases: CategoryUseCases;
 };
 
 function defaultDependencies(): AppDependencies {
@@ -23,6 +29,7 @@ function defaultDependencies(): AppDependencies {
     checkDatabase: checkDatabaseConnection,
     resolveActor: unauthenticatedActorResolver,
     createStore: createPrismaCreateStore(),
+    categoryUseCases: createPrismaCategoryUseCases(),
   };
 }
 
@@ -58,6 +65,14 @@ export function createApp(overrides: Partial<AppDependencies> = {}) {
     '/api/v1',
     createOrganizationRouter({
       createStore: dependencies.createStore,
+      resolveActor: dependencies.resolveActor,
+    }),
+  );
+
+  app.use(
+    '/api/v1',
+    createCategoryRouter({
+      useCases: dependencies.categoryUseCases,
       resolveActor: dependencies.resolveActor,
     }),
   );

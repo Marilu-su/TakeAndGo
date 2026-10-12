@@ -8,10 +8,12 @@ const HTTP_STATUS_BY_CODE: Record<string, number> = {
     FORBIDDEN: 403,
     ORGANIZATION_NOT_FOUND: 404,
     STORE_NOT_FOUND: 404,
+    CATEGORY_NOT_FOUND: 404,
     STORE_CODE_ALREADY_EXISTS: 409,
     INVALID_STORE_CODE: 422,
     INVALID_STORE_NAME: 422,
     INVALID_MAX_ADVANCE_DAYS: 422,
+    INVALID_CATEGORY_NAME: 422,
 };
 
 export const domainErrorHandler: ErrorRequestHandler = (error, _req, res, next) => {

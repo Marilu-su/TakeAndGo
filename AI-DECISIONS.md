@@ -352,3 +352,41 @@ Se verificó además que la solución mantiene separados dominio, aplicación e 
 - Se descartó implementar contraseña o autenticación dentro de Customer por pertenecer a TDD-0001.
 - Se descartó incorporar la relación Customer-Buffet dentro de C2-03 por pertenecer a C2-04.
 - Se decidió no crear un endpoint HTTP parcial de registro para evitar definir prematuramente un contrato que dependa de funcionalidades todavía no implementadas.
+
+---
+
+### 2026-10-11 — Categorías del catálogo
+
+**TDD / Issue:** C2-08 — Implementar categorías del catálogo  
+**Autor humano:** Flores Lautaro  
+**Herramienta/modelo:** Claude (Anthropic) — Claude Opus 5.5  
+**Prompt / instrucción utilizada:** Implementación de categorías del catálogo por buffet, siguiendo la estructura y los patrones definidos en C2-06.
+
+#### Problema
+
+Cada buffet necesita organizar su catálogo en categorías que solo su administrador pueda gestionar. El módulo de catálogo debía verificar que el buffet existe sin acceder directamente a las tablas del módulo de organización.
+
+#### Contexto dado a la IA
+
+- reglas de catálogo del documento funcional del equipo: cada categoría pertenece a un buffet, solo el administrador del buffet modifica su catálogo y desactivar no elimina;
+- estructura de módulos y patrones de C2-06 (Actor, puertos, inyección de dependencias);
+
+#### Propuesta de la IA
+
+- Nuevo módulo `catalog`, donde también se ubicarán productos y adicionales.
+- Autorización exclusiva del STORE_ADMIN del buffet; el ORGANIZATION_ADMIN no opera el catálogo.
+- Puerto `StoreScopePort` en el catálogo, implementado mediante el contrato `GetStoreConfiguration` del módulo de organización, para no acceder a tablas de otro módulo.
+- Desactivación mediante `POST .../deactivate` en lugar de `DELETE`, ya que la categoría no se elimina.
+- Helper `requireActor` para centralizar la respuesta `401`.
+
+#### Validación humana
+
+Se verificó:
+
+- migración de `Category` y seed idempotente con tres categorías de ejemplo;
+- 77 tests (dominio, casos de uso, HTTP e integración con PostgreSQL, incluido el puente entre módulos);
+- `401` de los endpoints sin autenticación mediante una request manual.
+
+#### Correcciones o cambios hechos por el equipo
+
+- Queda pendiente definir con el equipo si el nombre de una categoría debe ser único dentro de un buffet, ya que no está especificado.
