@@ -31,16 +31,16 @@ model Organization {
 }
 
 model Store {
-  id             String      @id @default(uuid())
+  id             String                    @id @default(uuid())
   organizationId String
   name           String
-  code           String      @unique
-  status         StoreStatus @default(PENDING_SETUP)
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
-
-  organization Organization @relation(fields: [organizationId], references: [id])
-  categories   Category[]
+  code           String                    @unique
+  status         StoreStatus               @default(PENDING_SETUP)
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
+  organization   Organization              @relation(fields: [organizationId], references: [id])
+  categories     Category[]
+  memberships    CustomerStoreMembership[]
 
   @@index([organizationId])
 }
@@ -51,6 +51,18 @@ model Customer {
   email     String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  memberships CustomerStoreMembership[]
+}
+
+model CustomerStoreMembership {
+  customerId String
+  storeId    String
+
+  customer Customer @relation(fields: [customerId], references: [id])
+  store    Store    @relation(fields: [storeId], references: [id])
+
+  @@id([customerId, storeId])
 }
 
 model Category {
