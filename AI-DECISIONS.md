@@ -390,3 +390,61 @@ Se verificó:
 #### Correcciones o cambios hechos por el equipo
 
 - Queda pendiente definir con el equipo si el nombre de una categoría debe ser único dentro de un buffet, ya que no está especificado.
+
+
+---
+
+### 2026-10-12 — Asociación Customer-Buffet
+
+**TDD / Issue:** C2-04 — Customer ↔ Buffet
+**Autor humano:** Suarez Luana
+**Herramienta/modelo:** ChatGPT — GPT-5.6 Sol
+**Prompt / instrucción utilizada:** Asistir en las decisiones de diseño para implementar la asociación entre Customer y Buffet mediante código, respetando las reglas funcionales y la arquitectura modular existente.
+
+#### Problema
+
+Era necesario permitir que un Customer pudiera asociarse a uno o más buffets mediante su código, evitando asociaciones duplicadas y manteniendo desacopladas las capas de aplicación y persistencia.
+
+#### Contexto dado a la IA
+
+Se consideraron:
+
+- el modelo Customer implementado en C2-03;
+- Organization y Store implementados en C2-06;
+- PostgreSQL y Prisma configurados en C2-07;
+- la regla funcional que permite a un Customer asociarse inmediatamente a múltiples buffets mediante código;
+- el formato existente de código de buffet de tres letras y tres números;
+- la arquitectura modular `domain / application / infrastructure`.
+
+#### Propuesta de la IA
+
+Se propusieron las siguientes decisiones:
+
+- representar la relación mediante una entidad explícita `CustomerStoreMembership`;
+- utilizar la clave compuesta `customerId + storeId` como identidad de la asociación para impedir duplicados;
+- reutilizar `StoreCode` y su normalización existente en lugar de duplicar la validación del código dentro de Customer;
+- incorporar `findByCode` al contrato de Store para resolver la asociación mediante el código del buffet;
+- mantener la persistencia desacoplada mediante `CustomerStoreMembershipRepositoryPort`;
+- traducir una violación de unicidad a `CUSTOMER_ALREADY_ASSOCIATED_TO_STORE`;
+- implementar casos de uso separados para asociar un Customer y consultar sus buffets asociados;
+- no agregar campos adicionales a la asociación que no estén definidos por los requerimientos actuales;
+- no exponer todavía endpoints HTTP específicos de Customer-Buffet mientras la identidad del Customer autenticado dependa de la implementación de autenticación.
+
+#### Validación humana
+
+Se verificó:
+
+- la migración y persistencia real de `CustomerStoreMembership` en PostgreSQL;
+- la posibilidad de asociar un Customer a más de un buffet;
+- el rechazo de asociaciones duplicadas;
+- la validación y normalización del código de buffet;
+- los casos de Customer inexistente y Buffet inexistente;
+- la consulta de todos los buffets asociados;
+- ejecución exitosa de `npm run typecheck`;
+- ejecución exitosa de 90 pruebas automatizadas.
+
+#### Correcciones o cambios hechos por el equipo
+
+- Se evitó agregar `joinedAt`, estado u otros atributos a `CustomerStoreMembership` porque no son necesarios para el alcance actual.
+- Se reutilizó la validación existente de `StoreCode` en lugar de crear una segunda regla dentro del módulo Customer.
+- Se mantuvo fuera de C2-04 la exposición HTTP dependiente de autenticación para no definir prematuramente cómo se obtiene la identidad del Customer.

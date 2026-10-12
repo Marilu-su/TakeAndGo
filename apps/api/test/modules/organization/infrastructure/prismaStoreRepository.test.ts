@@ -45,7 +45,44 @@ test(
         }
     },
 );
+test(
+    'recupera un buffet por su código',
+    { skip: hasDatabase ? false : 'Requiere DATABASE_URL' },
+    async () => {
+        const prisma = getPrisma();
+        const stores = new PrismaStoreRepository(prisma);
 
+        const organization = await prisma.organization.create({
+            data: { name: 'Organización de prueba findByCode' },
+        });
+
+        const code = `COD${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}` as StoreCode;
+
+        try {
+            const created = await stores.create({
+                organizationId: organization.id,
+                name: 'Buffet buscable por código',
+                code,
+                status: 'PENDING_SETUP',
+            });
+
+            const found = await stores.findByCode(code);
+
+            assert.ok(found);
+            assert.equal(found.id, created.id);
+            assert.equal(found.code, code);
+            assert.equal(found.name, 'Buffet buscable por código');
+        } finally {
+            await prisma.store.deleteMany({
+                where: { organizationId: organization.id },
+            });
+
+            await prisma.organization.delete({
+                where: { id: organization.id },
+            });
+        }
+    },
+);
 after(async () => {
     if (hasDatabase) {
         await getPrisma().$disconnect();
