@@ -40,6 +40,7 @@ model Store {
   updatedAt      DateTime    @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id])
+  categories   Category[]
 
   @@index([organizationId])
 }
@@ -50,4 +51,17 @@ model Customer {
   email     String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id        String   @id @default(uuid())
+  storeId   String
+  name      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  store Store @relation(fields: [storeId], references: [id])
+
+  @@index([storeId])
 }

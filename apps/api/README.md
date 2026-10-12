@@ -144,4 +144,24 @@ Cuerpo:
 | `409` | El código ya existe (`STORE_CODE_ALREADY_EXISTS`) |
 | `422` | Código o nombre inválidos (`INVALID_STORE_CODE`, `INVALID_STORE_NAME`) |
 
-**Autenticación pendiente (TDD-0001):** las reglas de autorización están implementadas y testeadas, pero todavía no existe la autenticación. Hasta entonces, el resolver de actor (`src/shared/http/actorResolver.ts`) no identifica a ningún usuario y el endpoint responde `401`.
+### Categorías
+
+Solo el administrador del buffet (STORE_ADMIN) puede administrar sus categorías.
+
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| `POST` | `/api/v1/stores/:storeId/categories` | Crea una categoría (cuerpo: `{ "name": "Bebidas" }`) |
+| `GET` | `/api/v1/stores/:storeId/categories` | Lista todas las categorías del buffet, activas e inactivas |
+| `PATCH` | `/api/v1/stores/:storeId/categories/:categoryId` | Renombra una categoría (cuerpo: `{ "name": "Bebidas frías" }`) |
+| `POST` | `/api/v1/stores/:storeId/categories/:categoryId/deactivate` | Desactiva una categoría sin borrarla |
+
+| Código | Caso |
+| --- | --- |
+| `200` / `201` | Operación exitosa |
+| `400` | Falta `name` (`INVALID_REQUEST`) |
+| `401` | Usuario no autenticado (`UNAUTHENTICATED`) |
+| `403` | El usuario no administra ese buffet (`FORBIDDEN`) |
+| `404` | El buffet o la categoría no existen (`STORE_NOT_FOUND`, `CATEGORY_NOT_FOUND`) |
+| `422` | Nombre inválido (`INVALID_CATEGORY_NAME`) |
+
+**Autenticación pendiente:** las reglas de autorización están implementadas y testeadas, pero todavía no existe la autenticación. Hasta entonces, el resolver de actor (`src/shared/http/actorResolver.ts`) no identifica a ningún usuario y los endpoints protegidos responden `401`.
