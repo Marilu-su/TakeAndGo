@@ -40,6 +40,8 @@ model Store {
   updatedAt      DateTime                  @updatedAt
   organization   Organization              @relation(fields: [organizationId], references: [id])
   categories     Category[]
+  products     Product[]
+  additions    Addition[]
   memberships    CustomerStoreMembership[]
 
   @@index([organizationId])
@@ -73,7 +75,58 @@ model Category {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  store Store @relation(fields: [storeId], references: [id])
+  store    Store     @relation(fields: [storeId], references: [id])
+  products Product[]
 
+  @@unique([id, storeId])
   @@index([storeId])
+}
+
+model Product {
+  id                     String   @id @default(uuid())
+  storeId                String
+  categoryId             String
+  name                   String
+  description            String?
+  priceCents             Int
+  basePreparationSeconds Int
+  isActive               Boolean  @default(true)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  store     Store             @relation(fields: [storeId], references: [id])
+  category  Category          @relation(fields: [categoryId, storeId], references: [id, storeId])
+  additions ProductAddition[]
+
+  @@unique([id, storeId])
+  @@index([storeId])
+  @@index([categoryId])
+}
+
+model Addition {
+  id         String   @id @default(uuid())
+  storeId    String
+  name       String
+  priceCents Int
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  store    Store             @relation(fields: [storeId], references: [id])
+  products ProductAddition[]
+
+  @@unique([id, storeId])
+  @@index([storeId])
+}
+
+model ProductAddition {
+  productId  String
+  additionId String
+  storeId    String
+
+  product  Product  @relation(fields: [productId, storeId], references: [id, storeId])
+  addition Addition @relation(fields: [additionId, storeId], references: [id, storeId])
+
+  @@id([productId, additionId])
+  @@index([additionId, storeId])
 }
