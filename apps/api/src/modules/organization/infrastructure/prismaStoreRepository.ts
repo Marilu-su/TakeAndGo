@@ -35,6 +35,14 @@ export class PrismaStoreRepository implements StoreRepositoryPort {
         return record ? toDomain(record) : null;
     }
 
+    async findByCode(code: StoreCode): Promise<Store | null> {
+    const record = await this.prisma.store.findUnique({
+        where: { code },
+    });
+
+    return record ? toDomain(record) : null;
+}
+
     async create(store: NewStore): Promise<Store> {
         try {
         const record = await this.prisma.store.create({
