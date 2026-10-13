@@ -220,4 +220,52 @@ El tiempo extra de preparación por adicional no se configura en cada adicional:
 | `404` | El buffet, el producto o el adicional no existen (`STORE_NOT_FOUND`, `PRODUCT_NOT_FOUND`, `ADDITION_NOT_FOUND`) |
 | `422` | Nombre, precio o tiempo inválidos (`INVALID_PRODUCT_NAME`, `INVALID_ADDITION_NAME`, `INVALID_PRICE`, `INVALID_PREPARATION_TIME`), o categoría o adicional de otro buffet (`INVALID_CATEGORY_SCOPE`, `INVALID_ADDITION_SCOPE`) |
 
+### Catálogo del buffet
+
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| `GET` | `/api/v1/stores/:storeId/catalog` | Devuelve el catálogo del buffet tal como lo ve el cliente |
+
+El catálogo agrupa los productos por categoría e incluye, para cada producto, su precio base, su tiempo de preparación y sus adicionales con el precio de cada uno. Solo muestra lo que se puede pedir:
+
+- categorías, productos y adicionales **activos** (una categoría desactivada oculta todos sus productos);
+- productos y adicionales **con disponibilidad**;
+- categorías que tengan al menos un producto para mostrar.
+
+```json
+{
+  "storeId": "id-del-buffet",
+  "categories": [
+    {
+      "id": "id-categoria",
+      "name": "Bebidas",
+      "products": [
+        {
+          "id": "id-producto",
+          "name": "Café con leche",
+          "description": null,
+          "priceCents": 150000,
+          "basePreparationSeconds": 120,
+          "additions": [
+            { "id": "id-adicional", "name": "Leche de almendras", "priceCents": 50000 }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Quién puede verlo:**
+
+| Rol | Acceso |
+| --- | --- |
+| CUSTOMER | Si está asociado al buffet |
+| STORE_EMPLOYEE / STORE_ADMIN | Si pertenece a ese buffet |
+| ORGANIZATION_ADMIN y otros | No (`403`) |
+
+**Disponibilidad provisoria:** hasta que exista el módulo de stock, todos los productos y adicionales activos se consideran disponibles (`AllAvailableCatalogAvailability`). El módulo de stock debe reemplazarla implementando `CatalogAvailabilityPort`.
+
+**Uso desde otros módulos:** pedidos y MenIA deben obtener el catálogo mediante `getStoreCatalog` de `catalogModule`, sin acceder a las tablas del catálogo.
+
 **Autenticación pendiente:** las reglas de autorización están implementadas y testeadas, pero todavía no existe la autenticación. Hasta entonces, el resolver de actor (`src/shared/http/actorResolver.ts`) no identifica a ningún usuario y los endpoints protegidos responden `401`.
