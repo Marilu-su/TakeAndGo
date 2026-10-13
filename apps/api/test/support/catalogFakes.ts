@@ -7,6 +7,7 @@ import type {
     AdditionRepositoryPort,
     CatalogAvailabilityPort,
     CategoryRepositoryPort,
+    CustomerMembershipPort,
     ProductAdditionRepositoryPort,
     ProductRepositoryPort,
     StoreScopePort,
@@ -129,5 +130,17 @@ export class FakeAvailability implements CatalogAvailabilityPort {
         availableProductIds: new Set(productIds.filter((id) => !this.unavailableIds.has(id))),
         availableAdditionIds: new Set(additionIds.filter((id) => !this.unavailableIds.has(id))),
         };
+    }
+}
+
+export class FakeMemberships implements CustomerMembershipPort {
+    private readonly memberships: Set<string>;
+
+    constructor(memberships: Array<{ customerId: string; storeId: string }> = []) {
+        this.memberships = new Set(memberships.map((m) => `${m.customerId}:${m.storeId}`));
+    }
+
+    async isCustomerAssociatedToStore(customerId: string, storeId: string) {
+        return this.memberships.has(`${customerId}:${storeId}`);
     }
 }
