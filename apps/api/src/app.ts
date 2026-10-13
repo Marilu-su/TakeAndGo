@@ -14,14 +14,17 @@ import {
 import { createCategoryRouter } from './modules/catalog/infrastructure/http/categoryRoutes';
 import {
   createPrismaAdditionUseCases,
+  createPrismaStoreCatalogUseCases,
   createPrismaCategoryUseCases,
   createPrismaProductUseCases,
   type AdditionUseCases,
+  type StoreCatalogUseCases,
   type CategoryUseCases,
   type ProductUseCases,
 } from './modules/catalog/infrastructure/catalogModule';
 import { createProductRouter } from './modules/catalog/infrastructure/http/productRoutes';
 import { createAdditionRouter } from './modules/catalog/infrastructure/http/additionRoutes';
+import { createStoreCatalogRouter } from './modules/catalog/infrastructure/http/storeCatalogRoutes';
 
 export type AppDependencies = {
   checkDatabase: () => Promise<boolean>;
@@ -30,6 +33,7 @@ export type AppDependencies = {
   categoryUseCases: CategoryUseCases;
   productUseCases: ProductUseCases;
   additionUseCases: AdditionUseCases;
+  storeCatalogUseCases: StoreCatalogUseCases;
 };
 
 function defaultDependencies(): AppDependencies {
@@ -40,6 +44,7 @@ function defaultDependencies(): AppDependencies {
     categoryUseCases: createPrismaCategoryUseCases(),
     productUseCases: createPrismaProductUseCases(),
     additionUseCases: createPrismaAdditionUseCases(),
+    storeCatalogUseCases: createPrismaStoreCatalogUseCases(),
   };
 }
 
@@ -99,6 +104,14 @@ export function createApp(overrides: Partial<AppDependencies> = {}) {
     '/api/v1',
     createAdditionRouter({
       useCases: dependencies.additionUseCases,
+      resolveActor: dependencies.resolveActor,
+    }),
+  );
+
+  app.use(
+    '/api/v1',
+    createStoreCatalogRouter({
+      useCases: dependencies.storeCatalogUseCases,
       resolveActor: dependencies.resolveActor,
     }),
   );
