@@ -1,6 +1,7 @@
 import { Prisma, type PrismaClient } from '../../../generated/prisma/client';
 import { DomainError } from '../../../shared/domain/DomainError';
 import type { ProductAdditionRepositoryPort } from '../application/ports';
+import type { ProductAdditionLink } from '../domain/storeCatalog';
 
 export class PrismaProductAdditionRepository implements ProductAdditionRepositoryPort {
     private readonly prisma: PrismaClient;
@@ -16,6 +17,13 @@ export class PrismaProductAdditionRepository implements ProductAdditionRepositor
         });
 
         return links.map((link) => link.additionId);
+    }
+
+    async listLinksByStore(storeId: string): Promise<ProductAdditionLink[]> {
+        return this.prisma.productAddition.findMany({
+            where: { storeId },
+            select: { productId: true, additionId: true },
+        });
     }
 
     async replace(productId: string, storeId: string, additionIds: string[]): Promise<void> {

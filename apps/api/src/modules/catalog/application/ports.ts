@@ -1,6 +1,7 @@
 import type { Addition, NewAddition } from '../domain/addition';
 import type { Category, NewCategory } from '../domain/category';
 import type { NewProduct, Product } from '../domain/product';
+import type { ProductAdditionLink } from '../domain/storeCatalog';
 
 export interface CategoryRepositoryPort {
     findById(id: string): Promise<Category | null>;
@@ -26,7 +27,7 @@ export interface AdditionRepositoryPort {
 
 export interface ProductAdditionRepositoryPort {
     listAdditionIds(productId: string): Promise<string[]>;
-
+    listLinksByStore(storeId: string): Promise<ProductAdditionLink[]>;
     /**
      * Reemplaza los adicionales de un producto por la lista indicada.
      * Debe ser atómico: o se guardan todos, o no cambia nada.
@@ -40,4 +41,17 @@ export interface ProductAdditionRepositoryPort {
  */
 export interface StoreScopePort {
     storeExists(storeId: string): Promise<boolean>;
+}
+
+export type CatalogAvailability = {
+    availableProductIds: ReadonlySet<string>;
+    availableAdditionIds: ReadonlySet<string>;
+};
+
+/**
+ * Indica qué productos y adicionales tienen disponibilidad para ofrecerse.
+ * Lo implementará el módulo de stock; mientras tanto se usa una implementación provisoria.
+ */
+export interface CatalogAvailabilityPort {
+    getAvailability(storeId: string, productIds: string[], additionIds: string[]): Promise<CatalogAvailability>;
 }
