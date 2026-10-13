@@ -539,3 +539,41 @@ Se verificó:
 
 - El documento funcional y la especificación técnica del catálogo no coincidían sobre el tiempo extra de los adicionales. El equipo definió un único valor por buffet (30 segundos por defecto), por lo que el adicional no tiene tiempo de preparación propio; ese parámetro se incorporará junto con la planificación de cocina.
 - La descripción del producto se definió como opcional.
+
+---
+
+### 2026-10-13 — Consulta del catálogo del buffet
+
+**TDD / Issue:** C2-10 — Consultar el catálogo del buffet y tests  
+**Autor humano:** Flores Lautaro  
+**Herramienta/modelo:** Claude (Anthropic) — Claude Opus 5.5  
+**Prompt / instrucción utilizada:** Asistir en la implementación de la consulta del catálogo de un buffet tal como lo ve el cliente, reutilizable por otros módulos y con autorización por buffet.
+
+#### Problema
+
+El cliente necesita ver el catálogo de un buffet agrupado por categorías, con solo lo que puede pedir. El catálogo también debía quedar disponible para pedidos y MenIA, y el stock todavía no existe.
+
+#### Contexto dado a la IA
+
+- reglas del documento funcional del equipo: el catálogo se muestra agrupado por categorías, primero el precio base y luego los adicionales con su precio, y lo que no tiene disponibilidad no se muestra;
+- decisión del equipo sobre el acceso: el catálogo no es público; lo ven los clientes asociados al buffet y su personal;
+- módulos de organización, catálogo y customer ya integrados.
+
+#### Propuesta de la IA
+
+- Puerto de disponibilidad con una implementación provisoria que considera todo disponible, para que el módulo de stock lo reemplace sin modificar el catálogo.
+- Separación entre el contrato interno `getStoreCatalog` (para pedidos y MenIA, sin control de usuario) y `viewStoreCatalog` (para el endpoint, con autorización).
+- Verificación de la asociación cliente-buffet mediante el contrato público del módulo de customer (`listCustomerStores`), sin acceder a sus tablas.
+
+#### Validación humana
+
+Se verificó:
+
+- 165 tests, incluido un test de integración contra PostgreSQL que arma un catálogo completo con elementos activos e inactivos y verifica el acceso de un cliente asociado y el rechazo de uno no asociado, con los módulos reales conectados;
+- que ningún dato de otros buffets aparezca en el catálogo.
+
+#### Correcciones o cambios hechos por el equipo
+
+- El equipo definió quién puede ver el catálogo, ya que el documento funcional no lo establecía explícitamente: clientes asociados y personal del buffet, sin acceso del administrador de la organización.
+- Mientras no exista la autenticación, se asume que el `userId` de un CUSTOMER corresponde al id de su Customer; debe confirmarse al implementar la autenticación.
+- Se decidió ocultar las categorías sin productos para mostrar.

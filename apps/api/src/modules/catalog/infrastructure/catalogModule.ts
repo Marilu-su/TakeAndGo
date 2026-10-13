@@ -19,6 +19,11 @@ import { PrismaAdditionRepository } from './prismaAdditionRepository';
 import { PrismaCategoryRepository } from './prismaCategoryRepository';
 import { PrismaProductAdditionRepository } from './prismaProductAdditionRepository';
 import { PrismaProductRepository } from './prismaProductRepository';
+import { createPrismaListCustomerStores } from '../../customer/infrastructure/customerModule';
+import { makeGetStoreCatalog } from '../application/getStoreCatalog';
+import { makeViewStoreCatalog } from '../application/viewStoreCatalog';
+import { AllAvailableCatalogAvailability } from './allAvailableCatalogAvailability';
+import { CustomerModuleMemberships } from './customerModuleMemberships';
 
 export type CategoryUseCases = {
     createCategory: ReturnType<typeof makeCreateCategory>;
@@ -41,6 +46,11 @@ export type AdditionUseCases = {
     listAdditions: ReturnType<typeof makeListAdditions>;
     updateAddition: ReturnType<typeof makeUpdateAddition>;
     deactivateAddition: ReturnType<typeof makeDeactivateAddition>;
+};
+
+export type StoreCatalogUseCases = {
+    getStoreCatalog: ReturnType<typeof makeGetStoreCatalog>;
+    viewStoreCatalog: ReturnType<typeof makeViewStoreCatalog>;
 };
 
 function buildRepositories() {
@@ -90,6 +100,27 @@ function buildAdditionUseCases(): AdditionUseCases {
     };
 }
 
+function buildStoreCatalogUseCases(): StoreCatalogUseCases {
+    const { categories, products, additions, productAdditions, stores } = buildRepositories();
+
+    const getStoreCatalog = makeGetStoreCatalog({
+        stores,
+        categories,
+        products,
+        additions,
+        productAdditions,
+        availability: new AllAvailableCatalogAvailability(),
+    });
+
+    return {
+        getStoreCatalog,
+        viewStoreCatalog: makeViewStoreCatalog({
+        getStoreCatalog,
+        memberships: new CustomerModuleMemberships(createPrismaListCustomerStores()),
+        }),
+    };
+}
+
 export function createPrismaCategoryUseCases(): CategoryUseCases {
     return {
         createCategory: (actor, command) => buildCategoryUseCases().createCategory(actor, command),
@@ -117,5 +148,12 @@ export function createPrismaAdditionUseCases(): AdditionUseCases {
         listAdditions: (actor, storeId) => buildAdditionUseCases().listAdditions(actor, storeId),
         updateAddition: (actor, command) => buildAdditionUseCases().updateAddition(actor, command),
         deactivateAddition: (actor, command) => buildAdditionUseCases().deactivateAddition(actor, command),
+    };
+}
+
+export function createPrismaStoreCatalogUseCases(): StoreCatalogUseCases {
+    return {
+        getStoreCatalog: (storeId) => buildStoreCatalogUseCases().getStoreCatalog(storeId),
+        viewStoreCatalog: (actor, storeId) => buildStoreCatalogUseCases().viewStoreCatalog(actor, storeId),
     };
 }
