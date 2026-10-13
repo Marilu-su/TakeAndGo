@@ -55,3 +55,11 @@ export type CatalogAvailability = {
 export interface CatalogAvailabilityPort {
     getAvailability(storeId: string, productIds: string[], additionIds: string[]): Promise<CatalogAvailability>;
 }
+
+/**
+ * Lo que el catálogo necesita saber de las asociaciones entre clientes y buffets.
+ * Se implementa a partir del módulo de Customer, sin acceder a sus tablas.
+ */
+export interface CustomerMembershipPort {
+    isCustomerAssociatedToStore(customerId: string, storeId: string): Promise<boolean>;
+}
