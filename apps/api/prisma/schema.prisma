@@ -72,6 +72,7 @@ model Category {
   storeId   String
   name      String
   isActive  Boolean  @default(true)
+  activeNameKey String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -79,6 +80,7 @@ model Category {
   products Product[]
 
   @@unique([id, storeId])
+  @@unique([storeId, activeNameKey])
   @@index([storeId])
 }
 
