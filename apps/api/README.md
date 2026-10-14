@@ -148,6 +148,8 @@ Cuerpo:
 
 Solo el administrador del buffet (STORE_ADMIN) puede administrar sus categorías.
 
+Dentro de un mismo buffet no puede haber dos categorías **activas** con el mismo nombre. La comparación no distingue mayúsculas de minúsculas e ignora los espacios al principio y al final ("Bebidas", "bebidas" y " BEBIDAS " son el mismo nombre). Las categorías desactivadas no cuentan: al desactivar una categoría, su nombre queda libre para una nueva. Buffets diferentes pueden usar los mismos nombres.
+
 | Método | Ruta | Descripción |
 | --- | --- | --- |
 | `POST` | `/api/v1/stores/:storeId/categories` | Crea una categoría (cuerpo: `{ "name": "Bebidas" }`) |
@@ -162,6 +164,7 @@ Solo el administrador del buffet (STORE_ADMIN) puede administrar sus categorías
 | `401` | Usuario no autenticado (`UNAUTHENTICATED`) |
 | `403` | El usuario no administra ese buffet (`FORBIDDEN`) |
 | `404` | El buffet o la categoría no existen (`STORE_NOT_FOUND`, `CATEGORY_NOT_FOUND`) |
+| `409` | Ya existe una categoría activa con ese nombre en el buffet (`CATEGORY_NAME_ALREADY_EXISTS`) |
 | `422` | Nombre inválido (`INVALID_CATEGORY_NAME`) |
 
 ### Productos
