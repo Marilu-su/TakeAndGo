@@ -40,3 +40,11 @@ export function deactivateCategory(category: Category): Category {
         isActive: false,
     };
 }
+
+/**
+ * Clave con la que se comparan los nombres de categoría:
+ * sin espacios al principio y al final y sin distinguir mayúsculas.
+ */
+export function categoryNameKey(name: string): string {
+    return name.trim().toLowerCase();
+}

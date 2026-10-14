@@ -79,6 +79,7 @@ async function main() {
                 id: category.id,
                 storeId: store.id,
                 name: category.name,
+                activeNameKey: category.name.trim().toLowerCase(),
             },
         });
     }

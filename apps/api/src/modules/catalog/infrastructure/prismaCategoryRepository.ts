@@ -1,6 +1,7 @@
-import type { PrismaClient } from '../../../generated/prisma/client';
+import { Prisma, type PrismaClient } from '../../../generated/prisma/client';
+import { DomainError } from '../../../shared/domain/DomainError';
 import type { CategoryRepositoryPort } from '../application/ports';
-import type { Category, NewCategory } from '../domain/category';
+import { categoryNameKey, type Category, type NewCategory } from '../domain/category';
 
 type CategoryRecord = {
     id: string;
@@ -16,9 +17,24 @@ function toDomain(record: CategoryRecord): Category {
         name: record.name,
         isActive: record.isActive,
     };
+}
+
+function activeNameKeyOf(category: { name: string; isActive: boolean }): string | null {
+    return category.isActive ? categoryNameKey(category.name) : null;
+}
+
+function translateUniqueViolation(error: unknown): never {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        throw new DomainError(
+        'CATEGORY_NAME_ALREADY_EXISTS',
+        'Ya existe una categoría activa con ese nombre en este buffet',
+        );
     }
 
-    export class PrismaCategoryRepository implements CategoryRepositoryPort {
+    throw error;
+}
+
+export class PrismaCategoryRepository implements CategoryRepositoryPort {
     private readonly prisma: PrismaClient;
 
     constructor(prisma: PrismaClient) {
@@ -41,26 +57,36 @@ function toDomain(record: CategoryRecord): Category {
     }
 
     async create(category: NewCategory): Promise<Category> {
+        try {
         const record = await this.prisma.category.create({
-        data: {
+            data: {
             storeId: category.storeId,
             name: category.name,
             isActive: category.isActive,
-        },
+            activeNameKey: activeNameKeyOf(category),
+            },
         });
 
         return toDomain(record);
+        } catch (error) {
+        return translateUniqueViolation(error);
+        }
     }
 
     async update(category: Category): Promise<Category> {
+        try {
         const record = await this.prisma.category.update({
-        where: { id: category.id },
-        data: {
+            where: { id: category.id },
+            data: {
             name: category.name,
             isActive: category.isActive,
-        },
+            activeNameKey: activeNameKeyOf(category),
+            },
         });
 
         return toDomain(record);
+        } catch (error) {
+        return translateUniqueViolation(error);
+        }
     }
 }

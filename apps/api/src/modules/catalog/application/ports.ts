@@ -6,6 +6,10 @@ import type { ProductAdditionLink } from '../domain/storeCatalog';
 export interface CategoryRepositoryPort {
     findById(id: string): Promise<Category | null>;
     listByStore(storeId: string): Promise<Category[]>;
+    /**
+     * create y update lanzan DomainError('CATEGORY_NAME_ALREADY_EXISTS')
+     * si ya existe otra categoría activa con el mismo nombre en el buffet.
+     */
     create(category: NewCategory): Promise<Category>;
     update(category: Category): Promise<Category>;
 }
