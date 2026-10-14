@@ -577,3 +577,42 @@ Se verificó:
 - El equipo definió quién puede ver el catálogo, ya que el documento funcional no lo establecía explícitamente: clientes asociados y personal del buffet, sin acceso del administrador de la organización.
 - Mientras no exista la autenticación, se asume que el `userId` de un CUSTOMER corresponde al id de su Customer; debe confirmarse al implementar la autenticación.
 - Se decidió ocultar las categorías sin productos para mostrar.
+
+---
+
+### 2026-10-14 — Nombres de categoría únicos por buffet
+
+**TDD / Issue:** C2-22 — Impedir nombres de categoría duplicados en un buffet  
+**Autor humano:** Flores Lautaro  
+**Herramienta/modelo:** Claude (Anthropic) — Claude Opus 5.5  
+**Prompt / instrucción utilizada:** Asistir en la implementación de la regla de nombres de categoría únicos definida por el equipo, garantizándola también a nivel base de datos.
+
+#### Problema
+
+El equipo definió que un buffet no puede tener dos categorías activas con el mismo nombre, sin distinguir mayúsculas ni espacios al principio y al final, y que las categorías desactivadas no deben bloquear su nombre. La regla debía cumplirse aunque lleguen dos pedidos simultáneos.
+
+#### Contexto dado a la IA
+
+- regla definida por el equipo;
+- modelo y repositorio de categorías de C2-08;
+- inexistencia de una funcionalidad para reactivar categorías.
+
+#### Propuesta de la IA
+
+- Columna `activeNameKey` con el nombre normalizado solo para categorías activas (`NULL` para las desactivadas), y restricción única sobre `(storeId, activeNameKey)`. Como PostgreSQL no considera duplicados los valores `NULL`, las categorías desactivadas no bloquean el nombre.
+- Esta alternativa se eligió frente a un índice único parcial, que Prisma no puede representar en el schema y que podría eliminarse en migraciones posteriores.
+- Migración editada para completar la clave de las categorías activas existentes antes de crear la restricción.
+- Normalización centralizada en el dominio (`categoryNameKey`) y traducción del error de unicidad a `CATEGORY_NAME_ALREADY_EXISTS` (409).
+- Unificación del repositorio en memoria de categorías usado por los tests.
+
+#### Validación humana
+
+Se verificó:
+
+- aplicación de la migración sobre una base con categorías existentes;
+- 171 tests, incluido un test de integración contra PostgreSQL que comprueba el rechazo de duplicados normalizados, la posibilidad de usar el mismo nombre en otro buffet y la liberación del nombre al desactivar una categoría.
+
+#### Correcciones o cambios hechos por el equipo
+
+- El equipo definió la regla y decidió que solo cuenten las categorías activas, ya que no existe la opción de reactivar.
+- Si en el futuro se agrega la reactivación de categorías, deberá verificarse que el nombre no esté ocupado; la restricción de la base ya lo impediría.
