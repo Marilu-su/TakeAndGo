@@ -1,50 +1,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { randomUUID } from 'node:crypto';
 
 import type { Actor } from '../../../../src/shared/auth/actor';
-import type { Category, NewCategory } from '../../../../src/modules/catalog/domain/category';
-import type {
-    CategoryRepositoryPort,
-    StoreScopePort,
-} from '../../../../src/modules/catalog/application/ports';
+
 import { makeCreateCategory } from '../../../../src/modules/catalog/application/createCategory';
 import { makeListCategories } from '../../../../src/modules/catalog/application/listCategories';
 import { makeUpdateCategory } from '../../../../src/modules/catalog/application/updateCategory';
 import { makeDeactivateCategory } from '../../../../src/modules/catalog/application/deactivateCategory';
+import { FakeStoreScope, InMemoryCategories } from '../../../support/catalogFakes';
 
-// Adaptadores en memoria
-
-class InMemoryCategories implements CategoryRepositoryPort {
-    readonly items = new Map<string, Category>();
-
-    async findById(id: string) {
-        return this.items.get(id) ?? null;
-    }
-
-    async listByStore(storeId: string) {
-        return [...this.items.values()].filter((category) => category.storeId === storeId);
-    }
-
-    async create(category: NewCategory) {
-        const created: Category = { ...category, id: randomUUID() };
-        this.items.set(created.id, created);
-        return created;
-    }
-
-    async update(category: Category) {
-        this.items.set(category.id, category);
-        return category;
-    }
-}
-
-class FakeStoreScope implements StoreScopePort {
-    constructor(private readonly existingStoreIds: string[]) {}
-
-    async storeExists(storeId: string) {
-        return this.existingStoreIds.includes(storeId);
-    }
-}
 
 // Datos de prueba
 
@@ -184,4 +148,61 @@ test('desactivar una categoría inexistente informa que no existe', async () => 
         deactivateCategory(adminA, { storeId: STORE_A, categoryId: 'categoria-inexistente' }),
         { code: 'CATEGORY_NOT_FOUND' },
     );
+});
+
+// Nombres únicos entre categorías activas del buffet
+
+test('no se puede crear una categoría con el nombre de otra activa, sin importar mayúsculas ni espacios', async () => {
+    const { createCategory } = setup();
+
+    await createCategory(adminA, { storeId: STORE_A, name: 'Bebidas' });
+
+    for (const duplicate of ['Bebidas', 'bebidas', '  BEBIDAS  ']) {
+        await assert.rejects(createCategory(adminA, { storeId: STORE_A, name: duplicate }), {
+        code: 'CATEGORY_NAME_ALREADY_EXISTS',
+        });
+    }
+});
+
+test('otro buffet puede tener una categoría con el mismo nombre', async () => {
+    const { createCategory } = setup();
+
+    await createCategory(adminA, { storeId: STORE_A, name: 'Bebidas' });
+
+    await assert.doesNotReject(createCategory(adminB, { storeId: STORE_B, name: 'Bebidas' }));
+});
+
+test('desactivar una categoría libera su nombre para una nueva', async () => {
+    const { createCategory, deactivateCategory } = setup();
+
+    const old = await createCategory(adminA, { storeId: STORE_A, name: 'Bebidas' });
+    await deactivateCategory(adminA, { storeId: STORE_A, categoryId: old.id });
+
+    const renewed = await createCategory(adminA, { storeId: STORE_A, name: 'Bebidas' });
+
+    assert.equal(renewed.isActive, true);
+    assert.notEqual(renewed.id, old.id);
+});
+
+test('no se puede renombrar una categoría con el nombre de otra activa', async () => {
+    const { createCategory, updateCategory, categories } = setup();
+
+    await createCategory(adminA, { storeId: STORE_A, name: 'Bebidas' });
+    const snacks = await createCategory(adminA, { storeId: STORE_A, name: 'Snacks' });
+
+    await assert.rejects(
+        updateCategory(adminA, { storeId: STORE_A, categoryId: snacks.id, name: 'bebidas' }),
+        { code: 'CATEGORY_NAME_ALREADY_EXISTS' },
+    );
+    assert.equal(categories.items.get(snacks.id)?.name, 'Snacks');
+});
+
+test('una categoría puede renombrarse cambiando solo las mayúsculas de su propio nombre', async () => {
+    const { createCategory, updateCategory } = setup();
+
+    const category = await createCategory(adminA, { storeId: STORE_A, name: 'bebidas' });
+
+    const updated = await updateCategory(adminA, { storeId: STORE_A, categoryId: category.id, name: 'Bebidas' });
+
+    assert.equal(updated.name, 'Bebidas');
 });

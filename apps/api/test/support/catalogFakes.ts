@@ -1,7 +1,8 @@
 import { randomUUID } from 'node:crypto';
 
 import type { Addition, NewAddition } from '../../src/modules/catalog/domain/addition';
-import type { Category, NewCategory } from '../../src/modules/catalog/domain/category';
+import { categoryNameKey, type Category, type NewCategory } from '../../src/modules/catalog/domain/category';
+import { DomainError } from '../../src/shared/domain/DomainError';
 import type { NewProduct, Product } from '../../src/modules/catalog/domain/product';
 import type {
     AdditionRepositoryPort,
@@ -16,6 +17,25 @@ import type {
 export class InMemoryCategories implements CategoryRepositoryPort {
     readonly items = new Map<string, Category>();
 
+    private assertNameAvailable(category: { id?: string; storeId: string; name: string; isActive: boolean }) {
+        if (!category.isActive) {
+        return;
+        }
+
+        const key = categoryNameKey(category.name);
+        const taken = [...this.items.values()].some(
+        (other) =>
+            other.id !== category.id &&
+            other.storeId === category.storeId &&
+            other.isActive &&
+            categoryNameKey(other.name) === key,
+        );
+
+        if (taken) {
+        throw new DomainError('CATEGORY_NAME_ALREADY_EXISTS', 'Ya existe una categoría activa con ese nombre en este buffet');
+        }
+    }
+
     async findById(id: string) {
         return this.items.get(id) ?? null;
     }
@@ -25,16 +45,18 @@ export class InMemoryCategories implements CategoryRepositoryPort {
     }
 
     async create(category: NewCategory) {
+        this.assertNameAvailable(category);
         const created: Category = { ...category, id: randomUUID() };
         this.items.set(created.id, created);
         return created;
     }
 
     async update(category: Category) {
+        this.assertNameAvailable(category);
         this.items.set(category.id, category);
         return category;
     }
-    }
+}
 
 export class InMemoryProducts implements ProductRepositoryPort {
     readonly items = new Map<string, Product>();
