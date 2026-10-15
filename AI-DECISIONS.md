@@ -616,3 +616,46 @@ Se verificó:
 
 - El equipo definió la regla y decidió que solo cuenten las categorías activas, ya que no existe la opción de reactivar.
 - Si en el futuro se agrega la reactivación de categorías, deberá verificarse que el nombre no esté ocupado; la restricción de la base ya lo impediría.
+
+---
+
+### 2026-10-15 — Autenticación con Neon Auth
+
+**TDD / Issue:** C2-21 — Implementar autenticación mínima  
+**Autor humano:** Flores Lautaro  
+**Herramienta/modelo:** Claude (Anthropic) — Claude Opus 5.5  
+**Prompt / instrucción utilizada:** Asistir en la evaluación de servicios de autenticación y en la integración del elegido con el backend, manteniendo los roles y permisos en Take&Go.
+
+#### Problema
+
+La API no identificaba usuarios y todos los endpoints protegidos respondían `401`, lo que impedía aplicar las reglas de autorización ya implementadas y recorrer el flujo en la demo.
+
+#### Contexto dado a la IA
+
+- consigna del TPI, que promueve servicios gestionados;
+- propuesta inicial del equipo de evaluar Supabase Auth;
+- mecanismo de Actor y resolver de identidad preparado desde C2-06;
+- módulos de organización, catálogo y customer.
+
+#### Propuesta de la IA
+
+- Prueba de integración previa a la decisión (registro, inicio de sesión, obtención y verificación del JWT).
+- Modelo `StaffScope` para los roles de staff y campo `authUserId` en Customer, vinculados por id de usuario y no por email.
+- Resolución del Actor: staff primero, luego cliente; sin ninguno, sin permisos.
+- Scripts para asignar roles y obtener tokens de prueba.
+
+#### Validación humana
+
+Se verificó:
+
+- prueba de integración con Neon Auth antes de adoptar la decisión;
+- 210 tests, incluidos los de verificación de tokens con claves generadas en el test;
+- recorrido de punta a punta con un usuario real: `GET /me` identificó al usuario como STORE_ADMIN de SIS001 y el catálogo del buffet se obtuvo autenticado;
+- registro de un cliente con `POST /me/customer`.
+
+#### Correcciones o cambios hechos por el equipo
+
+- El equipo había propuesto Supabase Auth; tras la comparación y la prueba se adoptó Neon Auth, documentado en `ADR-0002`.
+- Se usó la versión 5 de `jose`, ya que la más reciente solo soporta módulos ESM y la API usa CommonJS.
+- La integración de Neon Auth con Better Auth está en beta; se mitigó dependiendo solo del estándar JWT/JWKS.
+- Los endpoints HTTP de asociación de clientes a buffets (C2-04) quedan pendientes de definir con su responsable.
