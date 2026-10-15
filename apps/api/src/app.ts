@@ -5,7 +5,9 @@ import morgan from 'morgan';
 import errorHandler from './middlewares/errorHandler';
 import { checkDatabaseConnection } from './infrastructure/database/checkDatabase';
 import { domainErrorHandler } from './shared/http/domainErrorHandler';
-import { unauthenticatedActorResolver, type ActorResolver } from './shared/http/actorResolver';
+import type { ActorResolver } from './shared/http/actorResolver';
+import type { IdentityResolver } from './shared/http/identityResolver';
+import { createDefaultAuthResolvers } from './infrastructure/auth/authModule';
 import { createOrganizationRouter } from './modules/organization/infrastructure/http/organizationRoutes';
 import {
   createPrismaCreateStore,
@@ -25,10 +27,12 @@ import {
 import { createProductRouter } from './modules/catalog/infrastructure/http/productRoutes';
 import { createAdditionRouter } from './modules/catalog/infrastructure/http/additionRoutes';
 import { createStoreCatalogRouter } from './modules/catalog/infrastructure/http/storeCatalogRoutes';
+import { createMeRouter } from './infrastructure/auth/http/meRoutes';
 
 export type AppDependencies = {
   checkDatabase: () => Promise<boolean>;
   resolveActor: ActorResolver;
+  resolveIdentity: IdentityResolver;
   createStore: CreateStore;
   categoryUseCases: CategoryUseCases;
   productUseCases: ProductUseCases;
@@ -37,9 +41,12 @@ export type AppDependencies = {
 };
 
 function defaultDependencies(): AppDependencies {
+  const auth = createDefaultAuthResolvers();
+
   return {
     checkDatabase: checkDatabaseConnection,
-    resolveActor: unauthenticatedActorResolver,
+    resolveActor: auth.resolveActor,
+    resolveIdentity: auth.resolveIdentity,
     createStore: createPrismaCreateStore(),
     categoryUseCases: createPrismaCategoryUseCases(),
     productUseCases: createPrismaProductUseCases(),
@@ -75,6 +82,8 @@ export function createApp(overrides: Partial<AppDependencies> = {}) {
       timestamp: new Date(),
     });
   });
+
+  app.use('/api/v1', createMeRouter({ resolveActor: dependencies.resolveActor }));
 
   app.use(
     '/api/v1',
