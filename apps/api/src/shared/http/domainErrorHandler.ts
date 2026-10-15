@@ -23,6 +23,10 @@ const HTTP_STATUS_BY_CODE: Record<string, number> = {
     INVALID_PREPARATION_TIME: 422,
     INVALID_CATEGORY_SCOPE: 422,
     INVALID_ADDITION_SCOPE: 422,
+    CUSTOMER_ALREADY_REGISTERED: 409,
+    CUSTOMER_EMAIL_ALREADY_EXISTS: 409,
+    INVALID_CUSTOMER_NAME: 422,
+    INVALID_CUSTOMER_EMAIL: 422,
 };
 
 export const domainErrorHandler: ErrorRequestHandler = (error, _req, res, next) => {

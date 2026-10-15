@@ -28,11 +28,17 @@ import { createProductRouter } from './modules/catalog/infrastructure/http/produ
 import { createAdditionRouter } from './modules/catalog/infrastructure/http/additionRoutes';
 import { createStoreCatalogRouter } from './modules/catalog/infrastructure/http/storeCatalogRoutes';
 import { createMeRouter } from './infrastructure/auth/http/meRoutes';
+import { createCustomerRouter } from './modules/customer/infrastructure/http/customerRoutes';
+import {
+  createPrismaRegisterCustomer,
+  type RegisterCustomer,
+} from './modules/customer/infrastructure/customerModule';
 
 export type AppDependencies = {
   checkDatabase: () => Promise<boolean>;
   resolveActor: ActorResolver;
   resolveIdentity: IdentityResolver;
+  registerCustomer: RegisterCustomer;
   createStore: CreateStore;
   categoryUseCases: CategoryUseCases;
   productUseCases: ProductUseCases;
@@ -47,6 +53,7 @@ function defaultDependencies(): AppDependencies {
     checkDatabase: checkDatabaseConnection,
     resolveActor: auth.resolveActor,
     resolveIdentity: auth.resolveIdentity,
+    registerCustomer: createPrismaRegisterCustomer(),
     createStore: createPrismaCreateStore(),
     categoryUseCases: createPrismaCategoryUseCases(),
     productUseCases: createPrismaProductUseCases(),
@@ -84,6 +91,14 @@ export function createApp(overrides: Partial<AppDependencies> = {}) {
   });
 
   app.use('/api/v1', createMeRouter({ resolveActor: dependencies.resolveActor }));
+
+  app.use(
+    '/api/v1',
+    createCustomerRouter({
+      registerCustomer: dependencies.registerCustomer,
+      resolveIdentity: dependencies.resolveIdentity,
+    }),
+  );
 
   app.use(
     '/api/v1',
