@@ -6,6 +6,7 @@ import type {
 export interface CustomerRepositoryPort {
     findById(id: string): Promise<Customer | null>;
     create(customer: NewCustomer): Promise<Customer>;
+    findByAuthUserId(authUserId: string): Promise<Customer | null>;
 }
 export interface CustomerStoreMembershipRepositoryPort {
     create(

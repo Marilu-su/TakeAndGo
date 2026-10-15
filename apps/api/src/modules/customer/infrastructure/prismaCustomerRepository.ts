@@ -7,6 +7,7 @@ type CustomerRecord = {
     id: string;
     name: string;
     email: string;
+    authUserId: string | null;
 };
 
 function toDomain(record: CustomerRecord): Customer {
@@ -14,6 +15,7 @@ function toDomain(record: CustomerRecord): Customer {
         id: record.id,
         name: record.name,
         email: record.email,
+        authUserId: record.authUserId,
     };
 }
 
@@ -32,12 +34,21 @@ export class PrismaCustomerRepository implements CustomerRepositoryPort {
         return record ? toDomain(record) : null;
     }
 
+    async findByAuthUserId(authUserId: string): Promise<Customer | null> {
+        const record = await this.prisma.customer.findUnique({
+            where: { authUserId },
+        });
+
+        return record ? toDomain(record) : null;
+    }
+
     async create(customer: NewCustomer): Promise<Customer> {
         try {
             const record = await this.prisma.customer.create({
                 data: {
                     name: customer.name,
                     email: customer.email,
+                    authUserId: customer.authUserId,
                 },
             });
 

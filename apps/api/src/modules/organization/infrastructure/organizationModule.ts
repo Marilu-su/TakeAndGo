@@ -3,6 +3,8 @@ import { makeCreateStore } from '../application/createStore';
 import { makeGetStoreConfiguration } from '../application/getStoreConfiguration';
 import { PrismaOrganizationRepository } from './prismaOrganizationRepository';
 import { PrismaStoreRepository } from './prismaStoreRepository';
+import { makeAssignStaffRole } from '../application/assignStaffRole';
+import { PrismaStaffScopeRepository } from './prismaStaffScopeRepository';
 
 export type CreateStore = ReturnType<typeof makeCreateStore>;
 export type GetStoreConfiguration = ReturnType<typeof makeGetStoreConfiguration>;
@@ -13,6 +15,7 @@ function buildRepositories() {
     return {
         organizations: new PrismaOrganizationRepository(prisma),
         stores: new PrismaStoreRepository(prisma),
+        staffScopes: new PrismaStaffScopeRepository(prisma),
     };
 }
 
@@ -22,4 +25,10 @@ export function createPrismaCreateStore(): CreateStore {
 
 export function createPrismaGetStoreConfiguration(): GetStoreConfiguration {
     return (storeId) => makeGetStoreConfiguration(buildRepositories())(storeId);
+}
+
+export type AssignStaffRole = ReturnType<typeof makeAssignStaffRole>;
+
+export function createPrismaAssignStaffRole(): AssignStaffRole {
+    return (command) => makeAssignStaffRole(buildRepositories())(command);
 }

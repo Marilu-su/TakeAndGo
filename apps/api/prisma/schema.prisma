@@ -28,6 +28,7 @@ model Organization {
   updatedAt      DateTime @updatedAt
 
   stores Store[]
+  staff  StaffScope[]
 }
 
 model Store {
@@ -43,6 +44,7 @@ model Store {
   products     Product[]
   additions    Addition[]
   memberships    CustomerStoreMembership[]
+  staff        StaffScope[]
 
   @@index([organizationId])
 }
@@ -51,6 +53,7 @@ model Customer {
   id        String   @id @default(uuid())
   name      String
   email     String   @unique
+  authUserId  String?  @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -131,4 +134,26 @@ model ProductAddition {
 
   @@id([productId, additionId])
   @@index([additionId, storeId])
+}
+
+enum StaffRole {
+  ORGANIZATION_ADMIN
+  STORE_ADMIN
+  STORE_EMPLOYEE
+}
+
+model StaffScope {
+  id             String    @id @default(uuid())
+  authUserId     String    @unique
+  role           StaffRole
+  organizationId String
+  storeId        String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  store        Store?       @relation(fields: [storeId], references: [id])
+
+  @@index([organizationId])
+  @@index([storeId])
 }
