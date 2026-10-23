@@ -4,6 +4,7 @@ export type Customer = {
     id: string;
     name: string;
     email: string;
+    authUserId: string | null;
 };
 
 export type NewCustomer = Omit<Customer, 'id'>;
@@ -11,6 +12,7 @@ export type NewCustomer = Omit<Customer, 'id'>;
 type CreateCustomerInput = {
     name: string;
     email: string;
+    authUserId?: string | null;
 };
 
 export function createNewCustomer(input: CreateCustomerInput): NewCustomer {
@@ -34,5 +36,6 @@ export function createNewCustomer(input: CreateCustomerInput): NewCustomer {
     return {
         name,
         email,
+        authUserId: input.authUserId ?? null,
     };
 }

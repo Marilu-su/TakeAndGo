@@ -37,6 +37,7 @@ Todos los comandos se ejecutan desde `apps/api`.
 | `PORT` | Puerto del servidor | `3001` |
 | `CORS_ORIGIN` | Origen permitido para CORS (URL del frontend) | `http://localhost:3000` |
 | `DATABASE_URL` | Conexión a PostgreSQL | `postgresql://USER:PASSWORD@HOST:5432/takeandgo?sslmode=verify-full` |
+| `NEON_AUTH_URL` | URL de Neon Auth (panel de Neon → Better Auth). Si no se define, ningún request se considera autenticado | `https://ep-xxx.neonauth.region.aws.neon.tech/neondb/auth` |
 
 El archivo `.env` no se versiona. Nunca subir connection strings reales al repositorio.
 
@@ -271,4 +272,45 @@ El catálogo agrupa los productos por categoría e incluye, para cada producto, 
 
 **Uso desde otros módulos:** pedidos y MenIA deben obtener el catálogo mediante `getStoreCatalog` de `catalogModule`, sin acceder a las tablas del catálogo.
 
-**Autenticación pendiente:** las reglas de autorización están implementadas y testeadas, pero todavía no existe la autenticación. Hasta entonces, el resolver de actor (`src/shared/http/actorResolver.ts`) no identifica a ningún usuario y los endpoints protegidos responden `401`.
+## Autenticación
+
+La autenticación se realiza con **Neon Auth** (ver `docs/architecture/ADR-0002-autenticacion.md`). La API no maneja contraseñas: verifica el JWT que envía el frontend en cada request.
+
+```
+Authorization: Bearer <token>
+```
+
+A partir del token, la API identifica al usuario:
+
+1. Si tiene un rol de staff (`StaffScope`), actúa como `ORGANIZATION_ADMIN`, `STORE_ADMIN` o `STORE_EMPLOYEE`.
+2. Si no, si está registrado como cliente, actúa como `CUSTOMER`.
+3. Si no tiene ninguno de los dos, no tiene permisos y los endpoints protegidos responden `401`.
+
+Los roles y permisos se deciden en este backend. El rol genérico que incluye el JWT de Neon Auth no se usa.
+
+### Endpoints de identidad
+
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| `GET` | `/api/v1/me` | Devuelve el usuario autenticado: rol, organización y buffet |
+| `POST` | `/api/v1/me/customer` | Registra como cliente al usuario autenticado (cuerpo: `{ "name": "Ana" }`). El email se toma del token |
+
+### Obtener un token de prueba
+
+```bash
+npx tsx scripts/get-test-token.ts <email> <contraseña> [nombre]
+```
+
+Con nombre, crea la cuenta en Neon Auth antes de iniciar sesión. El token dura 15 minutos.
+
+### Asignar roles de staff
+
+La administración de staff desde la aplicación queda fuera del alcance del MVP. Para asignar roles se usa un script (el usuario debe haber creado su cuenta antes):
+
+```bash
+npx tsx scripts/assign-staff-role.ts <email> STORE_ADMIN <código-de-buffet>
+npx tsx scripts/assign-staff-role.ts <email> STORE_EMPLOYEE <código-de-buffet>
+npx tsx scripts/assign-staff-role.ts <email> ORGANIZATION_ADMIN <id-de-organización>
+```
+
+Cada usuario tiene como máximo un rol de staff: asignar uno nuevo reemplaza el anterior. Los roles se vinculan al id del usuario, no a su email, porque el registro en Neon Auth es abierto y no verifica el email.

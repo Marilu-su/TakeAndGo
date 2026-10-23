@@ -6,6 +6,7 @@ import { makeListCustomerStores } from '../application/listCustomerStores';
 import { PrismaStoreRepository } from '../../organization/infrastructure/prismaStoreRepository';
 import { PrismaCustomerRepository } from './prismaCustomerRepository';
 import { PrismaCustomerStoreMembershipRepository } from './prismaCustomerStoreMembershipRepository';
+import { makeRegisterCustomer } from '../application/registerCustomer';
 
 export type CreateCustomer = ReturnType<typeof makeCreateCustomer>;
 export type GetCustomer = ReturnType<typeof makeGetCustomer>;
@@ -63,5 +64,19 @@ export function createPrismaListCustomerStores(): ListCustomerStores {
         });
 
         return listCustomerStores(customerId);
+    };
+}
+
+export type RegisterCustomer = ReturnType<typeof makeRegisterCustomer>;
+
+export function createPrismaRegisterCustomer(): RegisterCustomer {
+    return (identity, command) => {
+        const prisma = getPrisma();
+
+        const registerCustomer = makeRegisterCustomer({
+            customers: new PrismaCustomerRepository(prisma),
+        });
+
+        return registerCustomer(identity, command);
     };
 }
