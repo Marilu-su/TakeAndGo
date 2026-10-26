@@ -21,14 +21,14 @@ enum StoreStatus {
 }
 
 model Organization {
-  id             String   @id @default(uuid())
+  id             String       @id @default(uuid())
   name           String
-  maxAdvanceDays Int      @default(7)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  maxAdvanceDays Int          @default(7)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
-  stores Store[]
-  staff  StaffScope[]
+  stores         Store[]
+  staff          StaffScope[]
 }
 
 model Store {
@@ -41,46 +41,48 @@ model Store {
   updatedAt      DateTime                  @updatedAt
   organization   Organization              @relation(fields: [organizationId], references: [id])
   categories     Category[]
-  products     Product[]
-  additions    Addition[]
+  products       Product[]
+  additions      Addition[]
   memberships    CustomerStoreMembership[]
-  staff        StaffScope[]
+  staff          StaffScope[]
+  orders         Order[]
 
   @@index([organizationId])
 }
 
 model Customer {
-  id        String   @id @default(uuid())
-  name      String
-  email     String   @unique
-  authUserId  String?  @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String                    @id @default(uuid())
+  name        String
+  email       String                    @unique
+  authUserId  String?                   @unique
+  createdAt   DateTime                  @default(now())
+  updatedAt   DateTime                  @updatedAt
 
   memberships CustomerStoreMembership[]
+  orders      Order[]
 }
 
 model CustomerStoreMembership {
   customerId String
   storeId    String
 
-  customer Customer @relation(fields: [customerId], references: [id])
-  store    Store    @relation(fields: [storeId], references: [id])
+  customer   Customer @relation(fields: [customerId], references: [id])
+  store      Store    @relation(fields: [storeId], references: [id])
 
   @@id([customerId, storeId])
 }
 
 model Category {
-  id        String   @id @default(uuid())
-  storeId   String
-  name      String
-  isActive  Boolean  @default(true)
+  id            String    @id @default(uuid())
+  storeId       String
+  name          String
+  isActive      Boolean   @default(true)
   activeNameKey String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  store    Store     @relation(fields: [storeId], references: [id])
-  products Product[]
+  store         Store     @relation(fields: [storeId], references: [id])
+  products      Product[]
 
   @@unique([id, storeId])
   @@unique([storeId, activeNameKey])
@@ -88,20 +90,21 @@ model Category {
 }
 
 model Product {
-  id                     String   @id @default(uuid())
+  id                     String            @id @default(uuid())
   storeId                String
   categoryId             String
   name                   String
   description            String?
   priceCents             Int
   basePreparationSeconds Int
-  isActive               Boolean  @default(true)
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
+  isActive               Boolean           @default(true)
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
 
-  store     Store             @relation(fields: [storeId], references: [id])
-  category  Category          @relation(fields: [categoryId, storeId], references: [id, storeId])
-  additions ProductAddition[]
+  store                  Store             @relation(fields: [storeId], references: [id])
+  category               Category          @relation(fields: [categoryId, storeId], references: [id, storeId])
+  additions              ProductAddition[]
+  orderItems             OrderItem[]
 
   @@unique([id, storeId])
   @@index([storeId])
@@ -109,16 +112,17 @@ model Product {
 }
 
 model Addition {
-  id         String   @id @default(uuid())
-  storeId    String
-  name       String
-  priceCents Int
-  isActive   Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id                 String              @id @default(uuid())
+  storeId            String
+  name               String
+  priceCents         Int
+  isActive           Boolean             @default(true)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
 
-  store    Store             @relation(fields: [storeId], references: [id])
-  products ProductAddition[]
+  store              Store               @relation(fields: [storeId], references: [id])
+  products           ProductAddition[]
+  orderItemAdditions OrderItemAddition[]
 
   @@unique([id, storeId])
   @@index([storeId])
@@ -129,8 +133,8 @@ model ProductAddition {
   additionId String
   storeId    String
 
-  product  Product  @relation(fields: [productId, storeId], references: [id, storeId])
-  addition Addition @relation(fields: [additionId, storeId], references: [id, storeId])
+  product    Product  @relation(fields: [productId, storeId], references: [id, storeId])
+  addition   Addition @relation(fields: [additionId, storeId], references: [id, storeId])
 
   @@id([productId, additionId])
   @@index([additionId, storeId])
@@ -143,17 +147,84 @@ enum StaffRole {
 }
 
 model StaffScope {
-  id             String    @id @default(uuid())
-  authUserId     String    @unique
+  id             String       @id @default(uuid())
+  authUserId     String       @unique
   role           StaffRole
   organizationId String
   storeId        String?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id])
-  store        Store?       @relation(fields: [storeId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  store          Store?       @relation(fields: [storeId], references: [id])
 
   @@index([organizationId])
   @@index([storeId])
+}
+
+enum OrderStatus {
+  RESERVED
+  CONFIRMED
+  PREPARING
+  READY_FOR_PICKUP
+  COMPLETED
+  CANCELLED
+  EXPIRED
+}
+
+model Order {
+  id            String      @id @default(uuid())
+  storeId       String
+  customerId    String
+  orderNumber   Int
+  status        OrderStatus @default(RESERVED)
+  totalCents    Int
+  reservedUntil DateTime?
+  pickupCode    String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  store         Store       @relation(fields: [storeId], references: [id])
+  customer      Customer    @relation(fields: [customerId], references: [id])
+  items         OrderItem[]
+
+  @@unique([storeId, orderNumber])
+  @@index([storeId])
+  @@index([customerId])
+  @@index([status])
+}
+
+model OrderItem {
+  id                     String              @id @default(uuid())
+  orderId                String
+  productId              String?
+  productNameSnapshot    String
+  unitPriceCentsSnapshot Int
+  quantity               Int
+  subtotalCents          Int
+  createdAt              DateTime            @default(now())
+
+  order                  Order               @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product                Product?            @relation(fields: [productId], references: [id], onDelete: SetNull)
+  additions              OrderItemAddition[]
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model OrderItemAddition {
+  id                     String    @id @default(uuid())
+  orderItemId            String
+  additionId             String?
+  additionNameSnapshot   String
+  unitPriceCentsSnapshot Int
+  quantity               Int       @default(1)
+  subtotalCents          Int
+  createdAt              DateTime  @default(now())
+
+  orderItem              OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  addition               Addition? @relation(fields: [additionId], references: [id], onDelete: SetNull)
+
+  @@index([orderItemId])
+  @@index([additionId])
 }

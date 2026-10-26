@@ -7,7 +7,7 @@
     "outDir": "dist",
     "strict": true,
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
+    "forceConsistentCasingInFileNames": false,
     "skipLibCheck": true,
     "types": ["node"]
   },
