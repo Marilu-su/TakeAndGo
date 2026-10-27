@@ -46,6 +46,9 @@ model Store {
   memberships    CustomerStoreMembership[]
   staff          StaffScope[]
   orders         Order[]
+  productStocks  ProductStock[]
+  additionStocks AdditionStock[]
+  stockMovements StockMovement[]
 
   @@index([organizationId])
 }
@@ -105,6 +108,7 @@ model Product {
   category               Category          @relation(fields: [categoryId, storeId], references: [id, storeId])
   additions              ProductAddition[]
   orderItems             OrderItem[]
+  stock                  ProductStock?
 
   @@unique([id, storeId])
   @@index([storeId])
@@ -123,6 +127,7 @@ model Addition {
   store              Store               @relation(fields: [storeId], references: [id])
   products           ProductAddition[]
   orderItemAdditions OrderItemAddition[]
+  stock              AdditionStock?
 
   @@unique([id, storeId])
   @@index([storeId])
@@ -226,5 +231,59 @@ model OrderItemAddition {
   addition               Addition? @relation(fields: [additionId], references: [id], onDelete: SetNull)
 
   @@index([orderItemId])
+  @@index([additionId])
+}
+
+enum StockMovementType {
+  INVENTORY_ADJUSTMENT
+  ORDER_RESERVED
+  ORDER_CANCELLED
+  ORDER_FULFILLED
+}
+
+model ProductStock {
+  id             String   @id @default(uuid())
+  storeId        String
+  productId      String   @unique
+  availableStock Int      @default(0)
+  reservedStock  Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  store          Store    @relation(fields: [storeId], references: [id])
+  product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([storeId])
+}
+
+model AdditionStock {
+  id             String   @id @default(uuid())
+  storeId        String
+  additionId     String   @unique
+  availableStock Int      @default(0)
+  reservedStock  Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  store          Store    @relation(fields: [storeId], references: [id])
+  addition       Addition @relation(fields: [additionId], references: [id], onDelete: Cascade)
+
+  @@index([storeId])
+}
+
+model StockMovement {
+  id          String            @id @default(uuid())
+  storeId     String
+  productId   String?
+  additionId  String?
+  quantity    Int
+  type        StockMovementType
+  referenceId String?
+  createdAt   DateTime          @default(now())
+
+  store       Store             @relation(fields: [storeId], references: [id])
+
+  @@index([storeId])
+  @@index([productId])
   @@index([additionId])
 }
