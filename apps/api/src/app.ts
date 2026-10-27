@@ -34,6 +34,11 @@ import {
   type RegisterCustomer,
 } from './modules/customer/infrastructure/customerModule';
 
+// Módulos Stock y Order
+import { createStockModule, type StockModule } from './modules/stock/infrastructure/stockModule';
+import { createOrderModule, type OrderModule } from './modules/order/infrastructure/orderModule';
+import { createOrderRouter } from './modules/order/infrastructure/http/orderRoutes';
+
 export type AppDependencies = {
   checkDatabase: () => Promise<boolean>;
   resolveActor: ActorResolver;
@@ -44,10 +49,14 @@ export type AppDependencies = {
   productUseCases: ProductUseCases;
   additionUseCases: AdditionUseCases;
   storeCatalogUseCases: StoreCatalogUseCases;
+  stockModule: StockModule;
+  orderModule: OrderModule;
 };
 
 function defaultDependencies(): AppDependencies {
   const auth = createDefaultAuthResolvers();
+  const stockModule = createStockModule();
+  const orderModule = createOrderModule(stockModule.stockRepository);
 
   return {
     checkDatabase: checkDatabaseConnection,
@@ -59,6 +68,8 @@ function defaultDependencies(): AppDependencies {
     productUseCases: createPrismaProductUseCases(),
     additionUseCases: createPrismaAdditionUseCases(),
     storeCatalogUseCases: createPrismaStoreCatalogUseCases(),
+    stockModule,
+    orderModule,
   };
 }
 
@@ -138,6 +149,12 @@ export function createApp(overrides: Partial<AppDependencies> = {}) {
       useCases: dependencies.storeCatalogUseCases,
       resolveActor: dependencies.resolveActor,
     }),
+  );
+
+  // Rutas de Pedidos (C2-12)
+  app.use(
+    '/api/v1',
+    createOrderRouter(dependencies.orderModule),
   );
 
   app.use((_req, res) => {
