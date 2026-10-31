@@ -192,6 +192,7 @@ model Order {
   store         Store       @relation(fields: [storeId], references: [id])
   customer      Customer    @relation(fields: [customerId], references: [id])
   items         OrderItem[]
+  payments      Payment?
 
   @@unique([storeId, orderNumber])
   @@index([storeId])
@@ -286,4 +287,27 @@ model StockMovement {
   @@index([storeId])
   @@index([productId])
   @@index([additionId])
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  REFUNDED
+}
+
+model Payment {
+  id                String        @id @default(uuid())
+  orderId           String        @unique
+  status            PaymentStatus @default(PENDING)
+  amountCents       Int
+  expiresAt         DateTime
+  providerPaymentId String?       @unique
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  order             Order         @relation(fields: [orderId], references: [id])
+
+  @@index([orderId])
+  @@index([status])
 }
