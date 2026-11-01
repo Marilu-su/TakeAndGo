@@ -1,34 +1,64 @@
-import { OrderRepository } from '../domain/orderRepository';
-import { StockRepository } from '../../stock/domain/stockRepository';
+
+import type { OrderRepository } from '../domain/orderRepository';
+import type { StockRepository } from '../../stock/domain/stockRepository';
 
 export interface ReleaseExpiredReservationsResult {
   releasedOrdersCount: number;
   orderIds: string[];
 }
 
+export interface ExpireOrderPort {
+  expireOrder(orderId: string, now: Date): Promise<boolean>;
+}
+
 export class ReleaseExpiredReservationsUseCase {
   constructor(
     private readonly orderRepository: OrderRepository,
     private readonly stockRepository: StockRepository,
+    private readonly expireOrderPort?: ExpireOrderPort,
   ) {}
 
-  async execute(referenceDate: Date = new Date()): Promise<ReleaseExpiredReservationsResult> {
-    const expiredOrders = await this.orderRepository.findExpiredReservations(referenceDate);
+  async execute(
+    referenceDate: Date = new Date(),
+  ): Promise<ReleaseExpiredReservationsResult> {
+    const expiredOrders =
+      await this.orderRepository.findExpiredReservations(referenceDate);
+
     const releasedOrderIds: string[] = [];
 
     for (const order of expiredOrders) {
-      // Mapear los ítems para devolver el stock
+      if (this.expireOrderPort) {
+        const expired = await this.expireOrderPort.expireOrder(
+          order.id,
+          referenceDate,
+        );
+
+        if (expired) {
+          releasedOrderIds.push(order.id);
+        }
+
+        continue;
+      }
+
+      // Compatibilidad con el flujo anterior.
       const stockItems = order.items.map((item) => ({
         productId: item.productId,
         quantity: item.quantity,
-        additionIds: item.additions?.map((a) => a.additionId).filter(Boolean) as string[],
+        additionIds: item.additions
+          ?.map((addition) => addition.additionId)
+          .filter(Boolean) as string[],
       }));
 
-      // 1. Devolver el stock a availableStock
-      await this.stockRepository.releaseStock(order.storeId, order.id, stockItems);
+      await this.stockRepository.releaseStock(
+        order.storeId,
+        order.id,
+        stockItems,
+      );
 
-      // 2. Marcar la orden como CANCELLED (o EXPIRED)
-      await this.orderRepository.updateStatus(order.id, 'CANCELLED');
+      await this.orderRepository.updateStatus(
+        order.id,
+        'CANCELLED',
+      );
 
       releasedOrderIds.push(order.id);
     }
