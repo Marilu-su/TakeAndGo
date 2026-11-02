@@ -305,9 +305,28 @@ model Payment {
   providerPaymentId String?       @unique
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
-
+  compensation      PaymentCompensation?
   order             Order         @relation(fields: [orderId], references: [id])
 
   @@index([orderId])
+  @@index([status])
+}
+
+enum PaymentCompensationStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+model PaymentCompensation {
+  id               String                    @id @default(uuid())
+  paymentId        String                    @unique
+  status           PaymentCompensationStatus @default(PENDING)
+  providerRefundId String?                   @unique
+  createdAt        DateTime                  @default(now())
+  updatedAt        DateTime                  @updatedAt
+
+  payment Payment @relation(fields: [paymentId], references: [id])
+
   @@index([status])
 }
