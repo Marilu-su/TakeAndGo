@@ -152,6 +152,56 @@ export class PrismaOrderRepository implements OrderRepository {
 
     return this.mapToDomain(updated);
   }
+  async updateStatusIfCurrent(
+  id: string,
+  currentStatus: OrderStatus,
+  nextStatus: OrderStatus
+): Promise<Order | null> {
+  const prisma = getPrisma();
+
+  const result = await prisma.order.updateMany({
+    where: {
+      id,
+      status: currentStatus,
+    },
+    data: {
+      status: nextStatus,
+    },
+  });
+
+  if (result.count === 0) {
+    return null;
+  }
+
+  return this.findById(id);
+}
+
+async finishPreparationIfCurrent(
+  id: string,
+  preparedAt: Date,
+  preparedByUserId: string
+): Promise<Order | null> {
+  const prisma = getPrisma();
+
+  const result = await prisma.order.updateMany({
+    where: {
+      id,
+      status: 'PREPARING',
+      preparedAt: null,
+    },
+    data: {
+      preparedAt,
+      preparedByUserId,
+    },
+  });
+
+  if (result.count === 0) {
+    return null;
+  }
+
+  return this.findById(id);
+}
+
 
   private mapToDomain(raw: any): Order {
     return {
@@ -161,8 +211,10 @@ export class PrismaOrderRepository implements OrderRepository {
       orderNumber: raw.orderNumber,
       status: raw.status as OrderStatus,
       totalCents: raw.totalCents,
-      reservedUntil: raw.reservedUntil,
+     reservedUntil: raw.reservedUntil,
       pickupCode: raw.pickupCode,
+      preparedAt: raw.preparedAt,
+      preparedByUserId: raw.preparedByUserId,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
       items: (raw.items || []).map((item: any) => ({

@@ -35,6 +35,8 @@ export interface Order {
   totalCents: number;
   reservedUntil?: Date | null;
   pickupCode?: string | null;
+  preparedAt?: Date | null;
+  preparedByUserId?: string | null;
   createdAt: Date;
   updatedAt: Date;
   items: OrderItemSnapshot[];

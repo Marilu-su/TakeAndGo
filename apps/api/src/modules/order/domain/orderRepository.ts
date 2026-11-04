@@ -31,4 +31,14 @@ export interface OrderRepository {
   findActiveByCustomer(customerId: string): Promise<Order[]>;
   updateStatus(id: string, status: Order['status']): Promise<Order>;
   findExpiredReservations(now: Date): Promise<Order[]>;
+  updateStatusIfCurrent(
+    id: string,
+    currentStatus: Order['status'],
+    nextStatus: Order['status']
+  ): Promise<Order | null>;
+  finishPreparationIfCurrent(
+  id: string,
+  preparedAt: Date,
+  preparedByUserId: string
+  ): Promise<Order | null>;
 }
