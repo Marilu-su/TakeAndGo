@@ -678,3 +678,7 @@ Se implementa el catálogo por buffet con categorías, descripciones, precios en
 ### 2026-11-05 — Administración de buffets
 
 Se agrega listado por organización con puerto de lectura y autorización del dominio; se expone la desactivación reutilizando su caso de uso. La UI de ORGANIZATION_ADMIN consume listado/creación/desactivación con confirmación. Los buffets nuevos conservan PENDING_SETUP; no se inventa activación ni edición sin contrato. Las 15 pruebas de organización y aislamiento pasan. Build frontend con Webpack exitoso (Turbopack falla al iniciar su proceso CSS en este equipo). Validación humana pendiente.
+
+### 2026-11-05 — Gestión de catálogo
+
+Se integran formularios de creación, edición y desactivación de categorías/productos/adicionales, confirmación explícita y reemplazo de adicionales por producto. Se usan exclusivamente los endpoints existentes y el storeId del Actor para administración. La conversión de moneda admite coma o punto y rechaza precisión excesiva y desbordamiento. Verificación: 6 tests frontend, 18 contratos HTTP y ESLint/TypeScript exitosos. Validación humana pendiente.
