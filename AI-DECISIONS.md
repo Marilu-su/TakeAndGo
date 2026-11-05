@@ -682,3 +682,7 @@ Se agrega listado por organización con puerto de lectura y autorización del do
 ### 2026-11-05 — Gestión de catálogo
 
 Se integran formularios de creación, edición y desactivación de categorías/productos/adicionales, confirmación explícita y reemplazo de adicionales por producto. Se usan exclusivamente los endpoints existentes y el storeId del Actor para administración. La conversión de moneda admite coma o punto y rechaza precisión excesiva y desbordamiento. Verificación: 6 tests frontend, 18 contratos HTTP y ESLint/TypeScript exitosos. Validación humana pendiente.
+
+### 2026-11-05 — Carrito y resumen
+
+Se agregan cantidades, selección de adicionales, variantes por producto, eliminación y resumen en el catálogo activo. El carrito se mantiene en memoria de esa pantalla y no mezcla buffets ni usuarios. Los totales son estimaciones en centavos; nunca se envían precios calculados por el navegador a la API. Diez pruebas frontend exitosas, incluido cálculo, variantes, cantidades inválidas y desbordamiento. Validación humana pendiente.

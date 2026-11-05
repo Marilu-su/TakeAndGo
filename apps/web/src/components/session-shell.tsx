@@ -1,10 +1,16 @@
 'use client';
-import { useEffect, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { authClient } from '@/lib/auth/client';
 import { getActor, type Actor } from '@/lib/session';
 import { ApiError } from '@/lib/api';
+const ActorContext = createContext<Actor | undefined>(undefined);
+export function useActor() {
+  const actor = useContext(ActorContext);
+  if (!actor) throw new Error('Se requiere una sesión de Take&Go.');
+  return actor;
+}
 export function SessionShell({ children, admin = false }: { children: ReactNode; admin?: boolean }) {
   const router = useRouter();
   const [actor, setActor] = useState<Actor>();
@@ -34,5 +40,5 @@ export function SessionShell({ children, admin = false }: { children: ReactNode;
   return <><header className="site-header"><Link className="brand" href={admin ? '/admin' : '/buffets'}>Take&amp;Go</Link><nav>
     <Link href={admin ? '/admin' : '/buffets'}>{admin ? 'Administración' : 'Mis buffets'}</Link>
     {!admin && <Link href="/pedidos">Mis pedidos</Link>}<button className="secondary" onClick={logout}>Cerrar sesión</button>
-  </nav></header>{error ? <main className="page"><p role="alert" className="error">{error}</p><button onClick={() => { setError(''); setRevision(v => v + 1); }}>Reintentar</button></main> : actor ? children : <main className="page" role="status">Verificando sesión…</main>}</>;
+  </nav></header>{error ? <main className="page"><p role="alert" className="error">{error}</p><button onClick={() => { setError(''); setRevision(v => v + 1); }}>Reintentar</button></main> : actor ? <ActorContext.Provider value={actor}>{children}</ActorContext.Provider> : <main className="page" role="status">Verificando sesión…</main>}</>;
 }
