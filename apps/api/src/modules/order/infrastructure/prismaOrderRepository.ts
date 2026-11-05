@@ -22,6 +22,10 @@ export class PrismaOrderRepository implements OrderRepository {
         status: input.status ?? 'RESERVED',
         totalCents: input.totalCents,
         reservedUntil: input.reservedUntil,
+        scheduledForDate: input.scheduledForDate,
+        promisedFrom: input.promisedFrom,
+        promisedTo: input.promisedTo,
+        toleranceUntil: input.toleranceUntil,
         items: {
           create: input.items.map((item) => ({
             productId: item.productId,
@@ -202,6 +206,71 @@ async finishPreparationIfCurrent(
   return this.findById(id);
 }
 
+async activatePickupIfEligible(
+  id: string,
+  expectedPromisedFrom: Date,
+  expectedPromisedTo: Date,
+  now: Date
+): Promise<Order | null> {
+  const prisma = getPrisma();
+
+  const result = await prisma.order.updateMany({
+    where: {
+      id,
+      status: 'PREPARING',
+      preparedAt: { not: null },
+      AND: [
+        { promisedFrom: expectedPromisedFrom },
+        { promisedTo: expectedPromisedTo },
+        { promisedFrom: { lte: now } },
+        { promisedTo: { gt: now } },
+      ],
+    },
+    data: {
+      status: 'READY_FOR_PICKUP',
+    },
+  });
+
+  if (result.count === 0) {
+    return null;
+  }
+
+  return this.findById(id);
+}
+
+  async findPreparedOrdersInPickupWindow(
+    now: Date
+  ): Promise<Order[]> {
+    const prisma = getPrisma();
+
+    const orders = await prisma.order.findMany({
+      where: {
+        status: 'PREPARING',
+        preparedAt: {
+          not: null,
+        },
+        promisedFrom: {
+          lte: now,
+        },
+        promisedTo: {
+          gt: now,
+        },
+      },
+      include: {
+        items: {
+          include: {
+            additions: true,
+          },
+        },
+      },
+      orderBy: {
+        promisedFrom: 'asc',
+      },
+    });
+
+    return orders.map((order) => this.mapToDomain(order));
+  }
+
 
   private mapToDomain(raw: any): Order {
     return {
@@ -213,6 +282,10 @@ async finishPreparationIfCurrent(
       totalCents: raw.totalCents,
      reservedUntil: raw.reservedUntil,
       pickupCode: raw.pickupCode,
+      scheduledForDate: raw.scheduledForDate,
+      promisedFrom: raw.promisedFrom,
+      promisedTo: raw.promisedTo,
+      toleranceUntil: raw.toleranceUntil,
       preparedAt: raw.preparedAt,
       preparedByUserId: raw.preparedByUserId,
       createdAt: raw.createdAt,

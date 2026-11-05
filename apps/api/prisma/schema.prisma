@@ -186,6 +186,10 @@ model Order {
   totalCents    Int
   reservedUntil DateTime?
   pickupCode    String?
+  scheduledForDate DateTime?
+  promisedFrom     DateTime?
+  promisedTo       DateTime?
+  toleranceUntil   DateTime?
   preparedAt       DateTime?
   preparedByUserId  String?
   createdAt     DateTime    @default(now())

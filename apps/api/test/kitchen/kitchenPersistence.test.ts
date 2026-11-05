@@ -52,6 +52,12 @@ test(
       () => fixedDate
     );
 
+    // Ventana prometida de retiro.
+    const scheduledForDate = new Date('2026-11-04T00:00:00.000Z');
+    const promisedFrom = new Date('2026-11-04T18:00:00.000Z');
+    const promisedTo = new Date('2026-11-04T18:05:00.000Z');
+    const toleranceUntil = new Date('2026-11-04T18:10:00.000Z');
+
     const suffix = randomUUID();
 
     let organizationId: string | undefined;
@@ -60,7 +66,7 @@ test(
     let orderId: string | undefined;
 
     try {
-      // 1. Crear los datos necesarios para el pedido
+      // 1. Crear los datos necesarios para el pedido.
       const organization = await prisma.organization.create({
         data: {
           name: `Organizacion test cocina ${suffix}`,
@@ -88,6 +94,7 @@ test(
 
       customerId = customer.id;
 
+      // 2. Crear un pedido con una ventana prometida de retiro.
       const order = await prisma.order.create({
         data: {
           storeId,
@@ -95,13 +102,30 @@ test(
           orderNumber: 1,
           totalCents: 1500,
           status: 'CONFIRMED',
+          scheduledForDate,
+          promisedFrom,
+          promisedTo,
+          toleranceUntil,
         },
       });
 
       orderId = order.id;
-      if (!storeId || !orderId) {
-         throw new Error('No se pudieron crear los datos de prueba');
-    }
+
+      // 3. Verificar que el repositorio recupera la ventana.
+      const savedWindow = await repository.findById(orderId);
+
+      assert.ok(savedWindow);
+
+      assert.deepEqual(
+        savedWindow.scheduledForDate,
+        scheduledForDate
+      );
+      assert.deepEqual(savedWindow.promisedFrom, promisedFrom);
+      assert.deepEqual(savedWindow.promisedTo, promisedTo);
+      assert.deepEqual(
+        savedWindow.toleranceUntil,
+        toleranceUntil
+      );
 
       const employee: Actor = {
         userId: `employee-${suffix}`,
@@ -109,7 +133,7 @@ test(
         storeId,
       };
 
-      // 2. Iniciar preparación usando el caso de uso real
+      // 4. Iniciar preparación usando el caso de uso real.
       const started = await startPreparation.execute(
         employee,
         storeId,
@@ -119,7 +143,7 @@ test(
       assert.equal(started.status, 'PREPARING');
       assert.equal(started.preparedAt, null);
 
-      // 3. Finalizar preparación usando el caso de uso real
+      // 5. Finalizar preparación usando el caso de uso real.
       const finished = await finishPreparation.execute(
         employee,
         storeId,
@@ -128,9 +152,12 @@ test(
 
       assert.equal(finished.status, 'PREPARING');
       assert.deepEqual(finished.preparedAt, fixedDate);
-      assert.equal(finished.preparedByUserId, employee.userId);
+      assert.equal(
+        finished.preparedByUserId,
+        employee.userId
+      );
 
-      // 4. Consultar directamente PostgreSQL
+      // 6. Consultar directamente PostgreSQL.
       const savedOrder = await prisma.order.findUnique({
         where: { id: orderId },
       });
@@ -144,18 +171,32 @@ test(
         employee.userId
       );
 
-      // 5. No permitir finalizar el mismo pedido dos veces
+      // Verificar que la ventana sigue persistida.
+      assert.deepEqual(
+        savedOrder.scheduledForDate,
+        scheduledForDate
+      );
+      assert.deepEqual(savedOrder.promisedFrom, promisedFrom);
+      assert.deepEqual(savedOrder.promisedTo, promisedTo);
+      assert.deepEqual(
+        savedOrder.toleranceUntil,
+        toleranceUntil
+      );
+
+      // 7. No permitir finalizar el mismo pedido dos veces.
       await assert.rejects(
         () => finishPreparation.execute(employee, storeId, orderId),
         { code: 'INVALID_KITCHEN_STATE' }
       );
 
-      // 6. Comprobar también la condición del repositorio
-      const repeatedUpdate = await repository.finishPreparationIfCurrent(
-        orderId,
-        new Date('2026-11-04T19:00:00.000Z'),
-        'another-employee'
-      );
+      // 8. Comprobar que el repositorio impide
+      // finalizar nuevamente una preparación ya finalizada.
+      const repeatedUpdate =
+        await repository.finishPreparationIfCurrent(
+          orderId,
+          new Date('2026-11-04T19:00:00.000Z'),
+          'another-employee'
+        );
 
       assert.equal(repeatedUpdate, null);
 
@@ -164,15 +205,123 @@ test(
       });
 
       assert.ok(unchangedOrder);
-      assert.deepEqual(unchangedOrder.preparedAt, fixedDate);
+
+      assert.deepEqual(
+        unchangedOrder.preparedAt,
+        fixedDate
+      );
       assert.equal(
         unchangedOrder.preparedByUserId,
         employee.userId
       );
       assert.equal(unchangedOrder.status, 'PREPARING');
 
+      // 9. Verificar que una reprogramación impide
+      // activar el retiro con una ventana anterior.
+      const originalFrom = promisedFrom;
+      const originalTo = promisedTo;
+
+      const newFrom = new Date('2026-11-04T18:20:00.000Z');
+      const newTo = new Date('2026-11-04T18:25:00.000Z');
+      const newToleranceUntil = new Date(
+        '2026-11-04T18:30:00.000Z'
+      );
+
+      // Simulamos que CocIA reprogramó la ventana.
+      await prisma.order.update({
+        where: { id: orderId },
+        data: {
+          promisedFrom: newFrom,
+          promisedTo: newTo,
+          toleranceUntil: newToleranceUntil,
+        },
+      });
+
+      // 10. Intentar activar el retiro con la ventana anterior.
+      const staleActivation =
+        await repository.activatePickupIfEligible(
+          orderId,
+          originalFrom,
+          originalTo,
+          new Date('2026-11-04T18:01:00.000Z')
+        );
+
+      // La actualización debe rechazarse.
+      assert.equal(staleActivation, null);
+
+      const afterStaleAttempt =
+        await prisma.order.findUnique({
+          where: { id: orderId },
+        });
+
+      assert.ok(afterStaleAttempt);
+      assert.equal(
+        afterStaleAttempt.status,
+        'PREPARING'
+      );
+
+      // La ventana reprogramada debe conservarse.
+      assert.deepEqual(
+        afterStaleAttempt.promisedFrom,
+        newFrom
+      );
+      assert.deepEqual(
+        afterStaleAttempt.promisedTo,
+        newTo
+      );
+      assert.deepEqual(
+        afterStaleAttempt.toleranceUntil,
+        newToleranceUntil
+      );
+
+      // 11. Activar el retiro usando la ventana vigente.
+      const validActivation =
+        await repository.activatePickupIfEligible(
+          orderId,
+          newFrom,
+          newTo,
+          new Date('2026-11-04T18:20:00.000Z')
+        );
+
+      assert.ok(validActivation);
+      assert.equal(
+        validActivation.status,
+        'READY_FOR_PICKUP'
+      );
+
+      // 12. Comprobar el resultado directamente en PostgreSQL.
+      const finalOrder = await prisma.order.findUnique({
+        where: { id: orderId },
+      });
+
+      assert.ok(finalOrder);
+
+      assert.equal(
+        finalOrder.status,
+        'READY_FOR_PICKUP'
+      );
+      assert.deepEqual(
+        finalOrder.promisedFrom,
+        newFrom
+      );
+      assert.deepEqual(
+        finalOrder.promisedTo,
+        newTo
+      );
+      assert.deepEqual(
+        finalOrder.toleranceUntil,
+        newToleranceUntil
+      );
+      assert.deepEqual(
+        finalOrder.preparedAt,
+        fixedDate
+      );
+      assert.equal(
+        finalOrder.preparedByUserId,
+        employee.userId
+      );
     } finally {
-      // Eliminar solamente los registros creados por este test
+      // Eliminar solamente los registros creados por este test.
       if (orderId) {
         await prisma.order.delete({
           where: { id: orderId },

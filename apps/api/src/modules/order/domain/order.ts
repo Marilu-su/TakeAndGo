@@ -35,8 +35,17 @@ export interface Order {
   totalCents: number;
   reservedUntil?: Date | null;
   pickupCode?: string | null;
+
+  // Ventana prometida de retiro
+  scheduledForDate?: Date | null;
+  promisedFrom?: Date | null;
+  promisedTo?: Date | null;
+  toleranceUntil?: Date | null;
+
+  // Trazabilidad de cocina
   preparedAt?: Date | null;
   preparedByUserId?: string | null;
+
   createdAt: Date;
   updatedAt: Date;
   items: OrderItemSnapshot[];
