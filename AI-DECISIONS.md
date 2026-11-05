@@ -666,3 +666,7 @@ Se verificó:
 Se integró el SDK oficial `@neondatabase/auth` mediante route handlers de Next.js, formularios de registro/login, cierre de sesión y obtención de JWT por solicitud. Los roles se consultan a `/api/v1/me`; la API conserva la autoridad de autorización. No se guardan JWT en localStorage. Se documentan las variables de servidor en `.env.example`, sin credenciales.
 
 Validación automatizada: ESLint sin errores; TypeScript solo informa el catálogo vacío preexistente, pendiente del siguiente bloque. Se incorporan pruebas del cliente HTTP (JWT, errores, 204 y conexión). La prueba real de Neon requiere configurar el frontend. El typecheck inicial del backend falla por el test ajeno sin seguimiento, que se mantiene intacto. Validación humana de este bloque: pendiente; no se afirma revisión del equipo.
+
+### 2026-11-05 — Buffets del cliente conectados
+
+Se exponen GET/POST `/api/v1/me/stores` reutilizando los casos de uso existentes. El Customer se deriva exclusivamente del Actor; se rechazan anónimos y staff. La pantalla reemplaza demos por datos reales, asociación por código y selección del buffet con navegación al catálogo. Pruebas HTTP: 2 exitosas (aislamiento de identidad, 401/403 y validación). Baseline backend fuera del sandbox: 244 exitosas y 2 omitidas por requerir PostgreSQL local. Validación humana pendiente.
