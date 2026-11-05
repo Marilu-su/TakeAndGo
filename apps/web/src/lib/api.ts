@@ -58,8 +58,9 @@ export async function apiRequest<T>(
     });
 
     if (!response.ok) {
+      const detail = await response.json().catch(() => null) as { error?: string; message?: string } | null;
       throw new ApiError(
-        `El backend respondió con código ${response.status}`,
+        detail?.error || detail?.message || `El backend respondió con código ${response.status}`,
         response.status
       );
     }

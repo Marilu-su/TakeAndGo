@@ -659,3 +659,10 @@ Se verificó:
 - Se usó la versión 5 de `jose`, ya que la más reciente solo soporta módulos ESM y la API usa CommonJS.
 - La integración de Neon Auth con Better Auth está en beta; se mitigó dependiendo solo del estándar JWT/JWKS.
 - Los endpoints HTTP de asociación de clientes a buffets (C2-04) quedan pendientes de definir con su responsable.
+### 2026-11-05 — Sesión frontend con Neon Auth
+
+**Solicitud:** Checkpoint 2 frontend, plan aprobado por Luana en este chat.
+
+Se integró el SDK oficial `@neondatabase/auth` mediante route handlers de Next.js, formularios de registro/login, cierre de sesión y obtención de JWT por solicitud. Los roles se consultan a `/api/v1/me`; la API conserva la autoridad de autorización. No se guardan JWT en localStorage. Se documentan las variables de servidor en `.env.example`, sin credenciales.
+
+Validación automatizada: ESLint sin errores; TypeScript solo informa el catálogo vacío preexistente, pendiente del siguiente bloque. Se incorporan pruebas del cliente HTTP (JWT, errores, 204 y conexión). La prueba real de Neon requiere configurar el frontend. El typecheck inicial del backend falla por el test ajeno sin seguimiento, que se mantiene intacto. Validación humana de este bloque: pendiente; no se afirma revisión del equipo.
