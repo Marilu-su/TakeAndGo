@@ -670,3 +670,7 @@ Validación automatizada: ESLint sin errores; TypeScript solo informa el catálo
 ### 2026-11-05 — Buffets del cliente conectados
 
 Se exponen GET/POST `/api/v1/me/stores` reutilizando los casos de uso existentes. El Customer se deriva exclusivamente del Actor; se rechazan anónimos y staff. La pantalla reemplaza demos por datos reales, asociación por código y selección del buffet con navegación al catálogo. Pruebas HTTP: 2 exitosas (aislamiento de identidad, 401/403 y validación). Baseline backend fuera del sandbox: 244 exitosas y 2 omitidas por requerir PostgreSQL local. Validación humana pendiente.
+
+### 2026-11-05 — Catálogo conectado
+
+Se implementa el catálogo por buffet con categorías, descripciones, precios en centavos, adicionales, búsqueda y estados loading/error/empty. Se consume GET `/api/v1/stores/:storeId/catalog` con JWT; el backend verifica membresía o scope de staff. Las 17 pruebas existentes de catálogo, agrupación y autorización pasan. La disponibilidad del catálogo aún usa el adaptador provisional del backend, pendiente de integrar con stock. Se agregan comandos explícitos de typecheck y tests frontend. Validación humana pendiente.
