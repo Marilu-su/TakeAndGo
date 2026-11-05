@@ -694,3 +694,9 @@ Se protegen creación/listado/detalle/cancelación con Actor CUSTOMER, propiedad
 Se detectó que la persistencia anterior creaba el pedido antes de reservar stock. Se agrega una transacción compartida para creación/reserva, numeración serializada por buffet y decrementos condicionados por disponibilidad. La cancelación usa transición condicional RESERVED→CANCELLED y libera stock en la misma transacción; no interviene en pedidos confirmados. La liberación global de reservas queda como operación interna, sin acceso desde frontend.
 
 Verificación: 10 pruebas específicas exitosas, incluida PostgreSQL real con dos solicitudes por la última unidad, rollback sin pedido huérfano y cancelación repetida/concurrente sin liberar dos veces. Datos temporales eliminados. Validación humana pendiente.
+
+### 2026-11-05 — Disponibilidad real y consulta de stock
+
+El catálogo consulta stock por buffet y oculta productos y adicionales agotados. Los elementos sin registro conservan la semántica existente de stock sin control. Se incorpora GET `/api/v1/stores/:storeId/stock` para STORE_ADMIN del buffet y una pantalla de consulta de disponibles y reservados; se verifica autorización antes de acceder a datos.
+
+Validación al retomar: 256 pruebas backend exitosas, 2 omitidas que requieren PostgreSQL local; incluye integración PostgreSQL de reservas, agotamiento del catálogo y cancelación. Frontend: ESLint, TypeScript y 10 pruebas exitosas. El typecheck backend conserva los errores del test ajeno sin seguimiento, que no se modifica ni versiona. Validación humana pendiente.

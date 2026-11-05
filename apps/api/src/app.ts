@@ -43,6 +43,7 @@ import { createStockModule, type StockModule } from './modules/stock/infrastruct
 import { createOrderModule, type OrderModule } from './modules/order/infrastructure/orderModule';
 import { createOrderRouter } from './modules/order/infrastructure/http/orderRoutes';
 import { PrismaOrderRepository } from './modules/order/infrastructure/prismaOrderRepository';
+import { createStockRouter } from './modules/stock/infrastructure/http/stockRoutes';
 
 export type AppDependencies = {
   checkDatabase: () => Promise<boolean>;
@@ -107,6 +108,12 @@ export function createApp(overrides: Partial<AppDependencies> = {}) {
   });
 
   app.use('/api/v1', createMeRouter({ resolveActor: dependencies.resolveActor }));
+  app.use('/api/v1', createStockRouter({
+    resolveActor: dependencies.resolveActor,
+    products: dependencies.productUseCases.listProducts,
+    additions: dependencies.additionUseCases.listAdditions,
+    stock: dependencies.stockModule.stockRepository,
+  }));
   app.use('/api/v1', createStoreManagementRouter(dependencies.resolveActor, createPrismaStoreManagement()));
   app.use('/api/v1', createCustomerStoreRouter({
     resolveActor: dependencies.resolveActor,

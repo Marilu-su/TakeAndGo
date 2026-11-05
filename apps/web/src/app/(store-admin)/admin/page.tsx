@@ -9,6 +9,6 @@ export default function AdminPage() {
   const actor = resource.data;
   return <main className="page"><h1>Administración</h1><ResourceState {...resource} retry={resource.reload} />
     {actor?.role === 'ORGANIZATION_ADMIN' && actor.organizationId && <OrganizationAdmin organizationId={actor.organizationId} />}
-    {actor?.role === 'STORE_ADMIN' && actor.storeId && <section className="panel form-stack"><h2>Gestioná tu buffet</h2><p>Administrá categorías, productos y adicionales de tu buffet.</p><Link className="button" href="/admin/catalogo">Administrar catálogo</Link></section>}
+    {actor?.role === 'STORE_ADMIN' && actor.storeId && <section className="panel form-stack"><h2>Gestioná tu buffet</h2><p>Administrá categorías, productos y adicionales de tu buffet.</p><div className="actions"><Link className="button" href="/admin/catalogo">Administrar catálogo</Link><Link className="button" href="/admin/stock">Consultar stock</Link></div></section>}
   </main>;
 }

@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { getPrisma } from '../src/infrastructure/database/prisma';
 import { placeReservedOrder, cancelReservedOrder } from '../src/modules/order/infrastructure/prismaOrderReservation';
+import { createPrismaStoreCatalogUseCases } from '../src/modules/catalog/infrastructure/catalogModule';
 
 test('reservas PostgreSQL: concurrencia, rollback y cancelación idempotente', { skip: !process.env.DATABASE_URL }, async () => {
   const prisma = getPrisma();
@@ -21,6 +22,7 @@ test('reservas PostgreSQL: concurrencia, rollback y cancelación idempotente', {
     assert.equal(await prisma.order.count({ where: { storeId: store.id } }), 1, 'no persiste el pedido cuya reserva falló');
     let stock = await prisma.productStock.findUniqueOrThrow({ where: { productId: product.id } });
     assert.equal(stock.availableStock, 0); assert.equal(stock.reservedStock, 1);
+    assert.equal((await createPrismaStoreCatalogUseCases().getStoreCatalog(store.id)).categories.length, 0, 'catálogo oculta producto agotado');
     const successful = results.find(r => r.status === 'fulfilled');
     assert.ok(successful?.status === 'fulfilled');
     const id = successful.value.id;
@@ -29,6 +31,7 @@ test('reservas PostgreSQL: concurrencia, rollback y cancelación idempotente', {
     await cancelReservedOrder(id);
     stock = await prisma.productStock.findUniqueOrThrow({ where: { productId: product.id } });
     assert.equal(stock.availableStock, 1); assert.equal(stock.reservedStock, 0);
+    assert.equal((await createPrismaStoreCatalogUseCases().getStoreCatalog(store.id)).categories[0].products[0].id, product.id);
     assert.equal(await prisma.stockMovement.count({ where: { storeId: store.id, type: 'ORDER_CANCELLED' } }), 1);
   } finally {
     await prisma.stockMovement.deleteMany({ where: { storeId: store.id } });
