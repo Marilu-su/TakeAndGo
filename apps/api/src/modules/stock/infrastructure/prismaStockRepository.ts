@@ -1,10 +1,12 @@
 import { getPrisma } from '../../../infrastructure/database/prisma';
 import { AdditionStock, ProductStock } from '../domain/stock';
 import { ReserveStockItemInput, StockRepository } from '../domain/stockRepository';
+import type { Prisma } from '../../../generated/prisma/client';
 
 export class PrismaStockRepository implements StockRepository {
+  constructor(private readonly transaction?: Prisma.TransactionClient) {}
   async getProductStock(storeId: string, productId: string): Promise<ProductStock | null> {
-    const prisma = getPrisma();
+    const prisma = this.transaction ?? getPrisma();
     const stock = await prisma.productStock.findUnique({
       where: { productId },
     });
@@ -14,7 +16,7 @@ export class PrismaStockRepository implements StockRepository {
   }
 
   async getAdditionStock(storeId: string, additionId: string): Promise<AdditionStock | null> {
-    const prisma = getPrisma();
+    const prisma = this.transaction ?? getPrisma();
     const stock = await prisma.additionStock.findUnique({
       where: { additionId },
     });
@@ -24,7 +26,7 @@ export class PrismaStockRepository implements StockRepository {
   }
 
   async hasSufficientStock(storeId: string, items: ReserveStockItemInput[]): Promise<boolean> {
-    const prisma = getPrisma();
+    const prisma = this.transaction ?? getPrisma();
 
     for (const item of items) {
       if (item.productId) {
@@ -58,9 +60,7 @@ export class PrismaStockRepository implements StockRepository {
   }
 
   async reserveStock(storeId: string, orderId: string, items: ReserveStockItemInput[]): Promise<void> {
-    const prisma = getPrisma();
-
-    await prisma.$transaction(async (tx) => {
+    const execute = async (tx: Prisma.TransactionClient) => {
       for (const item of items) {
         if (item.productId) {
           const pStock = await tx.productStock.findUnique({
@@ -72,14 +72,15 @@ export class PrismaStockRepository implements StockRepository {
               throw new Error(`Stock insuficiente para el producto ${item.productId}`);
             }
 
-            await tx.productStock.update({
-              where: { productId: item.productId },
+            const reserved = await tx.productStock.updateMany({
+              where: { productId: item.productId, storeId, availableStock: { gte: item.quantity } },
               data: {
                 availableStock: { decrement: item.quantity },
                 reservedStock: { increment: item.quantity },
               },
             });
 
+            if (reserved.count !== 1) throw new Error("Stock insuficiente para completar el pedido");
             await tx.stockMovement.create({
               data: {
                 storeId,
@@ -103,14 +104,15 @@ export class PrismaStockRepository implements StockRepository {
                 throw new Error(`Stock insuficiente para el adicional ${addId}`);
               }
 
-              await tx.additionStock.update({
-                where: { additionId: addId },
+              const reserved = await tx.additionStock.updateMany({
+                where: { additionId: addId, storeId, availableStock: { gte: item.quantity } },
                 data: {
                   availableStock: { decrement: item.quantity },
                   reservedStock: { increment: item.quantity },
                 },
               });
 
+              if (reserved.count !== 1) throw new Error("Stock insuficiente para completar el pedido");
               await tx.stockMovement.create({
                 data: {
                   storeId,
@@ -124,13 +126,13 @@ export class PrismaStockRepository implements StockRepository {
           }
         }
       }
-    });
+    };
+    if (this.transaction) await execute(this.transaction);
+    else await getPrisma().$transaction(execute);
   }
 
   async releaseStock(storeId: string, orderId: string, items: ReserveStockItemInput[]): Promise<void> {
-    const prisma = getPrisma();
-
-    await prisma.$transaction(async (tx) => {
+    const execute = async (tx: Prisma.TransactionClient) => {
       for (const item of items) {
         if (item.productId) {
           const pStock = await tx.productStock.findUnique({
@@ -186,13 +188,13 @@ export class PrismaStockRepository implements StockRepository {
           }
         }
       }
-    });
+    };
+    if (this.transaction) await execute(this.transaction);
+    else await getPrisma().$transaction(execute);
   }
 
   async fulfillStock(storeId: string, orderId: string, items: ReserveStockItemInput[]): Promise<void> {
-    const prisma = getPrisma();
-
-    await prisma.$transaction(async (tx) => {
+    const execute = async (tx: Prisma.TransactionClient) => {
       for (const item of items) {
         if (item.productId) {
           const pStock = await tx.productStock.findUnique({
@@ -246,11 +248,13 @@ export class PrismaStockRepository implements StockRepository {
           }
         }
       }
-    });
+    };
+    if (this.transaction) await execute(this.transaction);
+    else await getPrisma().$transaction(execute);
   }
 
   async setProductStock(storeId: string, productId: string, availableQuantity: number): Promise<ProductStock> {
-    const prisma = getPrisma();
+    const prisma = this.transaction ?? getPrisma();
 
     const record = await prisma.productStock.upsert({
       where: { productId },
@@ -278,7 +282,7 @@ export class PrismaStockRepository implements StockRepository {
   }
 
   async setAdditionStock(storeId: string, additionId: string, availableQuantity: number): Promise<AdditionStock> {
-    const prisma = getPrisma();
+    const prisma = this.transaction ?? getPrisma();
 
     const record = await prisma.additionStock.upsert({
       where: { additionId },

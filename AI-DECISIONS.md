@@ -686,3 +686,11 @@ Se integran formularios de creación, edición y desactivación de categorías/p
 ### 2026-11-05 — Carrito y resumen
 
 Se agregan cantidades, selección de adicionales, variantes por producto, eliminación y resumen en el catálogo activo. El carrito se mantiene en memoria de esa pantalla y no mezcla buffets ni usuarios. Los totales son estimaciones en centavos; nunca se envían precios calculados por el navegador a la API. Diez pruebas frontend exitosas, incluido cálculo, variantes, cantidades inválidas y desbordamiento. Validación humana pendiente.
+
+### 2026-11-05 — Pedidos y reservas integrados
+
+Se protegen creación/listado/detalle/cancelación con Actor CUSTOMER, propiedad y catálogo autorizado. Se ignoran customerId y precios del navegador y se validan cantidades y adicionales permitidos por producto. La UI confirma la reserva, consulta historial y detalle, actualiza estado y cancela reservas pendientes. No incorpora pagos ni operaciones de cocina/retiro.
+
+Se detectó que la persistencia anterior creaba el pedido antes de reservar stock. Se agrega una transacción compartida para creación/reserva, numeración serializada por buffet y decrementos condicionados por disponibilidad. La cancelación usa transición condicional RESERVED→CANCELLED y libera stock en la misma transacción; no interviene en pedidos confirmados. La liberación global de reservas queda como operación interna, sin acceso desde frontend.
+
+Verificación: 10 pruebas específicas exitosas, incluida PostgreSQL real con dos solicitudes por la última unidad, rollback sin pedido huérfano y cancelación repetida/concurrente sin liberar dos veces. Datos temporales eliminados. Validación humana pendiente.

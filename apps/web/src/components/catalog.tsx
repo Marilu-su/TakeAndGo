@@ -27,6 +27,6 @@ export function StoreCatalog({ storeId }: { storeId: string }) {
     <ResourceState {...resource} retry={resource.reload} />
     {resource.data && !categories?.length && <div className="panel"><h2>No hay productos para mostrar</h2><p>{query ? 'Probá con otra búsqueda.' : 'Este buffet todavía no tiene productos disponibles.'}</p></div>}
     {categories?.map(category => <section key={category.id} className="form-stack"><h2>{category.name}</h2><div className="cards">{category.products.map(product => <ProductPicker key={product.id} product={product} add={add} />)}</div></section>)}
-    {error && <p role="alert" className="error">{error}</p>}<CartPanel lines={lines} change={changeCart} />
+    {error && <p role="alert" className="error">{error}</p>}<CartPanel lines={lines} change={changeCart} storeId={storeId} />
   </main>;
 }

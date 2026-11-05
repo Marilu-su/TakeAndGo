@@ -42,6 +42,7 @@ import {
 import { createStockModule, type StockModule } from './modules/stock/infrastructure/stockModule';
 import { createOrderModule, type OrderModule } from './modules/order/infrastructure/orderModule';
 import { createOrderRouter } from './modules/order/infrastructure/http/orderRoutes';
+import { PrismaOrderRepository } from './modules/order/infrastructure/prismaOrderRepository';
 
 export type AppDependencies = {
   checkDatabase: () => Promise<boolean>;
@@ -164,7 +165,11 @@ export function createApp(overrides: Partial<AppDependencies> = {}) {
   // Rutas de Pedidos (C2-12)
   app.use(
     '/api/v1',
-    createOrderRouter(dependencies.orderModule),
+    createOrderRouter(dependencies.orderModule, {
+      resolveActor: dependencies.resolveActor,
+      viewCatalog: dependencies.storeCatalogUseCases.viewStoreCatalog,
+      listOrders: customerId => new PrismaOrderRepository().findByCustomer(customerId),
+    }),
   );
 
   app.use((_req, res) => {
