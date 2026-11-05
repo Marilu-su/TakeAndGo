@@ -700,3 +700,7 @@ Verificación: 10 pruebas específicas exitosas, incluida PostgreSQL real con do
 El catálogo consulta stock por buffet y oculta productos y adicionales agotados. Los elementos sin registro conservan la semántica existente de stock sin control. Se incorpora GET `/api/v1/stores/:storeId/stock` para STORE_ADMIN del buffet y una pantalla de consulta de disponibles y reservados; se verifica autorización antes de acceder a datos.
 
 Validación al retomar: 256 pruebas backend exitosas, 2 omitidas que requieren PostgreSQL local; incluye integración PostgreSQL de reservas, agotamiento del catálogo y cancelación. Frontend: ESLint, TypeScript y 10 pruebas exitosas. El typecheck backend conserva los errores del test ajeno sin seguimiento, que no se modifica ni versiona. Validación humana pendiente.
+
+### 2026-11-05 — Accesos de inicio y sesión vencida
+
+La portada conserva el diagnóstico de conexión y agrega accesos a buffets, pedidos, login, registro y administración. La ausencia de JWT se representa como ApiError 401 para que la protección de rutas redirija al login; los errores del servicio conservan su estado HTTP. No se cambia la autorización del backend. Validación humana pendiente.

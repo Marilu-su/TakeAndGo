@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { getHealth, type HealthResponse } from "@/lib/health";
 
 type HealthState =
@@ -48,6 +49,16 @@ export default function Home() {
           Plataforma SaaS de Take Away Inteligente
         </p>
       </div>
+
+      <section className="panel form-stack w-full max-w-sm">
+        <h2>Tu próximo pedido empieza acá</h2>
+        <p>Ingresá para asociar tu buffet, consultar el catálogo y reservar tu pedido.</p>
+        <nav aria-label="Accesos de Take&Go" className="form-stack">
+          <Link className="button" href="/buffets">Mis buffets</Link>
+          <Link className="button secondary" href="/pedidos">Mis pedidos</Link>
+          <div className="actions"><Link href="/login">Ingresar</Link><Link href="/registro">Crear cuenta</Link><Link href="/admin">Administración</Link></div>
+        </nav>
+      </section>
 
       <section className="w-full max-w-sm rounded-xl border border-gray-300 p-6">
         <h2 className="mb-4 text-lg font-semibold">Estado del sistema</h2>
