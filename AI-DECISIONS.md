@@ -674,3 +674,7 @@ Se exponen GET/POST `/api/v1/me/stores` reutilizando los casos de uso existentes
 ### 2026-11-05 — Catálogo conectado
 
 Se implementa el catálogo por buffet con categorías, descripciones, precios en centavos, adicionales, búsqueda y estados loading/error/empty. Se consume GET `/api/v1/stores/:storeId/catalog` con JWT; el backend verifica membresía o scope de staff. Las 17 pruebas existentes de catálogo, agrupación y autorización pasan. La disponibilidad del catálogo aún usa el adaptador provisional del backend, pendiente de integrar con stock. Se agregan comandos explícitos de typecheck y tests frontend. Validación humana pendiente.
+
+### 2026-11-05 — Administración de buffets
+
+Se agrega listado por organización con puerto de lectura y autorización del dominio; se expone la desactivación reutilizando su caso de uso. La UI de ORGANIZATION_ADMIN consume listado/creación/desactivación con confirmación. Los buffets nuevos conservan PENDING_SETUP; no se inventa activación ni edición sin contrato. Las 15 pruebas de organización y aislamiento pasan. Build frontend con Webpack exitoso (Turbopack falla al iniciar su proceso CSS en este equipo). Validación humana pendiente.

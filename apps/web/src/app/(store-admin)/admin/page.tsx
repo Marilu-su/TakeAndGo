@@ -1,26 +1,14 @@
-
+'use client';
+import Link from 'next/link';
+import { useResource } from '@/lib/use-resource';
+import type { Actor } from '@/lib/session';
+import { ResourceState } from '@/components/resource-state';
+import { OrganizationAdmin } from '@/components/organization-admin';
 export default function AdminPage() {
-  return (
-    <main className="mx-auto max-w-5xl px-6 py-10">
-      <h1 className="text-3xl font-bold">
-        Administración del buffet
-      </h1>
-
-      <p className="mt-3 text-gray-400">
-        Gestioná los productos, categorías,
-        adicionales y la configuración del buffet.
-      </p>
-
-      <section className="mt-8 rounded-xl border border-gray-700 p-6">
-        <h2 className="text-xl font-semibold">
-          Panel de administración
-        </h2>
-
-        <p className="mt-3 text-gray-400">
-          Próximamente mostraremos las herramientas
-          de administración del buffet.
-        </p>
-      </section>
-    </main>
-  );
+  const resource = useResource<Actor>('/api/v1/me');
+  const actor = resource.data;
+  return <main className="page"><h1>Administración</h1><ResourceState {...resource} retry={resource.reload} />
+    {actor?.role === 'ORGANIZATION_ADMIN' && actor.organizationId && <OrganizationAdmin organizationId={actor.organizationId} />}
+    {actor?.role === 'STORE_ADMIN' && actor.storeId && <section className="panel form-stack"><h2>Gestioná tu buffet</h2><p>Administrá categorías, productos y adicionales de tu buffet.</p><Link className="button" href="/admin/catalogo">Administrar catálogo</Link></section>}
+  </main>;
 }

@@ -30,6 +30,8 @@ import { createStoreCatalogRouter } from './modules/catalog/infrastructure/http/
 import { createMeRouter } from './infrastructure/auth/http/meRoutes';
 import { createCustomerRouter } from './modules/customer/infrastructure/http/customerRoutes';
 import { createCustomerStoreRouter } from './modules/customer/infrastructure/http/customerStoreRoutes';
+import { createStoreManagementRouter } from './modules/organization/infrastructure/http/storeManagementRoutes';
+import { createPrismaStoreManagement } from './modules/organization/infrastructure/organizationModule';
 import { createPrismaListCustomerStores, createPrismaAssociateCustomerToStore } from './modules/customer/infrastructure/customerModule';
 import {
   createPrismaRegisterCustomer,
@@ -104,6 +106,7 @@ export function createApp(overrides: Partial<AppDependencies> = {}) {
   });
 
   app.use('/api/v1', createMeRouter({ resolveActor: dependencies.resolveActor }));
+  app.use('/api/v1', createStoreManagementRouter(dependencies.resolveActor, createPrismaStoreManagement()));
   app.use('/api/v1', createCustomerStoreRouter({
     resolveActor: dependencies.resolveActor,
     listStores: createPrismaListCustomerStores(),

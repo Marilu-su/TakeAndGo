@@ -5,6 +5,8 @@ import { PrismaOrganizationRepository } from './prismaOrganizationRepository';
 import { PrismaStoreRepository } from './prismaStoreRepository';
 import { makeAssignStaffRole } from '../application/assignStaffRole';
 import { PrismaStaffScopeRepository } from './prismaStaffScopeRepository';
+import { makeListOrganizationStores } from '../application/listOrganizationStores';
+import { makeDeactivateStore } from '../application/deactivateStore';
 
 export type CreateStore = ReturnType<typeof makeCreateStore>;
 export type GetStoreConfiguration = ReturnType<typeof makeGetStoreConfiguration>;
@@ -25,6 +27,13 @@ export function createPrismaCreateStore(): CreateStore {
 
 export function createPrismaGetStoreConfiguration(): GetStoreConfiguration {
     return (storeId) => makeGetStoreConfiguration(buildRepositories())(storeId);
+}
+
+export function createPrismaStoreManagement() {
+    return {
+        list: (actor: import('../../../shared/auth/actor').Actor, organizationId: string) => makeListOrganizationStores(buildRepositories().stores)(actor, organizationId),
+        deactivate: (actor: import('../../../shared/auth/actor').Actor, storeId: string) => makeDeactivateStore(buildRepositories())(actor, storeId),
+    };
 }
 
 export type AssignStaffRole = ReturnType<typeof makeAssignStaffRole>;
