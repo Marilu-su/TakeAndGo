@@ -704,3 +704,5 @@ Validación al retomar: 256 pruebas backend exitosas, 2 omitidas que requieren P
 ### 2026-11-05 — Accesos de inicio y sesión vencida
 
 La portada conserva el diagnóstico de conexión y agrega accesos a buffets, pedidos, login, registro y administración. La ausencia de JWT se representa como ApiError 401 para que la protección de rutas redirija al login; los errores del servicio conservan su estado HTTP. No se cambia la autorización del backend. Validación humana pendiente.
+
+Verificación de cierre: 13 pruebas frontend, ESLint, TypeScript y build Webpack exitosos. En navegador se comprobaron formularios de acceso/registro y redirección de buffets sin sesión al login. Se detectó la ausencia del secreto de cookies local y se generó en `.env.local` ignorado por Git, sin mostrarlo ni versionarlo. El endpoint de token pasó de 503 por configuración incompleta a 401 UNAUTHORIZED sin sesión. La prueba con una cuenta autenticada sigue pendiente.
