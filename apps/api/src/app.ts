@@ -29,6 +29,10 @@ import { createAdditionRouter } from './modules/catalog/infrastructure/http/addi
 import { createStoreCatalogRouter } from './modules/catalog/infrastructure/http/storeCatalogRoutes';
 import { createMeRouter } from './infrastructure/auth/http/meRoutes';
 import { createCustomerRouter } from './modules/customer/infrastructure/http/customerRoutes';
+import { createCustomerStoreRouter } from './modules/customer/infrastructure/http/customerStoreRoutes';
+import { createStoreManagementRouter } from './modules/organization/infrastructure/http/storeManagementRoutes';
+import { createPrismaStoreManagement } from './modules/organization/infrastructure/organizationModule';
+import { createPrismaListCustomerStores, createPrismaAssociateCustomerToStore } from './modules/customer/infrastructure/customerModule';
 import {
   createPrismaRegisterCustomer,
   type RegisterCustomer,
@@ -38,6 +42,8 @@ import {
 import { createStockModule, type StockModule } from './modules/stock/infrastructure/stockModule';
 import { createOrderModule, type OrderModule } from './modules/order/infrastructure/orderModule';
 import { createOrderRouter } from './modules/order/infrastructure/http/orderRoutes';
+import { PrismaOrderRepository } from './modules/order/infrastructure/prismaOrderRepository';
+import { createStockRouter } from './modules/stock/infrastructure/http/stockRoutes';
 
 export type AppDependencies = {
   checkDatabase: () => Promise<boolean>;
@@ -102,6 +108,18 @@ export function createApp(overrides: Partial<AppDependencies> = {}) {
   });
 
   app.use('/api/v1', createMeRouter({ resolveActor: dependencies.resolveActor }));
+  app.use('/api/v1', createStockRouter({
+    resolveActor: dependencies.resolveActor,
+    products: dependencies.productUseCases.listProducts,
+    additions: dependencies.additionUseCases.listAdditions,
+    stock: dependencies.stockModule.stockRepository,
+  }));
+  app.use('/api/v1', createStoreManagementRouter(dependencies.resolveActor, createPrismaStoreManagement()));
+  app.use('/api/v1', createCustomerStoreRouter({
+    resolveActor: dependencies.resolveActor,
+    listStores: createPrismaListCustomerStores(),
+    associateStore: createPrismaAssociateCustomerToStore(),
+  }));
 
   app.use(
     '/api/v1',
@@ -154,7 +172,11 @@ export function createApp(overrides: Partial<AppDependencies> = {}) {
   // Rutas de Pedidos (C2-12)
   app.use(
     '/api/v1',
-    createOrderRouter(dependencies.orderModule),
+    createOrderRouter(dependencies.orderModule, {
+      resolveActor: dependencies.resolveActor,
+      viewCatalog: dependencies.storeCatalogUseCases.viewStoreCatalog,
+      listOrders: customerId => new PrismaOrderRepository().findByCustomer(customerId),
+    }),
   );
 
   app.use((_req, res) => {

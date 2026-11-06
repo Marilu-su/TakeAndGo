@@ -6,6 +6,7 @@ import { CancelOrderUseCase } from '../application/cancelOrderUseCase';
 import { ReleaseExpiredReservationsUseCase } from '../application/releaseExpiredReservationsUseCase';
 import { StockRepository } from '../../stock/domain/stockRepository';
 import { PrismaPaymentOrderStockAdapter } from '../../payment/infrastructure/prismaPaymentOrderStockAdapter';
+import { placeReservedOrder, cancelReservedOrder } from './prismaOrderReservation';
 
 export interface OrderModule {
   orderRepository: OrderRepository;
@@ -17,9 +18,9 @@ export interface OrderModule {
 
 export function createOrderModule(stockRepository: StockRepository): OrderModule {
   const orderRepository = new PrismaOrderRepository();
-  const createOrderUseCase = new CreateOrderUseCase(orderRepository, stockRepository);
+  const createOrderUseCase = new CreateOrderUseCase(orderRepository, stockRepository, undefined, placeReservedOrder);
   const getOrderByIdUseCase = new GetOrderByIdUseCase(orderRepository);
-  const cancelOrderUseCase = new CancelOrderUseCase(orderRepository, stockRepository);
+  const cancelOrderUseCase = new CancelOrderUseCase(orderRepository, stockRepository, cancelReservedOrder);
 const releaseExpiredReservationsUseCase =
   new ReleaseExpiredReservationsUseCase(
     orderRepository,
