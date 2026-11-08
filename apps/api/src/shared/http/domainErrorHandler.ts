@@ -29,6 +29,9 @@ const HTTP_STATUS_BY_CODE: Record<string, number> = {
     INVALID_CUSTOMER_EMAIL: 422,
     NOT_FOUND: 404,
     INVALID_KITCHEN_STATE: 409,
+    PICKUP_CONFLICT: 409,
+    INVALID_PICKUP_CREDENTIAL: 422,
+
 };
 
 export const domainErrorHandler: ErrorRequestHandler = (error, _req, res, next) => {

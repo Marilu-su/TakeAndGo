@@ -16,6 +16,13 @@ import {
   type CreateStore,
 } from './modules/organization/infrastructure/organizationModule';
 
+import {
+  createPickupModule,
+  type PickupModule,
+} from './modules/pickup/infrastructure/pickupModule';
+
+import { createPickupRouter } from './modules/pickup/infrastructure/http/pickupRoutes';
+
 import { createCategoryRouter } from './modules/catalog/infrastructure/http/categoryRoutes';
 import {
   createPrismaAdditionUseCases,
@@ -74,6 +81,8 @@ export type AppDependencies = {
   stockModule: StockModule;
   orderModule: OrderModule;
   kitchenModule: KitchenModule;
+  pickupModule: PickupModule;
+
 };
 
 function defaultDependencies(): AppDependencies {
@@ -84,6 +93,9 @@ function defaultDependencies(): AppDependencies {
 
   // Cocina reutiliza el repositorio existente de pedidos
   const kitchenModule = createKitchenModule(orderModule.orderRepository);
+
+  const pickupModule = createPickupModule();
+
 
   return {
     checkDatabase: checkDatabaseConnection,
@@ -98,6 +110,8 @@ function defaultDependencies(): AppDependencies {
     stockModule,
     orderModule,
     kitchenModule,
+    pickupModule,
+
   };
 }
 
@@ -193,6 +207,16 @@ export function createApp(overrides: Partial<AppDependencies> = {}) {
       resolveActor: dependencies.resolveActor,
     }),
   );
+
+// Rutas de Retiro (C2-19)
+app.use(
+  '/api/v1',
+  createPickupRouter({
+    pickupModule: dependencies.pickupModule,
+    resolveActor: dependencies.resolveActor,
+  }),
+);
+
 
   app.use((_req, res) => {
     res.status(404).json({

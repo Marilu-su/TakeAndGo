@@ -195,6 +195,14 @@ model Order {
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
+  // Confirmación del retiro
+  pickedUpAt       DateTime?
+  pickedUpByUserId String?
+  pickupMethod     PickupMethod?
+
+  pickupTokens     PickupToken[]
+
+
   store         Store       @relation(fields: [storeId], references: [id])
   customer      Customer    @relation(fields: [customerId], references: [id])
   items         OrderItem[]
@@ -335,4 +343,23 @@ model PaymentCompensation {
   payment Payment @relation(fields: [paymentId], references: [id])
 
   @@index([status])
+}
+
+enum PickupMethod {
+  QR
+  MANUAL
+}
+
+model PickupToken {
+  id        String    @id @default(uuid())
+  orderId   String
+  storeId   String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  order     Order     @relation(fields: [orderId], references: [id])
+
+  @@index([orderId, storeId])
 }
