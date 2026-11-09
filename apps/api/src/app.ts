@@ -1,3 +1,4 @@
+
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
@@ -8,11 +9,20 @@ import { domainErrorHandler } from './shared/http/domainErrorHandler';
 import type { ActorResolver } from './shared/http/actorResolver';
 import type { IdentityResolver } from './shared/http/identityResolver';
 import { createDefaultAuthResolvers } from './infrastructure/auth/authModule';
+
 import { createOrganizationRouter } from './modules/organization/infrastructure/http/organizationRoutes';
 import {
   createPrismaCreateStore,
   type CreateStore,
 } from './modules/organization/infrastructure/organizationModule';
+
+import {
+  createPickupModule,
+  type PickupModule,
+} from './modules/pickup/infrastructure/pickupModule';
+
+import { createPickupRouter } from './modules/pickup/infrastructure/http/pickupRoutes';
+
 import { createCategoryRouter } from './modules/catalog/infrastructure/http/categoryRoutes';
 import {
   createPrismaAdditionUseCases,
@@ -24,9 +34,11 @@ import {
   type CategoryUseCases,
   type ProductUseCases,
 } from './modules/catalog/infrastructure/catalogModule';
+
 import { createProductRouter } from './modules/catalog/infrastructure/http/productRoutes';
 import { createAdditionRouter } from './modules/catalog/infrastructure/http/additionRoutes';
 import { createStoreCatalogRouter } from './modules/catalog/infrastructure/http/storeCatalogRoutes';
+
 import { createMeRouter } from './infrastructure/auth/http/meRoutes';
 import { createCustomerRouter } from './modules/customer/infrastructure/http/customerRoutes';
 import { createCustomerStoreRouter } from './modules/customer/infrastructure/http/customerStoreRoutes';
@@ -39,11 +51,27 @@ import {
 } from './modules/customer/infrastructure/customerModule';
 
 // Módulos Stock y Order
-import { createStockModule, type StockModule } from './modules/stock/infrastructure/stockModule';
-import { createOrderModule, type OrderModule } from './modules/order/infrastructure/orderModule';
+import {
+  createStockModule,
+  type StockModule,
+} from './modules/stock/infrastructure/stockModule';
+
+import {
+  createOrderModule,
+  type OrderModule,
+} from './modules/order/infrastructure/orderModule';
+
 import { createOrderRouter } from './modules/order/infrastructure/http/orderRoutes';
 import { PrismaOrderRepository } from './modules/order/infrastructure/prismaOrderRepository';
 import { createStockRouter } from './modules/stock/infrastructure/http/stockRoutes';
+
+// Módulo Cocina (C2-18)
+import {
+  createKitchenModule,
+  type KitchenModule,
+} from './modules/kitchen/infrastructure/kitchenModule';
+
+import { createKitchenRouter } from './modules/kitchen/infrastructure/http/kitchenRoutes';
 
 export type AppDependencies = {
   checkDatabase: () => Promise<boolean>;
@@ -57,12 +85,22 @@ export type AppDependencies = {
   storeCatalogUseCases: StoreCatalogUseCases;
   stockModule: StockModule;
   orderModule: OrderModule;
+  kitchenModule: KitchenModule;
+  pickupModule: PickupModule;
+
 };
 
 function defaultDependencies(): AppDependencies {
   const auth = createDefaultAuthResolvers();
+
   const stockModule = createStockModule();
   const orderModule = createOrderModule(stockModule.stockRepository);
+
+  // Cocina reutiliza el repositorio existente de pedidos
+  const kitchenModule = createKitchenModule(orderModule.orderRepository);
+
+  const pickupModule = createPickupModule();
+
 
   return {
     checkDatabase: checkDatabaseConnection,
@@ -76,6 +114,9 @@ function defaultDependencies(): AppDependencies {
     storeCatalogUseCases: createPrismaStoreCatalogUseCases(),
     stockModule,
     orderModule,
+    kitchenModule,
+    pickupModule,
+
   };
 }
 
@@ -178,6 +219,25 @@ export function createApp(overrides: Partial<AppDependencies> = {}) {
       listOrders: customerId => new PrismaOrderRepository().findByCustomer(customerId),
     }),
   );
+
+  // Rutas de Cocina (C2-18)
+  app.use(
+    '/api/v1',
+    createKitchenRouter({
+      kitchenModule: dependencies.kitchenModule,
+      resolveActor: dependencies.resolveActor,
+    }),
+  );
+
+// Rutas de Retiro (C2-19)
+app.use(
+  '/api/v1',
+  createPickupRouter({
+    pickupModule: dependencies.pickupModule,
+    resolveActor: dependencies.resolveActor,
+  }),
+);
+
 
   app.use((_req, res) => {
     res.status(404).json({

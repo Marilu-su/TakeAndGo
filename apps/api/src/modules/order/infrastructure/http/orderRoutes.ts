@@ -13,6 +13,10 @@ export type OrderHttpDependencies = {
   listOrders: (customerId: string) => Promise<Order[]>;
 };
 
+function toPublicOrder(order: Order): Omit<Order, 'pickupCode'> {
+  const { pickupCode: _pickupCode, ...publicOrder } = order;
+  return publicOrder;
+}
 export function createOrderRouter(orderModule: OrderModule, deps: OrderHttpDependencies): Router {
   const router = Router();
   const customer = async (req: Parameters<ActorResolver>[0]) => {
@@ -50,7 +54,7 @@ export function createOrderRouter(orderModule: OrderModule, deps: OrderHttpDepen
     if (!Number.isSafeInteger(total) || total > 2147483647) throw new DomainError('INVALID_REQUEST', 'El total supera el máximo admitido');
     try {
       const order = await orderModule.createOrderUseCase.execute({ storeId, customerId: actor.userId, items: checked });
-      res.status(201).json(order);
+      res.status(201).json(toPublicOrder(order));
     } catch (cause) {
       if (cause instanceof Error && cause.message.startsWith('Stock insuficiente')) throw new DomainError('INSUFFICIENT_STOCK', 'El stock cambió. Actualizá el catálogo y revisá el pedido.');
       throw cause;
@@ -58,18 +62,18 @@ export function createOrderRouter(orderModule: OrderModule, deps: OrderHttpDepen
   });
   router.get('/orders', async (req, res) => {
     const actor = await customer(req);
-    res.json(await deps.listOrders(actor.userId));
+    res.json((await deps.listOrders(actor.userId)).map(toPublicOrder));
   });
   // Expiration is an internal operation, not a customer-triggered global job.
   router.post('/orders/release-expired', async (req) => {
     await requireActor(deps.resolveActor, req);
     throw new DomainError('FORBIDDEN', 'La liberación global de reservas es una operación interna');
   });
-  router.get('/orders/:id', async (req, res) => res.json(await owned(req, req.params.id)));
+  router.get('/orders/:id', async (req, res) => res.json(toPublicOrder(await owned(req, req.params.id))));
   router.post('/orders/:id/cancel', async (req, res) => {
     const order = await owned(req, req.params.id);
     if (order.status !== 'RESERVED' && order.status !== 'CANCELLED') throw new DomainError('ORDER_STATE_CONFLICT', 'Solo se pueden cancelar reservas pendientes');
-    res.json(await orderModule.cancelOrderUseCase.execute(order.id));
+    res.json(toPublicOrder(await orderModule.cancelOrderUseCase.execute(order.id)));
   });
   return router;
 }

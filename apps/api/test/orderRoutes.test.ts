@@ -10,15 +10,15 @@ import { DomainError } from '../src/shared/domain/DomainError';
 
 function app(actor: Actor | null, status = 'RESERVED', member = true) {
   const instance = express(); instance.use(express.json());
-  const order = { id: 'o1', customerId: 'c1', storeId: 's1', status };
+  const order = { id: 'o1', customerId: 'c1', storeId: 's1', status, pickupCode: 'secret-code' };
   const module = {
     orderRepository: { findById: async () => order },
-    createOrderUseCase: { execute: async (input: unknown) => input },
+    createOrderUseCase: { execute: async (input: object) => ({ ...input, pickupCode: 'secret-code' }) },
     cancelOrderUseCase: { execute: async () => ({ ...order, status: 'CANCELLED' }) },
   } as unknown as OrderModule;
   instance.use(createOrderRouter(module, {
     resolveActor: async () => actor,
-    listOrders: async id => { assert.equal(id, 'c1'); return []; },
+    listOrders: async id => { assert.equal(id, 'c1'); return [order] as never; },
     viewCatalog: async () => {
       if (!member) throw new DomainError('FORBIDDEN', 'Sin membresía');
       return { storeId: 's1', categories: [{ id: 'cat', name: 'Cat', products: [{ id: 'p1', name: 'P', description: null, priceCents: 100, basePreparationSeconds: 0, additions: [{ id: 'a1', name: 'A', priceCents: 20 }] }] }] };
@@ -52,4 +52,21 @@ test('pedidos: permite consultar historial y cancelar solo reservas pendientes',
 });
 test('pedidos: la liberación global no puede ser invocada por clientes', async () => {
   assert.equal((await request(app(actor)).post('/orders/release-expired')).status, 403);
+});
+
+test('pedidos: no expone códigos de retiro al crear, listar, consultar o cancelar', async () => {
+  const instance = app(actor);
+  const created = await request(instance).post('/orders').send(body);
+  assert.equal(created.status, 201);
+  assert.equal(Object.hasOwn(created.body, 'pickupCode'), false);
+  const listed = await request(instance).get('/orders');
+  assert.equal(listed.status, 200);
+  assert.equal(listed.body.length, 1);
+  assert.equal(Object.hasOwn(listed.body[0], 'pickupCode'), false);
+  const detail = await request(instance).get('/orders/o1');
+  assert.equal(detail.status, 200);
+  assert.equal(Object.hasOwn(detail.body, 'pickupCode'), false);
+  const cancelled = await request(instance).post('/orders/o1/cancel');
+  assert.equal(cancelled.status, 200);
+  assert.equal(Object.hasOwn(cancelled.body, 'pickupCode'), false);
 });

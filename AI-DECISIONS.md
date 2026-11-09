@@ -706,3 +706,16 @@ Validación al retomar: 256 pruebas backend exitosas, 2 omitidas que requieren P
 La portada conserva el diagnóstico de conexión y agrega accesos a buffets, pedidos, login, registro y administración. La ausencia de JWT se representa como ApiError 401 para que la protección de rutas redirija al login; los errores del servicio conservan su estado HTTP. No se cambia la autorización del backend. Validación humana pendiente.
 
 Verificación de cierre: 13 pruebas frontend, ESLint, TypeScript y build Webpack exitosos. En navegador se comprobaron formularios de acceso/registro y redirección de buffets sin sesión al login. Se detectó la ausencia del secreto de cookies local y se generó en `.env.local` ignorado por Git, sin mostrarlo ni versionarlo. El endpoint de token pasó de 503 por configuración incompleta a 401 UNAUTHORIZED sin sesión. La prueba con una cuenta autenticada sigue pendiente.
+
+### 2026-11-09 — Integración del frontend con cocina y retiro
+
+**TDD / Issue:** PR #86, rama `feature/C2-frontend-rutas-base`.
+
+**Autor humano:** Luana Suarez (solicitud; revisión del resultado pendiente).
+
+**Herramienta/modelo:** Codex.
+**Prompt / instrucción utilizada:** incorporar develop, resolver conflictos, verificar y actualizar el PR del frontend.
+
+Se incorpora `develop` en `b322e8d`, conservando los módulos de cocina y retiro junto con la identidad derivada del Actor, la validación de propiedad y catálogo, y las reservas/cancelaciones transaccionales del frontend. Los códigos de retiro se excluyen de creación, listado, detalle y cancelación de pedidos; se agrega una prueba de regresión para estas cuatro respuestas.
+
+Verificación automatizada: 326 pruebas backend aprobadas, ninguna fallida y 3 omitidas; incluye integración PostgreSQL de reservas y retiros concurrentes. Las migraciones pendientes se aplicaron en la base configurada. Frontend: TypeScript y 13 pruebas aprobadas. El código versionado del backend pasa la comprobación de tipos excluyendo únicamente el test local sin seguimiento `associateCustomerToStore.test.ts`; el comando estándar sigue fallando por ese archivo, que se conserva intacto y fuera del commit. No se afirma validación humana ni recorrido autenticado completo.

@@ -2,6 +2,12 @@
 
 Fecha: 5 de noviembre de 2026. Rama: `feature/C2-frontend-rutas-base`.
 
+## Actualización de integración — 9 de noviembre de 2026
+
+Se incorpora `develop` en `b322e8d` con los módulos backend de cocina y retiro, preservando la autorización de pedidos, catálogo con stock real y transacciones de reservas/cancelaciones de esta rama. Las respuestas generales de pedidos no exponen códigos de retiro, incluido el historial. Esto no agrega pantallas de cocina o retiro al frontend.
+
+Se aplicaron las migraciones versionadas pendientes y se ejecutaron 329 pruebas backend: 326 aprobadas, 0 fallidas y 3 omitidas. TypeScript frontend y sus 13 pruebas pasan. La comprobación de tipos del código versionado del backend pasa al excluir únicamente el test local sin seguimiento mencionado abajo; el comando estándar conserva ese bloqueo local. El recorrido autenticado por roles continúa pendiente. El detalle original siguiente corresponde al cierre del 5 de noviembre.
+
 ## Alcance implementado
 
 - Sesión Neon Auth: formularios de registro/login, logout, token por solicitud, alta de Customer y autorización basada en el Actor de la API.
