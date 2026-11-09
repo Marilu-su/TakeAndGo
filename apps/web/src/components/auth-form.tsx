@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { authClient } from '@/lib/auth/client';
 import { getActor, sessionRequest } from '@/lib/session';
 import { ApiError } from '@/lib/api';
+const PENDING_CUSTOMER_NAME = 'takeandgo.pending-customer-name';
 export function AuthForm({ register = false }: { register?: boolean }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -17,16 +18,28 @@ export function AuthForm({ register = false }: { register?: boolean }) {
     const name = String(form.get('name') || '').trim();
     setBusy(true); setError('');
     try {
+      if (register) sessionStorage.setItem(PENDING_CUSTOMER_NAME, name);
       const result = register ? await authClient.signUp.email({ email, password, name }) : await authClient.signIn.email({ email, password });
       if (result.error) throw new Error(result.error.message || 'No se pudo ingresar.');
       if (register) {
         const session = await authClient.getSession();
         if (!session.data) throw new Error('Cuenta creada. Verificá tu correo si Neon lo solicita y luego iniciá sesión.');
-        await sessionRequest('/api/v1/me/customer', { method: 'POST', body: JSON.stringify({ name }) });
+        try {
+          await sessionRequest('/api/v1/me/customer', { method: 'POST', body: JSON.stringify({ name }) });
+          sessionStorage.removeItem(PENDING_CUSTOMER_NAME);
+        } catch (cause) {
+          if (cause instanceof ApiError && cause.status === 409) {
+            sessionStorage.removeItem(PENDING_CUSTOMER_NAME);
+          } else {
+            throw cause;
+          }
+        }
       }
       try {
         const actor = await getActor();
-        router.replace(actor.role === 'CUSTOMER' ? '/buffets' : '/admin');
+        if (actor.role === 'CUSTOMER') router.replace('/buffets');
+        else if (actor.role === 'STORE_ADMIN' || actor.role === 'ORGANIZATION_ADMIN') router.replace('/admin');
+        else throw new Error('El acceso de cocina todavía no está disponible en esta versión.');
       } catch (cause) {
         if (cause instanceof ApiError && cause.status === 401) router.replace('/alta-cliente');
         else throw cause;

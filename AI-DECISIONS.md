@@ -719,3 +719,19 @@ Verificación de cierre: 13 pruebas frontend, ESLint, TypeScript y build Webpack
 Se incorpora `develop` en `b322e8d`, conservando los módulos de cocina y retiro junto con la identidad derivada del Actor, la validación de propiedad y catálogo, y las reservas/cancelaciones transaccionales del frontend. Los códigos de retiro se excluyen de creación, listado, detalle y cancelación de pedidos; se agrega una prueba de regresión para estas cuatro respuestas.
 
 Verificación automatizada: 326 pruebas backend aprobadas, ninguna fallida y 3 omitidas; incluye integración PostgreSQL de reservas y retiros concurrentes. Las migraciones pendientes se aplicaron en la base configurada. Frontend: TypeScript y 13 pruebas aprobadas. El código versionado del backend pasa la comprobación de tipos excluyendo únicamente el test local sin seguimiento `associateCustomerToStore.test.ts`; el comando estándar sigue fallando por ese archivo, que se conserva intacto y fuera del commit. No se afirma validación humana ni recorrido autenticado completo.
+
+### 2026-11-09 — Claridad de acceso y alta de cliente
+
+**TDD / Issue:** pendiente de asignación por el equipo.
+
+**Autor humano:** Luana Suarez.
+
+**Herramienta/modelo:** Codex.
+
+**Problema:** el inicio no distinguía compra del acceso del personal, el alta podía volver a pedir el nombre si fallaba la creación del perfil y el login enviaba cualquier rol no cliente a administración.
+
+**Decisión funcional preservada:** el registro público crea clientes. La organización asigna los permisos de staff; elegir el acceso de personal no asigna un rol.
+
+**Cambio realizado:** se presentan por separado el recorrido de compra y el acceso para personal/administradores, se conserva temporalmente el nombre para precargar un perfil pendiente y el login dirige solo los roles administradores a administración. STORE_EMPLOYEE recibe un aviso explícito de que el acceso de cocina todavía no está disponible.
+
+**Validación humana:** pendiente.
