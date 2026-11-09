@@ -2,6 +2,8 @@ import { OrderRepository } from '../domain/orderRepository';
 import { StockRepository } from '../../stock/domain/stockRepository';
 import { Order } from '../domain/order';
 import { getPrisma } from '../../../infrastructure/database/prisma';
+import type { CreateOrderInput } from '../domain/orderRepository';
+import type { ReserveStockItemInput } from '../../stock/domain/stockRepository';
 
 export interface CreateOrderItemRequest {
   productId: string;
@@ -49,6 +51,7 @@ export class CreateOrderUseCase {
     private readonly orderRepository: OrderRepository,
     private readonly stockRepository: StockRepository,
     private readonly catalogResolver: CatalogResolver = defaultPrismaCatalogResolver,
+    private readonly placeOrder?: (input: CreateOrderInput, items: ReserveStockItemInput[]) => Promise<Order>,
   ) {}
 
   async execute(input: CreateOrderRequest): Promise<Order> {
@@ -129,14 +132,16 @@ export class CreateOrderUseCase {
     const reservedUntil = new Date(Date.now() + 15 * 60 * 1000);
 
     // 5. Persistencia de orden
-    const createdOrder = await this.orderRepository.create({
+    const orderInput: CreateOrderInput = {
       storeId: input.storeId,
       customerId: input.customerId,
       status: 'RESERVED',
       totalCents,
       reservedUntil,
       items: itemsData,
-    });
+    };
+    if (this.placeOrder) return this.placeOrder(orderInput, stockItemsToCheck);
+    const createdOrder = await this.orderRepository.create(orderInput);
 
     // 6. Bloqueo transaccional de stock
     await this.stockRepository.reserveStock(

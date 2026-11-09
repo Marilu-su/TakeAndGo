@@ -22,7 +22,8 @@ import { PrismaProductRepository } from './prismaProductRepository';
 import { createPrismaListCustomerStores } from '../../customer/infrastructure/customerModule';
 import { makeGetStoreCatalog } from '../application/getStoreCatalog';
 import { makeViewStoreCatalog } from '../application/viewStoreCatalog';
-import { AllAvailableCatalogAvailability } from './allAvailableCatalogAvailability';
+import { StockCatalogAvailability } from './stockCatalogAvailability';
+import { PrismaStockRepository } from '../../stock/infrastructure/prismaStockRepository';
 import { CustomerModuleMemberships } from './customerModuleMemberships';
 
 export type CategoryUseCases = {
@@ -109,7 +110,7 @@ function buildStoreCatalogUseCases(): StoreCatalogUseCases {
         products,
         additions,
         productAdditions,
-        availability: new AllAvailableCatalogAvailability(),
+        availability: new StockCatalogAvailability(new PrismaStockRepository()),
     });
 
     return {

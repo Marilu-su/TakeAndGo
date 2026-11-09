@@ -6,9 +6,11 @@ export class CancelOrderUseCase {
   constructor(
     private readonly orderRepository: OrderRepository,
     private readonly stockRepository: StockRepository,
+    private readonly cancelReservation?: (orderId: string) => Promise<Order>,
   ) {}
 
   async execute(orderId: string): Promise<Order> {
+    if (this.cancelReservation) return this.cancelReservation(orderId);
     const order = await this.orderRepository.findById(orderId);
 
     if (!order) {

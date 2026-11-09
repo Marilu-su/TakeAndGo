@@ -23,6 +23,9 @@ function toDomain(record: StoreRecord): Store {
 }
 
 export class PrismaStoreRepository implements StoreRepositoryPort {
+    async listByOrganization(organizationId: string): Promise<Store[]> {
+        return (await this.prisma.store.findMany({ where: { organizationId }, orderBy: { name: 'asc' } })).map(toDomain);
+    }
     private readonly prisma: PrismaClient;
 
     constructor(prisma: PrismaClient) {

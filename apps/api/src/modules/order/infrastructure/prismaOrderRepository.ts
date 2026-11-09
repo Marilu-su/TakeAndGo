@@ -1,10 +1,16 @@
 import { getPrisma } from '../../../infrastructure/database/prisma';
 import { Order, OrderStatus } from '../domain/order';
 import { CreateOrderInput, OrderRepository } from '../domain/orderRepository';
+import type { Prisma } from '../../../generated/prisma/client';
 
 export class PrismaOrderRepository implements OrderRepository {
+  constructor(private readonly transaction?: Prisma.TransactionClient) {}
+  async findByCustomer(customerId: string): Promise<Order[]> {
+    const records = await (this.transaction ?? getPrisma()).order.findMany({ where: { customerId }, include: { items: { include: { additions: true } } }, orderBy: { createdAt: 'desc' } });
+    return records.map(record => this.mapToDomain(record));
+  }
   async create(input: CreateOrderInput): Promise<Order> {
-    const prisma = getPrisma();
+    const prisma = this.transaction ?? getPrisma();
 
     // Calcular el siguiente orderNumber para este buffet/store de forma incremental
     const lastOrder = await prisma.order.findFirst({
@@ -60,7 +66,7 @@ export class PrismaOrderRepository implements OrderRepository {
   }
 
   async findById(id: string): Promise<Order | null> {
-    const prisma = getPrisma();
+    const prisma = this.transaction ?? getPrisma();
     const order = await prisma.order.findUnique({
       where: { id },
       include: {
@@ -76,7 +82,7 @@ export class PrismaOrderRepository implements OrderRepository {
   }
 
   async findByStoreAndNumber(storeId: string, orderNumber: number): Promise<Order | null> {
-    const prisma = getPrisma();
+    const prisma = this.transaction ?? getPrisma();
     const order = await prisma.order.findUnique({
       where: {
         storeId_orderNumber: {
@@ -97,7 +103,7 @@ export class PrismaOrderRepository implements OrderRepository {
   }
 
   async findActiveByCustomer(customerId: string): Promise<Order[]> {
-    const prisma = getPrisma();
+    const prisma = this.transaction ?? getPrisma();
     const orders = await prisma.order.findMany({
       where: {
         customerId,
@@ -119,7 +125,7 @@ export class PrismaOrderRepository implements OrderRepository {
   }
 
   async findExpiredReservations(now: Date): Promise<Order[]> {
-    const prisma = getPrisma();
+    const prisma = this.transaction ?? getPrisma();
     const orders = await prisma.order.findMany({
       where: {
         status: 'RESERVED',
@@ -141,7 +147,7 @@ export class PrismaOrderRepository implements OrderRepository {
   }
 
   async updateStatus(id: string, status: OrderStatus): Promise<Order> {
-    const prisma = getPrisma();
+    const prisma = this.transaction ?? getPrisma();
     const updated = await prisma.order.update({
       where: { id },
       data: { status },

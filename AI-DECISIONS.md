@@ -659,3 +659,79 @@ Se verificó:
 - Se usó la versión 5 de `jose`, ya que la más reciente solo soporta módulos ESM y la API usa CommonJS.
 - La integración de Neon Auth con Better Auth está en beta; se mitigó dependiendo solo del estándar JWT/JWKS.
 - Los endpoints HTTP de asociación de clientes a buffets (C2-04) quedan pendientes de definir con su responsable.
+### 2026-11-05 — Sesión frontend con Neon Auth
+
+**Solicitud:** Checkpoint 2 frontend, plan aprobado por Luana en este chat.
+
+Se integró el SDK oficial `@neondatabase/auth` mediante route handlers de Next.js, formularios de registro/login, cierre de sesión y obtención de JWT por solicitud. Los roles se consultan a `/api/v1/me`; la API conserva la autoridad de autorización. No se guardan JWT en localStorage. Se documentan las variables de servidor en `.env.example`, sin credenciales.
+
+Validación automatizada: ESLint sin errores; TypeScript solo informa el catálogo vacío preexistente, pendiente del siguiente bloque. Se incorporan pruebas del cliente HTTP (JWT, errores, 204 y conexión). La prueba real de Neon requiere configurar el frontend. El typecheck inicial del backend falla por el test ajeno sin seguimiento, que se mantiene intacto. Validación humana de este bloque: pendiente; no se afirma revisión del equipo.
+
+### 2026-11-05 — Buffets del cliente conectados
+
+Se exponen GET/POST `/api/v1/me/stores` reutilizando los casos de uso existentes. El Customer se deriva exclusivamente del Actor; se rechazan anónimos y staff. La pantalla reemplaza demos por datos reales, asociación por código y selección del buffet con navegación al catálogo. Pruebas HTTP: 2 exitosas (aislamiento de identidad, 401/403 y validación). Baseline backend fuera del sandbox: 244 exitosas y 2 omitidas por requerir PostgreSQL local. Validación humana pendiente.
+
+### 2026-11-05 — Catálogo conectado
+
+Se implementa el catálogo por buffet con categorías, descripciones, precios en centavos, adicionales, búsqueda y estados loading/error/empty. Se consume GET `/api/v1/stores/:storeId/catalog` con JWT; el backend verifica membresía o scope de staff. Las 17 pruebas existentes de catálogo, agrupación y autorización pasan. La disponibilidad del catálogo aún usa el adaptador provisional del backend, pendiente de integrar con stock. Se agregan comandos explícitos de typecheck y tests frontend. Validación humana pendiente.
+
+### 2026-11-05 — Administración de buffets
+
+Se agrega listado por organización con puerto de lectura y autorización del dominio; se expone la desactivación reutilizando su caso de uso. La UI de ORGANIZATION_ADMIN consume listado/creación/desactivación con confirmación. Los buffets nuevos conservan PENDING_SETUP; no se inventa activación ni edición sin contrato. Las 15 pruebas de organización y aislamiento pasan. Build frontend con Webpack exitoso (Turbopack falla al iniciar su proceso CSS en este equipo). Validación humana pendiente.
+
+### 2026-11-05 — Gestión de catálogo
+
+Se integran formularios de creación, edición y desactivación de categorías/productos/adicionales, confirmación explícita y reemplazo de adicionales por producto. Se usan exclusivamente los endpoints existentes y el storeId del Actor para administración. La conversión de moneda admite coma o punto y rechaza precisión excesiva y desbordamiento. Verificación: 6 tests frontend, 18 contratos HTTP y ESLint/TypeScript exitosos. Validación humana pendiente.
+
+### 2026-11-05 — Carrito y resumen
+
+Se agregan cantidades, selección de adicionales, variantes por producto, eliminación y resumen en el catálogo activo. El carrito se mantiene en memoria de esa pantalla y no mezcla buffets ni usuarios. Los totales son estimaciones en centavos; nunca se envían precios calculados por el navegador a la API. Diez pruebas frontend exitosas, incluido cálculo, variantes, cantidades inválidas y desbordamiento. Validación humana pendiente.
+
+### 2026-11-05 — Pedidos y reservas integrados
+
+Se protegen creación/listado/detalle/cancelación con Actor CUSTOMER, propiedad y catálogo autorizado. Se ignoran customerId y precios del navegador y se validan cantidades y adicionales permitidos por producto. La UI confirma la reserva, consulta historial y detalle, actualiza estado y cancela reservas pendientes. No incorpora pagos ni operaciones de cocina/retiro.
+
+Se detectó que la persistencia anterior creaba el pedido antes de reservar stock. Se agrega una transacción compartida para creación/reserva, numeración serializada por buffet y decrementos condicionados por disponibilidad. La cancelación usa transición condicional RESERVED→CANCELLED y libera stock en la misma transacción; no interviene en pedidos confirmados. La liberación global de reservas queda como operación interna, sin acceso desde frontend.
+
+Verificación: 10 pruebas específicas exitosas, incluida PostgreSQL real con dos solicitudes por la última unidad, rollback sin pedido huérfano y cancelación repetida/concurrente sin liberar dos veces. Datos temporales eliminados. Validación humana pendiente.
+
+### 2026-11-05 — Disponibilidad real y consulta de stock
+
+El catálogo consulta stock por buffet y oculta productos y adicionales agotados. Los elementos sin registro conservan la semántica existente de stock sin control. Se incorpora GET `/api/v1/stores/:storeId/stock` para STORE_ADMIN del buffet y una pantalla de consulta de disponibles y reservados; se verifica autorización antes de acceder a datos.
+
+Validación al retomar: 256 pruebas backend exitosas, 2 omitidas que requieren PostgreSQL local; incluye integración PostgreSQL de reservas, agotamiento del catálogo y cancelación. Frontend: ESLint, TypeScript y 10 pruebas exitosas. El typecheck backend conserva los errores del test ajeno sin seguimiento, que no se modifica ni versiona. Validación humana pendiente.
+
+### 2026-11-05 — Accesos de inicio y sesión vencida
+
+La portada conserva el diagnóstico de conexión y agrega accesos a buffets, pedidos, login, registro y administración. La ausencia de JWT se representa como ApiError 401 para que la protección de rutas redirija al login; los errores del servicio conservan su estado HTTP. No se cambia la autorización del backend. Validación humana pendiente.
+
+Verificación de cierre: 13 pruebas frontend, ESLint, TypeScript y build Webpack exitosos. En navegador se comprobaron formularios de acceso/registro y redirección de buffets sin sesión al login. Se detectó la ausencia del secreto de cookies local y se generó en `.env.local` ignorado por Git, sin mostrarlo ni versionarlo. El endpoint de token pasó de 503 por configuración incompleta a 401 UNAUTHORIZED sin sesión. La prueba con una cuenta autenticada sigue pendiente.
+
+### 2026-11-09 — Integración del frontend con cocina y retiro
+
+**TDD / Issue:** PR #86, rama `feature/C2-frontend-rutas-base`.
+
+**Autor humano:** Luana Suarez (solicitud; revisión del resultado pendiente).
+
+**Herramienta/modelo:** Codex.
+**Prompt / instrucción utilizada:** incorporar develop, resolver conflictos, verificar y actualizar el PR del frontend.
+
+Se incorpora `develop` en `b322e8d`, conservando los módulos de cocina y retiro junto con la identidad derivada del Actor, la validación de propiedad y catálogo, y las reservas/cancelaciones transaccionales del frontend. Los códigos de retiro se excluyen de creación, listado, detalle y cancelación de pedidos; se agrega una prueba de regresión para estas cuatro respuestas.
+
+Verificación automatizada: 326 pruebas backend aprobadas, ninguna fallida y 3 omitidas; incluye integración PostgreSQL de reservas y retiros concurrentes. Las migraciones pendientes se aplicaron en la base configurada. Frontend: TypeScript y 13 pruebas aprobadas. El código versionado del backend pasa la comprobación de tipos excluyendo únicamente el test local sin seguimiento `associateCustomerToStore.test.ts`; el comando estándar sigue fallando por ese archivo, que se conserva intacto y fuera del commit. No se afirma validación humana ni recorrido autenticado completo.
+
+### 2026-11-09 — Claridad de acceso y alta de cliente
+
+**TDD / Issue:** pendiente de asignación por el equipo.
+
+**Autor humano:** Luana Suarez.
+
+**Herramienta/modelo:** Codex.
+
+**Problema:** el inicio no distinguía compra del acceso del personal, el alta podía volver a pedir el nombre si fallaba la creación del perfil y el login enviaba cualquier rol no cliente a administración.
+
+**Decisión funcional preservada:** el registro público crea clientes. La organización asigna los permisos de staff; elegir el acceso de personal no asigna un rol.
+
+**Cambio realizado:** se presentan por separado el recorrido de compra y el acceso para personal/administradores, se conserva temporalmente el nombre para precargar un perfil pendiente y el login dirige solo los roles administradores a administración. STORE_EMPLOYEE recibe un aviso explícito de que el acceso de cocina todavía no está disponible.
+
+**Validación humana:** pendiente.
