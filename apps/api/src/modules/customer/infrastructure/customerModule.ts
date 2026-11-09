@@ -80,3 +80,23 @@ export function createPrismaRegisterCustomer(): RegisterCustomer {
         return registerCustomer(identity, command);
     };
 }
+
+export type CustomerPreferences = { dietaryRestrictions: string[]; allergies: string[] };
+export function createPrismaCustomerPreferences() {
+    return {
+        get: async (authUserId: string): Promise<CustomerPreferences> => {
+            const customer = await getPrisma().customer.findUnique({ where: { authUserId }, select: { dietaryRestrictions: true, allergies: true } });
+            if (!customer) throw new Error('CUSTOMER_NOT_FOUND');
+            return customer;
+        },
+        save: async (authUserId: string, preferences: CustomerPreferences): Promise<CustomerPreferences> => {
+            try {
+                const customer = await getPrisma().customer.update({ where: { authUserId }, data: preferences, select: { dietaryRestrictions: true, allergies: true } });
+                return customer;
+            } catch (error) {
+                if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') throw new Error('CUSTOMER_NOT_FOUND');
+                throw error;
+            }
+        },
+    };
+}

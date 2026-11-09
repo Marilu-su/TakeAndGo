@@ -44,7 +44,8 @@ import { createCustomerRouter } from './modules/customer/infrastructure/http/cus
 import { createCustomerStoreRouter } from './modules/customer/infrastructure/http/customerStoreRoutes';
 import { createStoreManagementRouter } from './modules/organization/infrastructure/http/storeManagementRoutes';
 import { createPrismaStoreManagement } from './modules/organization/infrastructure/organizationModule';
-import { createPrismaListCustomerStores, createPrismaAssociateCustomerToStore } from './modules/customer/infrastructure/customerModule';
+import { createPrismaListCustomerStores, createPrismaAssociateCustomerToStore, createPrismaCustomerPreferences } from './modules/customer/infrastructure/customerModule';
+import { createCustomerPreferencesRouter } from './modules/customer/infrastructure/http/customerPreferencesRoutes';
 import {
   createPrismaRegisterCustomer,
   type RegisterCustomer,
@@ -161,6 +162,7 @@ export function createApp(overrides: Partial<AppDependencies> = {}) {
     listStores: createPrismaListCustomerStores(),
     associateStore: createPrismaAssociateCustomerToStore(),
   }));
+  app.use('/api/v1', createCustomerPreferencesRouter(dependencies.resolveActor, createPrismaCustomerPreferences()));
 
   app.use(
     '/api/v1',
@@ -175,6 +177,7 @@ export function createApp(overrides: Partial<AppDependencies> = {}) {
     createOrganizationRouter({
       createStore: dependencies.createStore,
       resolveActor: dependencies.resolveActor,
+      resolveIdentity: dependencies.resolveIdentity,
     }),
   );
 
@@ -207,6 +210,7 @@ export function createApp(overrides: Partial<AppDependencies> = {}) {
     createStoreCatalogRouter({
       useCases: dependencies.storeCatalogUseCases,
       resolveActor: dependencies.resolveActor,
+      getCustomerPreferences: userId => createPrismaCustomerPreferences().get(userId),
     }),
   );
 
@@ -217,6 +221,7 @@ export function createApp(overrides: Partial<AppDependencies> = {}) {
       resolveActor: dependencies.resolveActor,
       viewCatalog: dependencies.storeCatalogUseCases.viewStoreCatalog,
       listOrders: customerId => new PrismaOrderRepository().findByCustomer(customerId),
+      getCustomerPreferences: userId => createPrismaCustomerPreferences().get(userId),
     }),
   );
 

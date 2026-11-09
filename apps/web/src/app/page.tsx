@@ -55,6 +55,8 @@ export default function Home() {
         <p>Elegí cómo usar Take&amp;Go. Los accesos de administración requieren una cuenta habilitada.</p>
         <nav aria-label="Accesos de Take&Go" className="form-stack">
           <Link className="button" href="/registro">Quiero comprar</Link>
+          <Link className="button secondary" href="/registro?destino=organizacion">Crear una organización</Link>
+          <Link className="button secondary" href="/login?destino=organizacion">Ya tengo una cuenta y quiero crear una organización</Link>
           <Link className="button secondary" href="/login">Ya tengo una cuenta</Link>
         </nav>
         <section className="mt-6 border-t border-gray-300 pt-5">

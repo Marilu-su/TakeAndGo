@@ -40,6 +40,7 @@ export interface OrderRepository {
     orderNumber: number
   ): Promise<Order | null>;
   findActiveByCustomer(customerId: string): Promise<Order[]>;
+  findKitchenQueue(storeId: string): Promise<Order[]>;
 
   updateStatus(
     id: string,

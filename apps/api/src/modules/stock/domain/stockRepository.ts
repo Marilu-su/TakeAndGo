@@ -23,6 +23,6 @@ export interface StockRepository {
   fulfillStock(storeId: string, orderId: string, items: ReserveStockItemInput[]): Promise<void>;
 
   // Ajuste manual de stock por el buffet
-  setProductStock(storeId: string, productId: string, availableQuantity: number): Promise<ProductStock>;
-  setAdditionStock(storeId: string, additionId: string, availableQuantity: number): Promise<AdditionStock>;
+  setProductStock(storeId: string, productId: string, availableQuantity: number, reason: string, actorUserId: string): Promise<ProductStock>;
+  setAdditionStock(storeId: string, additionId: string, availableQuantity: number, reason: string, actorUserId: string): Promise<AdditionStock>;
 }

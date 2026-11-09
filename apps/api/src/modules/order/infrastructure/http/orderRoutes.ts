@@ -6,11 +6,14 @@ import { DomainError } from '../../../../shared/domain/DomainError';
 import type { StoreCatalogUseCases } from '../../../catalog/infrastructure/catalogModule';
 import type { Order } from '../../domain/order';
 import type { CreateOrderItemRequest } from '../../application/createOrderUseCase';
+import { filterStoreCatalog } from '../../../catalog/domain/storeCatalog';
+import type { CustomerPreferences } from '../../../customer/infrastructure/customerModule';
 
 export type OrderHttpDependencies = {
   resolveActor: ActorResolver;
   viewCatalog: StoreCatalogUseCases['viewStoreCatalog'];
   listOrders: (customerId: string) => Promise<Order[]>;
+  getCustomerPreferences: (userId: string) => Promise<CustomerPreferences>;
 };
 
 function toPublicOrder(order: Order): Omit<Order, 'pickupCode'> {
@@ -35,7 +38,8 @@ export function createOrderRouter(orderModule: OrderModule, deps: OrderHttpDepen
     const actor = await customer(req);
     const { storeId, items } = req.body ?? {};
     if (typeof storeId !== 'string' || !Array.isArray(items) || items.length === 0) throw new DomainError('INVALID_REQUEST', 'Indicá buffet y productos');
-    const catalog = await deps.viewCatalog(actor, storeId);
+    const preferences = await deps.getCustomerPreferences(actor.userId);
+    const catalog = filterStoreCatalog(await deps.viewCatalog(actor, storeId), preferences.dietaryRestrictions, preferences.allergies);
     const products = new Map(catalog.categories.flatMap(category => category.products.map(product => [product.id, product] as const)));
     const checked: CreateOrderItemRequest[] = items.map((raw: unknown) => {
       if (!raw || typeof raw !== 'object') throw new DomainError('INVALID_REQUEST', 'Producto inválido');
