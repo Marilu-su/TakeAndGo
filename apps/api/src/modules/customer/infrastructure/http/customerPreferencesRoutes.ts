@@ -22,7 +22,7 @@ export function createCustomerPreferencesRouter(resolveActor: ActorResolver, pre
     const actor = await requireActor(resolveActor, req);
     if (actor.role !== 'CUSTOMER') throw new DomainError('FORBIDDEN', 'Se requiere un perfil de cliente.');
     try { res.json(await preferences.get(actor.userId)); }
-    catch (error) { if (error instanceof Error && error.message === 'CUSTOMER_NOT_FOUND') throw new DomainError('NOT_FOUND', 'No se encontró el perfil de cliente.'); throw error; }
+    catch (error) { if ((error instanceof DomainError && error.code === 'CUSTOMER_NOT_FOUND') || (error instanceof Error && error.message === 'CUSTOMER_NOT_FOUND')) throw new DomainError('NOT_FOUND', 'No se encontró el perfil de cliente.'); throw error; }
   });
   router.patch('/me/preferences', async (req, res) => {
     const actor = await requireActor(resolveActor, req);
@@ -33,7 +33,7 @@ export function createCustomerPreferencesRouter(resolveActor: ActorResolver, pre
     if (dietaryRestrictions.includes('VEGAN') && !dietaryRestrictions.includes('VEGETARIAN')) dietaryRestrictions.push('VEGETARIAN');
     const allergies = normalizeLabels(body.allergies, 'Las alergias', 30);
     try { res.json(await preferences.save(actor.userId, { dietaryRestrictions, allergies } satisfies CustomerPreferences)); }
-    catch (error) { if (error instanceof Error && error.message === 'CUSTOMER_NOT_FOUND') throw new DomainError('NOT_FOUND', 'No se encontró el perfil de cliente.'); throw error; }
+    catch (error) { if ((error instanceof DomainError && error.code === 'CUSTOMER_NOT_FOUND') || (error instanceof Error && error.message === 'CUSTOMER_NOT_FOUND')) throw new DomainError('NOT_FOUND', 'No se encontró el perfil de cliente.'); throw error; }
   });
   return router;
 }
