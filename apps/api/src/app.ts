@@ -79,6 +79,7 @@ export type AppDependencies = {
   resolveActor: ActorResolver;
   resolveIdentity: IdentityResolver;
   registerCustomer: RegisterCustomer;
+  customerPreferences: ReturnType<typeof createPrismaCustomerPreferences>;
   createStore: CreateStore;
   categoryUseCases: CategoryUseCases;
   productUseCases: ProductUseCases;
@@ -108,6 +109,7 @@ function defaultDependencies(): AppDependencies {
     resolveActor: auth.resolveActor,
     resolveIdentity: auth.resolveIdentity,
     registerCustomer: createPrismaRegisterCustomer(),
+    customerPreferences: createPrismaCustomerPreferences(),
     createStore: createPrismaCreateStore(),
     categoryUseCases: createPrismaCategoryUseCases(),
     productUseCases: createPrismaProductUseCases(),
@@ -162,7 +164,7 @@ export function createApp(overrides: Partial<AppDependencies> = {}) {
     listStores: createPrismaListCustomerStores(),
     associateStore: createPrismaAssociateCustomerToStore(),
   }));
-  app.use('/api/v1', createCustomerPreferencesRouter(dependencies.resolveActor, createPrismaCustomerPreferences()));
+  app.use('/api/v1', createCustomerPreferencesRouter(dependencies.resolveActor, dependencies.customerPreferences));
 
   app.use(
     '/api/v1',
@@ -210,7 +212,7 @@ export function createApp(overrides: Partial<AppDependencies> = {}) {
     createStoreCatalogRouter({
       useCases: dependencies.storeCatalogUseCases,
       resolveActor: dependencies.resolveActor,
-      getCustomerPreferences: userId => createPrismaCustomerPreferences().get(userId),
+      getCustomerPreferences: userId => dependencies.customerPreferences.get(userId),
     }),
   );
 
@@ -221,7 +223,7 @@ export function createApp(overrides: Partial<AppDependencies> = {}) {
       resolveActor: dependencies.resolveActor,
       viewCatalog: dependencies.storeCatalogUseCases.viewStoreCatalog,
       listOrders: customerId => new PrismaOrderRepository().findByCustomer(customerId),
-      getCustomerPreferences: userId => createPrismaCustomerPreferences().get(userId),
+      getCustomerPreferences: userId => dependencies.customerPreferences.get(userId),
     }),
   );
 
