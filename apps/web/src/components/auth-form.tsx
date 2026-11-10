@@ -37,9 +37,11 @@ export function AuthForm({ register = false }: { register?: boolean }) {
       }
       try {
         const actor = await getActor();
-        if (actor.role === 'CUSTOMER') router.replace('/buffets');
+        const createOrganization = new URLSearchParams(window.location.search).get('destino') === 'organizacion';
+        if (createOrganization && actor.role === 'CUSTOMER') router.replace('/organizacion/nueva');
+        else if (actor.role === 'CUSTOMER') router.replace('/buffets');
         else if (actor.role === 'STORE_ADMIN' || actor.role === 'ORGANIZATION_ADMIN') router.replace('/admin');
-        else throw new Error('El acceso de cocina todavía no está disponible en esta versión.');
+        else if (actor.role === 'STORE_EMPLOYEE') router.replace('/cocina');
       } catch (cause) {
         if (cause instanceof ApiError && cause.status === 401) router.replace('/alta-cliente');
         else throw cause;

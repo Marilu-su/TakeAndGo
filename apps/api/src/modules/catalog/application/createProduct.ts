@@ -11,6 +11,9 @@ export type CreateProductCommand = {
     description?: string | null;
     priceCents: number;
     basePreparationSeconds: number;
+    dietaryTags?: string[];
+    allergens?: string[];
+    allergensVerified?: boolean;
 };
 
 type Dependencies = {

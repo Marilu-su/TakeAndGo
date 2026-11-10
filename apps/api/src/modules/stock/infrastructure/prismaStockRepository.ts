@@ -253,59 +253,27 @@ export class PrismaStockRepository implements StockRepository {
     else await getPrisma().$transaction(execute);
   }
 
-  async setProductStock(storeId: string, productId: string, availableQuantity: number): Promise<ProductStock> {
-    const prisma = this.transaction ?? getPrisma();
-
-    const record = await prisma.productStock.upsert({
-      where: { productId },
-      create: {
-        storeId,
-        productId,
-        availableStock: availableQuantity,
-        reservedStock: 0,
-      },
-      update: {
-        availableStock: availableQuantity,
-      },
-    });
-
-    await prisma.stockMovement.create({
-      data: {
-        storeId,
-        productId,
-        quantity: availableQuantity,
-        type: 'INVENTORY_ADJUSTMENT',
-      },
-    });
-
-    return record;
+  async setProductStock(storeId: string, productId: string, availableQuantity: number, reason: string, actorUserId: string): Promise<ProductStock> {
+    const adjust = async (tx: Prisma.TransactionClient) => {
+      const current = await tx.productStock.findUnique({ where: { productId } });
+      if (current && current.storeId !== storeId) throw new Error('El producto no pertenece a este buffet.');
+      const difference = availableQuantity - (current?.availableStock ?? 0);
+      const record = await tx.productStock.upsert({ where: { productId }, create: { storeId, productId, availableStock: availableQuantity, reservedStock: 0 }, update: { availableStock: availableQuantity } });
+      await tx.stockMovement.create({ data: { storeId, productId, quantity: difference, type: 'INVENTORY_ADJUSTMENT', reason, actorUserId } });
+      return record;
+    };
+    return this.transaction ? adjust(this.transaction) : getPrisma().$transaction(adjust);
   }
 
-  async setAdditionStock(storeId: string, additionId: string, availableQuantity: number): Promise<AdditionStock> {
-    const prisma = this.transaction ?? getPrisma();
-
-    const record = await prisma.additionStock.upsert({
-      where: { additionId },
-      create: {
-        storeId,
-        additionId,
-        availableStock: availableQuantity,
-        reservedStock: 0,
-      },
-      update: {
-        availableStock: availableQuantity,
-      },
-    });
-
-    await prisma.stockMovement.create({
-      data: {
-        storeId,
-        additionId,
-        quantity: availableQuantity,
-        type: 'INVENTORY_ADJUSTMENT',
-      },
-    });
-
-    return record;
+  async setAdditionStock(storeId: string, additionId: string, availableQuantity: number, reason: string, actorUserId: string): Promise<AdditionStock> {
+    const adjust = async (tx: Prisma.TransactionClient) => {
+      const current = await tx.additionStock.findUnique({ where: { additionId } });
+      if (current && current.storeId !== storeId) throw new Error('El adicional no pertenece a este buffet.');
+      const difference = availableQuantity - (current?.availableStock ?? 0);
+      const record = await tx.additionStock.upsert({ where: { additionId }, create: { storeId, additionId, availableStock: availableQuantity, reservedStock: 0 }, update: { availableStock: availableQuantity } });
+      await tx.stockMovement.create({ data: { storeId, additionId, quantity: difference, type: 'INVENTORY_ADJUSTMENT', reason, actorUserId } });
+      return record;
+    };
+    return this.transaction ? adjust(this.transaction) : getPrisma().$transaction(adjust);
   }
 }

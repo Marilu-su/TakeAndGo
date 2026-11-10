@@ -19,6 +19,9 @@ export type CatalogProduct = {
     description: string | null;
     priceCents: number;
     basePreparationSeconds: number;
+    dietaryTags: string[];
+    allergens: string[];
+    allergensVerified: boolean;
     additions: CatalogAddition[];
 };
 
@@ -32,6 +35,21 @@ export type StoreCatalog = {
     storeId: string;
     categories: CatalogCategory[];
 };
+
+export function filterStoreCatalog(catalog: StoreCatalog, dietaryRestrictions: string[], allergies: string[]): StoreCatalog {
+    const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLocaleLowerCase();
+    const excluded = new Set(allergies.map(normalize));
+    return {
+        ...catalog,
+        categories: catalog.categories.map(category => ({
+            ...category,
+            products: category.products.filter(product =>
+                dietaryRestrictions.every(restriction => product.dietaryTags.includes(restriction)) &&
+                (excluded.size === 0 || (product.allergensVerified && !product.allergens.some(allergen => excluded.has(normalize(allergen)))))
+            ),
+        })).filter(category => category.products.length > 0),
+    };
+}
 
 type BuildStoreCatalogInput = {
     storeId: string;
@@ -66,6 +84,9 @@ export function buildStoreCatalog(input: BuildStoreCatalogInput): StoreCatalog {
         description: product.description,
         priceCents: product.priceCents,
         basePreparationSeconds: product.basePreparationSeconds,
+        dietaryTags: product.dietaryTags ?? [],
+        allergens: product.allergens ?? [],
+        allergensVerified: product.allergensVerified ?? false,
         additions: (additionIdsByProduct.get(product.id) ?? [])
         .map((additionId) => offeredAdditions.get(additionId))
         .filter((addition): addition is Addition => addition !== undefined)

@@ -77,3 +77,19 @@ export function requireStringArray(body: unknown, field: string): string[] {
 
     return value;
 }
+
+export function optionalStringArray(body: unknown, field: string): string[] | undefined {
+    const value = asBody(body)[field];
+    if (value === undefined) return undefined;
+    if (!Array.isArray(value) || !value.every((item) => typeof item === 'string')) {
+        throw invalid(`El campo ${field} debe ser una lista de textos`);
+    }
+    return value;
+}
+
+export function optionalBoolean(body: unknown, field: string): boolean | undefined {
+    const value = asBody(body)[field];
+    if (value === undefined) return undefined;
+    if (typeof value !== 'boolean') throw invalid(`El campo ${field} debe ser verdadero o falso`);
+    return value;
+}
