@@ -735,3 +735,25 @@ Verificación automatizada: 326 pruebas backend aprobadas, ninguna fallida y 3 o
 **Cambio realizado:** se presentan por separado el recorrido de compra y el acceso para personal/administradores, se conserva temporalmente el nombre para precargar un perfil pendiente y el login dirige solo los roles administradores a administración. STORE_EMPLOYEE recibe un aviso explícito de que el acceso de cocina todavía no está disponible.
 
 **Validación humana:** pendiente.
+
+### 2026-11-10 — C3-01: comunicación vertical de MenIA
+
+**TDD / Issue:** C3-01, especificación suministrada en el chat para el bloque de Ivo.
+**Herramienta:** Codex. **Validación humana:** pendiente de revisión del equipo.
+
+Se implementa un módulo hexagonal con puertos de lectura de buffet/asociación y
+un `MeniaResponder` determinístico reemplazable en C3-02. La API valida el Actor
+CUSTOMER, asociación y buffet ACTIVE. Un GET de contexto carga datos reales sin
+iniciar conversaciones. El POST acepta únicamente texto de hasta 2000 unidades
+UTF-16; no persiste mensajes ni ejecuta acciones. La interfaz utiliza sesión existente,
+estado temporal por buffet y reintentos sin duplicar mensajes. No se modifica el
+inicio global del cliente ni se integra un LLM.
+
+Se agregan pruebas de dominio/aplicación, HTTP, estado y componentes, incluyendo
+React → Express por HTTP real con identidad de prueba. Se añaden únicamente
+dependencias de desarrollo para el DOM de pruebas. Alcance, archivos, resultados y
+limitaciones de validación documentados en `docs/C3-01-MENIA.md`.
+
+La rama `codex/C3-01-menia` fue autorizada explícitamente por el usuario desde
+`origin/develop`; los commits atómicos responden a su instrucción directa, que
+prevalece sobre la prohibición anterior contenida en la especificación adjunta.
