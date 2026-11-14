@@ -1,0 +1,2037 @@
+[
+  {
+    "id": "RN-001",
+    "modulo": "Identidad y asociación",
+    "estado": "PENDIENTE_VALIDACION",
+    "evidencia": "apps/api/prisma/schema.prisma: Customer.email @unique; apps/api/test/modules/customer/infrastructure/prismaCustomerRepository.test.ts",
+    "brecha": "Unicidad modelada; prueba PostgreSQL local omitida y recorrido Neon no ejecutado.",
+    "tareas": [
+      "T08",
+      "T34"
+    ]
+  },
+  {
+    "id": "RN-002",
+    "modulo": "Identidad y asociación",
+    "estado": "PARCIAL",
+    "evidencia": "apps/web/src/components/auth-form.tsx; apps/api/src/modules/customer/infrastructure/http/customerRoutes.ts",
+    "brecha": "El formulario no pide código de buffet y el alta crea perfil sin asociación obligatoria.",
+    "tareas": [
+      "T08",
+      "T05"
+    ]
+  },
+  {
+    "id": "RN-003",
+    "modulo": "Identidad y asociación",
+    "estado": "PENDIENTE_VALIDACION",
+    "evidencia": "apps/web/src/components/auth-form.tsx; docs/architecture/ADR-0002-autenticacion.md",
+    "brecha": "No hay bloqueo explícito propio por email; configuración efectiva del proveedor no comprobada.",
+    "tareas": [
+      "T08"
+    ]
+  },
+  {
+    "id": "RN-004",
+    "modulo": "Identidad y asociación",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/web/src/components/auth-form.tsx",
+    "brecha": "No hay enlace/flujo Olvidé mi contraseña en las páginas auditadas.",
+    "tareas": [
+      "T08"
+    ]
+  },
+  {
+    "id": "RN-005",
+    "modulo": "Identidad y asociación",
+    "estado": "PROBADO",
+    "evidencia": "apps/api/src/modules/organization/domain/storeCode.ts; apps/api/test/modules/organization/domain/organizationDomain.test.ts",
+    "brecha": "Formato y normalización verificados por tests locales; conservar regresión.",
+    "tareas": [
+      "T08"
+    ]
+  },
+  {
+    "id": "RN-006",
+    "modulo": "Identidad y asociación",
+    "estado": "PENDIENTE_VALIDACION",
+    "evidencia": "apps/api/prisma/schema.prisma: Store.code @unique; apps/api/test/modules/organization/infrastructure/prismaStoreRepository.test.ts",
+    "brecha": "Constraint existente; test PostgreSQL omitido localmente, CI histórico separado.",
+    "tareas": [
+      "T34"
+    ]
+  },
+  {
+    "id": "RN-007",
+    "modulo": "Identidad y asociación",
+    "estado": "PENDIENTE_VALIDACION",
+    "evidencia": "apps/api/src/modules/customer/application/associateCustomerToStore.ts; apps/api/src/modules/customer/infrastructure/http/customerStoreRoutes.ts; apps/web/src/app/(customer)/buffets/page.tsx; apps/api/test/modules/customer/",
+    "brecha": "Casos de uso/HTTP con pruebas; falta recorrido autenticado real multi-organización y PostgreSQL local.",
+    "tareas": [
+      "T08",
+      "T34"
+    ]
+  },
+  {
+    "id": "RN-008",
+    "modulo": "Identidad y asociación",
+    "estado": "PENDIENTE_VALIDACION",
+    "evidencia": "apps/api/src/modules/customer/application/associateCustomerToStore.ts; apps/api/src/modules/customer/infrastructure/http/customerStoreRoutes.ts; apps/web/src/app/(customer)/buffets/page.tsx; apps/api/test/modules/customer/",
+    "brecha": "Casos de uso/HTTP con pruebas; falta recorrido autenticado real multi-organización y PostgreSQL local.",
+    "tareas": [
+      "T08",
+      "T34"
+    ]
+  },
+  {
+    "id": "RN-009",
+    "modulo": "Identidad y asociación",
+    "estado": "PENDIENTE_VALIDACION",
+    "evidencia": "apps/api/src/modules/customer/application/associateCustomerToStore.ts; apps/api/src/modules/customer/infrastructure/http/customerStoreRoutes.ts; apps/web/src/app/(customer)/buffets/page.tsx; apps/api/test/modules/customer/",
+    "brecha": "Casos de uso/HTTP con pruebas; falta recorrido autenticado real multi-organización y PostgreSQL local.",
+    "tareas": [
+      "T08",
+      "T34"
+    ]
+  },
+  {
+    "id": "RN-010",
+    "modulo": "Identidad y asociación",
+    "estado": "PARCIAL",
+    "evidencia": "apps/api/prisma/seed.ts; apps/api/scripts/assign-staff-role.ts",
+    "brecha": "Hay seed y script de staff; no se acreditó ejecución de provisión inicial cloud.",
+    "tareas": [
+      "T08",
+      "T32"
+    ]
+  },
+  {
+    "id": "RN-011",
+    "modulo": "Navegación y contexto",
+    "estado": "PARCIAL",
+    "evidencia": "apps/web/src/app/(customer)/buffets/page.tsx; apps/web/src/components/session-shell.tsx",
+    "brecha": "Home global presente; faltan accesos a perfil/preferencias integrados y nombre de organización.",
+    "tareas": [
+      "T05",
+      "T25"
+    ]
+  },
+  {
+    "id": "RN-012",
+    "modulo": "Navegación y contexto",
+    "estado": "PARCIAL",
+    "evidencia": "apps/web/src/app/(customer)/buffets/page.tsx; rama feature/C3-01-menia@fae7add08f318e6a554947067328bdf3049bb1b4: docs/C3-01-MENIA.md",
+    "brecha": "Selección previa de buffet integrada; acceso a MenIA todavía fuera de develop.",
+    "tareas": [
+      "T01",
+      "T29"
+    ]
+  },
+  {
+    "id": "RN-013",
+    "modulo": "Navegación y contexto",
+    "estado": "PARCIAL",
+    "evidencia": "apps/web/src/components/catalog.tsx; apps/api/src/modules/order/infrastructure/http/orderRoutes.ts",
+    "brecha": "storeId contextual y controles existentes; header catálogo no nombra buffet/organización; horarios, capacidad y rewards pendientes.",
+    "tareas": [
+      "T06",
+      "T12",
+      "T25"
+    ]
+  },
+  {
+    "id": "RN-014",
+    "modulo": "Navegación y contexto",
+    "estado": "PARCIAL",
+    "evidencia": "apps/web/src/components/catalog.tsx; apps/api/src/modules/order/infrastructure/http/orderRoutes.ts",
+    "brecha": "storeId contextual y controles existentes; header catálogo no nombra buffet/organización; horarios, capacidad y rewards pendientes.",
+    "tareas": [
+      "T06",
+      "T12",
+      "T25"
+    ]
+  },
+  {
+    "id": "RN-015",
+    "modulo": "Navegación y contexto",
+    "estado": "PENDIENTE_INTEGRACION",
+    "evidencia": "feature/C3-01-menia@fae7add08f318e6a554947067328bdf3049bb1b4: apps/web/src/lib/menia.ts; docs/C3-01-MENIA.md",
+    "brecha": "Historial temporal declarado en rama; integrar y ejecutar su verificación en base final.",
+    "tareas": [
+      "T01",
+      "T29"
+    ]
+  },
+  {
+    "id": "RN-016",
+    "modulo": "Perfil e historial",
+    "estado": "PENDIENTE_INTEGRACION",
+    "evidencia": "PR #89, rama feature/C2-frontend-rutas-base@7831234b2875c67c01daf81508b52e76e0e60b9b: apps/web/src/components/customer-preferences.tsx; apps/api/src/modules/customer/infrastructure/http/customerPreferencesRoutes.ts",
+    "brecha": "Preferencias dietarias/alergias parciales fuera de develop; no cubren por sí solas preferencias conceptuales, exclusiones y rutina.",
+    "tareas": [
+      "T02",
+      "T05"
+    ]
+  },
+  {
+    "id": "RN-017",
+    "modulo": "Perfil e historial",
+    "estado": "PENDIENTE_INTEGRACION",
+    "evidencia": "PR #89, rama feature/C2-frontend-rutas-base@7831234b2875c67c01daf81508b52e76e0e60b9b: apps/web/src/components/customer-preferences.tsx; apps/api/src/modules/customer/infrastructure/http/customerPreferencesRoutes.ts",
+    "brecha": "Preferencias dietarias/alergias parciales fuera de develop; no cubren por sí solas preferencias conceptuales, exclusiones y rutina.",
+    "tareas": [
+      "T02",
+      "T05"
+    ]
+  },
+  {
+    "id": "RN-018",
+    "modulo": "Perfil e historial",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/web/src/components/order-view.tsx",
+    "brecha": "No se localizó implementación/verificación específica para: Aplicar exclusiones de producto/ingrediente y restricciones de dieta como filtros duros antes de recomendar. Búsqueda: apps/api/prisma/schema.prisma (Customer), apps/api/src/modules/customer/application/ y apps/web/src/components/order-view.tsx; sin política de recomendaciones integrada en apps/api/src/app.ts.",
+    "tareas": [
+      "T05",
+      "T13"
+    ]
+  },
+  {
+    "id": "RN-019",
+    "modulo": "Perfil e historial",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/web/src/components/order-view.tsx",
+    "brecha": "No se localizó implementación/verificación específica para: Priorizar opciones preferidas disponibles y factibles mediante ranking. Búsqueda: apps/api/prisma/schema.prisma (Customer), apps/api/src/modules/customer/application/ y apps/web/src/components/order-view.tsx; sin política de recomendaciones integrada en apps/api/src/app.ts.",
+    "tareas": [
+      "T05",
+      "T13"
+    ]
+  },
+  {
+    "id": "RN-020",
+    "modulo": "Perfil e historial",
+    "estado": "PARCIAL",
+    "evidencia": "apps/api/src/modules/order/infrastructure/http/orderRoutes.ts; apps/web/src/components/order-view.tsx",
+    "brecha": "Historial de pedidos por cliente sin filtros requeridos ni datos completos buffet/organización/canjes/puntos.",
+    "tareas": [
+      "T05",
+      "T25"
+    ]
+  },
+  {
+    "id": "RN-021",
+    "modulo": "Perfil e historial",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/web/src/components/order-view.tsx",
+    "brecha": "No se localizó implementación/verificación específica para: Usar historial como señal secundaria de afinidad; la señal es opcional en el Master y no se verificó su uso. Búsqueda: apps/api/prisma/schema.prisma (Customer), apps/api/src/modules/customer/application/ y apps/web/src/components/order-view.tsx; sin política de recomendaciones integrada en apps/api/src/app.ts.",
+    "tareas": [
+      "T05",
+      "T13"
+    ]
+  },
+  {
+    "id": "RN-022",
+    "modulo": "Perfil e historial",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/web/src/components/order-view.tsx",
+    "brecha": "No se localizó implementación/verificación específica para: Guardar rutina semanal global sin impedir pedidos explícitos fuera de ella. Búsqueda: apps/api/prisma/schema.prisma (Customer), apps/api/src/modules/customer/application/ y apps/web/src/components/order-view.tsx; sin política de recomendaciones integrada en apps/api/src/app.ts.",
+    "tareas": [
+      "T05",
+      "T13"
+    ]
+  },
+  {
+    "id": "RN-023",
+    "modulo": "Perfil e historial",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/web/src/components/order-view.tsx",
+    "brecha": "No se localizó implementación/verificación específica para: Aplicar excepciones de rutina solo a la conversación actual, sin sobrescribir la rutina guardada. Búsqueda: apps/api/prisma/schema.prisma (Customer), apps/api/src/modules/customer/application/ y apps/web/src/components/order-view.tsx; sin política de recomendaciones integrada en apps/api/src/app.ts.",
+    "tareas": [
+      "T05",
+      "T13"
+    ]
+  },
+  {
+    "id": "RN-024",
+    "modulo": "Perfil e historial",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/web/src/components/order-view.tsx",
+    "brecha": "No se localizó implementación/verificación específica para: Mantener presupuesto en contexto temporal sin persistirlo como preferencia. Búsqueda: apps/api/prisma/schema.prisma (Customer), apps/api/src/modules/customer/application/ y apps/web/src/components/order-view.tsx; sin política de recomendaciones integrada en apps/api/src/app.ts.",
+    "tareas": [
+      "T05",
+      "T13"
+    ]
+  },
+  {
+    "id": "RN-025",
+    "modulo": "Perfil e historial",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/web/src/components/order-view.tsx",
+    "brecha": "No se localizó implementación/verificación específica para: Exigir confirmación estructurada antes de persistir cambios de perfil, dieta, exclusiones o rutina propuestos por MenIA. Búsqueda: apps/api/prisma/schema.prisma (Customer), apps/api/src/modules/customer/application/ y apps/web/src/components/order-view.tsx; sin política de recomendaciones integrada en apps/api/src/app.ts.",
+    "tareas": [
+      "T05",
+      "T13"
+    ]
+  },
+  {
+    "id": "RN-026",
+    "modulo": "Gobierno y catálogo",
+    "estado": "PENDIENTE_VALIDACION",
+    "evidencia": "apps/api/prisma/schema.prisma: StaffScope.authUserId @unique/storeId; apps/api/src/modules/organization/domain/staffScope.ts: createStaffScope; apps/api/src/modules/organization/infrastructure/prismaStaffScopeRepository.ts: save (upsert); apps/api/test/modules/organization/domain/staffScopeDomain.test.ts; apps/api/test/modules/organization/infrastructure/prismaStaffScopeRepository.test.ts",
+    "brecha": "Scope singular modelado. El test PostgreSQL guarda/reemplaza rol y cuenta una fila, condicionado a DATABASE_URL; no se verificó resultado individual ejecutado que demuestre la unicidad. Falta ejecutar en DB dedicada y comprobar que el mismo authUserId no conserve dos asignaciones STORE_ADMIN a buffets distintos, incluido intento de duplicación y concurrencia. Los tests de dominio no prueban el constraint persistido.",
+    "tareas": [
+      "T34"
+    ]
+  },
+  {
+    "id": "RN-027",
+    "modulo": "Gobierno y catálogo",
+    "estado": "PARCIAL",
+    "evidencia": "apps/api/prisma/schema.prisma: StoreStatus; apps/api/src/modules/organization/domain/store.ts",
+    "brecha": "PENDING_SETUP existe; no se localizó formulario operativo mínimo ni transición completa de activación.",
+    "tareas": [
+      "T06"
+    ]
+  },
+  {
+    "id": "RN-028",
+    "modulo": "Gobierno y catálogo",
+    "estado": "PARCIAL",
+    "evidencia": "apps/api/src/modules/catalog/application/createProduct.ts: makeCreateProduct; updateProduct.ts: makeUpdateProduct; categoryScope.ts: requireCategoryOfStore; apps/api/src/modules/stock/infrastructure/prismaStockRepository.ts: getProductStock/getAdditionStock; apps/api/test/modules/catalog/application/productUseCases.test.ts (rechaza categoría/producto ajeno y lista por buffet); apps/api/test/stockCatalogAvailability.test.ts",
+    "brecha": "Catálogo/categorías/precios/adicionales y consultas de stock usan storeId y autorización por buffet. Los tests citados cubren producto/categoría de otro buffet y alcance de acceso; no prueban horarios ni parámetros CocIA. Búsqueda adicional en schema.prisma, app.ts y módulos organization/kitchen: sin configuración operativa completa de horarios/CocIA localizada; falta implementarla e integrar/verificar por buffet.",
+    "tareas": [
+      "T06",
+      "T07",
+      "T12"
+    ]
+  },
+  {
+    "id": "RN-029",
+    "modulo": "Gobierno y catálogo",
+    "estado": "PENDIENTE_VALIDACION",
+    "evidencia": "apps/api/prisma/schema.prisma: Product.categoryId; apps/api/test/modules/catalog/infrastructure/prismaProductRepository.test.ts",
+    "brecha": "Relación única/composite scope modelados; prueba PostgreSQL local omitida.",
+    "tareas": [
+      "T34"
+    ]
+  },
+  {
+    "id": "RN-030",
+    "modulo": "Gobierno y catálogo",
+    "estado": "PENDIENTE_VALIDACION",
+    "evidencia": "apps/api/src/modules/catalog/; apps/web/src/components/catalog-admin.tsx; apps/api/test/modules/catalog/",
+    "brecha": "CRUD, permisos, tiempos y referencias históricas localizados; tests de dominio/HTTP pasan, validación DB/UI real pendiente.",
+    "tareas": [
+      "T34"
+    ]
+  },
+  {
+    "id": "RN-031",
+    "modulo": "Gobierno y catálogo",
+    "estado": "PENDIENTE_VALIDACION",
+    "evidencia": "apps/api/src/modules/catalog/; apps/web/src/components/catalog-admin.tsx; apps/api/test/modules/catalog/",
+    "brecha": "CRUD, permisos, tiempos y referencias históricas localizados; tests de dominio/HTTP pasan, validación DB/UI real pendiente.",
+    "tareas": [
+      "T34"
+    ]
+  },
+  {
+    "id": "RN-032",
+    "modulo": "Gobierno y catálogo",
+    "estado": "PENDIENTE_VALIDACION",
+    "evidencia": "apps/api/src/modules/catalog/; apps/web/src/components/catalog-admin.tsx; apps/api/test/modules/catalog/",
+    "brecha": "CRUD, permisos, tiempos y referencias históricas localizados; tests de dominio/HTTP pasan, validación DB/UI real pendiente.",
+    "tareas": [
+      "T34"
+    ]
+  },
+  {
+    "id": "RN-033",
+    "modulo": "Gobierno y catálogo",
+    "estado": "PENDIENTE_VALIDACION",
+    "evidencia": "apps/api/src/modules/catalog/; apps/web/src/components/catalog-admin.tsx; apps/api/test/modules/catalog/",
+    "brecha": "CRUD, permisos, tiempos y referencias históricas localizados; tests de dominio/HTTP pasan, validación DB/UI real pendiente.",
+    "tareas": [
+      "T34"
+    ]
+  },
+  {
+    "id": "RN-034",
+    "modulo": "Gobierno y catálogo",
+    "estado": "PENDIENTE_VALIDACION",
+    "evidencia": "apps/api/src/modules/catalog/; apps/web/src/components/catalog-admin.tsx; apps/api/test/modules/catalog/",
+    "brecha": "CRUD, permisos, tiempos y referencias históricas localizados; tests de dominio/HTTP pasan, validación DB/UI real pendiente.",
+    "tareas": [
+      "T34"
+    ]
+  },
+  {
+    "id": "RN-035",
+    "modulo": "Gobierno y catálogo",
+    "estado": "PENDIENTE_INTEGRACION",
+    "evidencia": "PR #89, rama feature/C2-frontend-rutas-base@7831234b2875c67c01daf81508b52e76e0e60b9b: apps/web/src/components/store-staff-admin.tsx; apps/api/src/modules/organization/infrastructure/organizationModule.ts",
+    "brecha": "Gestión staff en PR; base integrada solo tiene asignación interna por script.",
+    "tareas": [
+      "T02",
+      "T10"
+    ]
+  },
+  {
+    "id": "RN-036",
+    "modulo": "MenIA",
+    "estado": "PENDIENTE_INTEGRACION",
+    "evidencia": "feature/C3-01-menia@fae7add08f318e6a554947067328bdf3049bb1b4: apps/api/src/modules/menia/application/meniaUseCases.ts: makeMeniaUseCases/sendMessage; apps/api/src/modules/menia/infrastructure/deterministicResponder.ts: respond; docs/C3-01-MENIA.md",
+    "brecha": "Chat determinístico sin tools de escritura/LLM; integrar y ampliar, no constituye flujo de compra completo.",
+    "tareas": [
+      "T01",
+      "T09",
+      "T29"
+    ]
+  },
+  {
+    "id": "RN-037",
+    "modulo": "MenIA",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/app.ts; apps/web/src/app/",
+    "brecha": "No se localizó implementación/verificación específica para: Recibir audio y convertirlo a texto/intención antes de ejecutar negocio; el responder de rama recibe texto, sin STT localizado. Búsqueda: apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/web/src/app/; referencia MenIA: feature/C3-01-menia@fae7add08f318e6a554947067328bdf3049bb1b4, apps/api/src/modules/menia/application/meniaUseCases.ts: sendMessage y infrastructure/deterministicResponder.ts: respond (respuesta fija sin acciones).",
+    "tareas": [
+      "T09",
+      "T13",
+      "T17"
+    ]
+  },
+  {
+    "id": "RN-038",
+    "modulo": "MenIA",
+    "estado": "PENDIENTE_INTEGRACION",
+    "evidencia": "feature/C3-01-menia@fae7add08f318e6a554947067328bdf3049bb1b4: apps/api/src/modules/menia/application/meniaUseCases.ts: makeMeniaUseCases/sendMessage; apps/api/src/modules/menia/infrastructure/deterministicResponder.ts: respond; docs/C3-01-MENIA.md",
+    "brecha": "Chat determinístico sin tools de escritura/LLM; integrar y ampliar, no constituye flujo de compra completo.",
+    "tareas": [
+      "T01",
+      "T09",
+      "T29"
+    ]
+  },
+  {
+    "id": "RN-039",
+    "modulo": "MenIA",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/app.ts; apps/web/src/app/",
+    "brecha": "No se localizó implementación/verificación específica para: Exigir componentes de confirmación para escrituras y rechazar un sí libre como autorización irreversible. Búsqueda: apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/web/src/app/; referencia MenIA: feature/C3-01-menia@fae7add08f318e6a554947067328bdf3049bb1b4, apps/api/src/modules/menia/application/meniaUseCases.ts: sendMessage y infrastructure/deterministicResponder.ts: respond (respuesta fija sin acciones).",
+    "tareas": [
+      "T09",
+      "T13",
+      "T17"
+    ]
+  },
+  {
+    "id": "RN-040",
+    "modulo": "MenIA",
+    "estado": "PARCIAL",
+    "evidencia": "apps/web/src/components/catalog.tsx; apps/web/src/components/product-picker.tsx; apps/api/src/modules/catalog/infrastructure/stockCatalogAvailability.ts",
+    "brecha": "Catálogo real fuera de MenIA; agotados filtrados, pero stock no configurado se trata como disponible. Integración conversacional pendiente.",
+    "tareas": [
+      "T13",
+      "T07"
+    ]
+  },
+  {
+    "id": "RN-041",
+    "modulo": "MenIA",
+    "estado": "PARCIAL",
+    "evidencia": "apps/web/src/components/catalog.tsx; apps/web/src/components/product-picker.tsx; apps/api/src/modules/catalog/infrastructure/stockCatalogAvailability.ts",
+    "brecha": "Catálogo real fuera de MenIA; agotados filtrados, pero stock no configurado se trata como disponible. Integración conversacional pendiente.",
+    "tareas": [
+      "T13",
+      "T07"
+    ]
+  },
+  {
+    "id": "RN-042",
+    "modulo": "MenIA",
+    "estado": "PARCIAL",
+    "evidencia": "apps/web/src/components/catalog.tsx; apps/web/src/components/product-picker.tsx; apps/api/src/modules/catalog/infrastructure/stockCatalogAvailability.ts",
+    "brecha": "Catálogo real fuera de MenIA; agotados filtrados, pero stock no configurado se trata como disponible. Integración conversacional pendiente.",
+    "tareas": [
+      "T13",
+      "T07"
+    ]
+  },
+  {
+    "id": "RN-043",
+    "modulo": "MenIA",
+    "estado": "PARCIAL",
+    "evidencia": "apps/web/src/components/cart-panel.tsx; apps/api/src/modules/order/infrastructure/http/orderRoutes.ts",
+    "brecha": "Error de stock genérico; falta identificar exactamente el cambio y adaptar propuesta conversacional.",
+    "tareas": [
+      "T13",
+      "T15"
+    ]
+  },
+  {
+    "id": "RN-044",
+    "modulo": "MenIA",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/app.ts; apps/web/src/app/",
+    "brecha": "No se localizó implementación/verificación específica para: Informar agotamiento del producto base y buscar alternativas compatibles. Búsqueda: apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/web/src/app/; referencia MenIA: feature/C3-01-menia@fae7add08f318e6a554947067328bdf3049bb1b4, apps/api/src/modules/menia/application/meniaUseCases.ts: sendMessage y infrastructure/deterministicResponder.ts: respond (respuesta fija sin acciones).",
+    "tareas": [
+      "T09",
+      "T13",
+      "T17"
+    ]
+  },
+  {
+    "id": "RN-045",
+    "modulo": "MenIA",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/app.ts; apps/web/src/app/",
+    "brecha": "No se localizó implementación/verificación específica para: Limitar a cuatro las recomendaciones que satisfagan tiempo, presupuesto, dieta y preferencias. Búsqueda: apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/web/src/app/; referencia MenIA: feature/C3-01-menia@fae7add08f318e6a554947067328bdf3049bb1b4, apps/api/src/modules/menia/application/meniaUseCases.ts: sendMessage y infrastructure/deterministicResponder.ts: respond (respuesta fija sin acciones).",
+    "tareas": [
+      "T09",
+      "T13",
+      "T17"
+    ]
+  },
+  {
+    "id": "RN-046",
+    "modulo": "MenIA",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/app.ts; apps/web/src/app/",
+    "brecha": "No se localizó implementación/verificación específica para: Devolver menos de cuatro opciones cuando no haya más válidas, sin rellenar con incompatibles. Búsqueda: apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/web/src/app/; referencia MenIA: feature/C3-01-menia@fae7add08f318e6a554947067328bdf3049bb1b4, apps/api/src/modules/menia/application/meniaUseCases.ts: sendMessage y infrastructure/deterministicResponder.ts: respond (respuesta fija sin acciones).",
+    "tareas": [
+      "T09",
+      "T13",
+      "T17"
+    ]
+  },
+  {
+    "id": "RN-047",
+    "modulo": "MenIA",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/app.ts; apps/web/src/app/",
+    "brecha": "No se localizó implementación/verificación específica para: Mostrar catálogo completo sin aplicar el tope de cuatro recomendaciones. Búsqueda: apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/web/src/app/; referencia MenIA: feature/C3-01-menia@fae7add08f318e6a554947067328bdf3049bb1b4, apps/api/src/modules/menia/application/meniaUseCases.ts: sendMessage y infrastructure/deterministicResponder.ts: respond (respuesta fija sin acciones).",
+    "tareas": [
+      "T09",
+      "T13",
+      "T17"
+    ]
+  },
+  {
+    "id": "RN-048",
+    "modulo": "MenIA",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/app.ts; apps/web/src/app/",
+    "brecha": "No se localizó implementación/verificación específica para: Filtrar propuestas por factibilidad de la hora solicitada, stock y planificación. Búsqueda: apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/web/src/app/; referencia MenIA: feature/C3-01-menia@fae7add08f318e6a554947067328bdf3049bb1b4, apps/api/src/modules/menia/application/meniaUseCases.ts: sendMessage y infrastructure/deterministicResponder.ts: respond (respuesta fija sin acciones).",
+    "tareas": [
+      "T09",
+      "T13",
+      "T17"
+    ]
+  },
+  {
+    "id": "RN-049",
+    "modulo": "MenIA",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/app.ts; apps/web/src/app/",
+    "brecha": "No se localizó implementación/verificación específica para: Ofrecer primer horario viable, otros horarios y alternativas que lleguen a la hora original. Búsqueda: apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/web/src/app/; referencia MenIA: feature/C3-01-menia@fae7add08f318e6a554947067328bdf3049bb1b4, apps/api/src/modules/menia/application/meniaUseCases.ts: sendMessage y infrastructure/deterministicResponder.ts: respond (respuesta fija sin acciones).",
+    "tareas": [
+      "T09",
+      "T13",
+      "T17"
+    ]
+  },
+  {
+    "id": "RN-050",
+    "modulo": "MenIA",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/app.ts; apps/web/src/app/",
+    "brecha": "No se localizó implementación/verificación específica para: Informar imposibilidad dentro de horarios operativos y ofrecer alternativas factibles o compra presencial cuando corresponda. Búsqueda: apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/web/src/app/; referencia MenIA: feature/C3-01-menia@fae7add08f318e6a554947067328bdf3049bb1b4, apps/api/src/modules/menia/application/meniaUseCases.ts: sendMessage y infrastructure/deterministicResponder.ts: respond (respuesta fija sin acciones).",
+    "tareas": [
+      "T09",
+      "T13",
+      "T17"
+    ]
+  },
+  {
+    "id": "RN-051",
+    "modulo": "MenIA",
+    "estado": "PENDIENTE_INTEGRACION",
+    "evidencia": "feature/C3-01-menia@fae7add08f318e6a554947067328bdf3049bb1b4: apps/api/src/modules/menia/application/meniaUseCases.ts: makeMeniaUseCases/sendMessage; apps/api/src/modules/menia/infrastructure/deterministicResponder.ts: respond; docs/C3-01-MENIA.md",
+    "brecha": "Chat determinístico sin tools de escritura/LLM; integrar y ampliar, no constituye flujo de compra completo.",
+    "tareas": [
+      "T01",
+      "T09",
+      "T29"
+    ]
+  },
+  {
+    "id": "RN-052",
+    "modulo": "MenIA",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/app.ts; apps/web/src/app/",
+    "brecha": "No se localizó implementación/verificación específica para: Bloquear nuevos pedidos digitales fuera del horario del buffet, mostrar MenIA está durmiendo y conservar navegación. Búsqueda: apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/web/src/app/; referencia MenIA: feature/C3-01-menia@fae7add08f318e6a554947067328bdf3049bb1b4, apps/api/src/modules/menia/application/meniaUseCases.ts: sendMessage y infrastructure/deterministicResponder.ts: respond (respuesta fija sin acciones).",
+    "tareas": [
+      "T09",
+      "T13",
+      "T17"
+    ]
+  },
+  {
+    "id": "RN-053",
+    "modulo": "MenIA",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/app.ts; apps/web/src/app/",
+    "brecha": "No se localizó implementación/verificación específica para: Proponer plan semanal con rutina, dieta, afinidad y catálogo, sin crear pedidos automáticos y respetando confirmación/horizonte. Búsqueda: apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/web/src/app/; referencia MenIA: feature/C3-01-menia@fae7add08f318e6a554947067328bdf3049bb1b4, apps/api/src/modules/menia/application/meniaUseCases.ts: sendMessage y infrastructure/deterministicResponder.ts: respond (respuesta fija sin acciones).",
+    "tareas": [
+      "T09",
+      "T13",
+      "T17"
+    ]
+  },
+  {
+    "id": "RN-054",
+    "modulo": "Pedidos y pagos",
+    "estado": "PARCIAL",
+    "evidencia": "apps/api/prisma/schema.prisma: Organization.maxAdvanceDays; apps/api/src/modules/organization/application/setOrganizationMaxAdvanceDays.ts",
+    "brecha": "Default/configuración existentes; createOrder no admite fecha futura ni valida horizonte.",
+    "tareas": [
+      "T11"
+    ]
+  },
+  {
+    "id": "RN-055",
+    "modulo": "Pedidos y pagos",
+    "estado": "PARCIAL",
+    "evidencia": "apps/api/prisma/schema.prisma: Order.promisedFrom/promisedTo/toleranceUntil; apps/api/src/modules/order/application/createOrderUseCase.ts",
+    "brecha": "Campos de ventana existen; creación actual no calcula ni valida horarios/anticipación/ventana única con capacidad.",
+    "tareas": [
+      "T06",
+      "T11",
+      "T12"
+    ]
+  },
+  {
+    "id": "RN-056",
+    "modulo": "Pedidos y pagos",
+    "estado": "PARCIAL",
+    "evidencia": "apps/api/prisma/schema.prisma: Order.promisedFrom/promisedTo/toleranceUntil; apps/api/src/modules/order/application/createOrderUseCase.ts",
+    "brecha": "Campos de ventana existen; creación actual no calcula ni valida horarios/anticipación/ventana única con capacidad.",
+    "tareas": [
+      "T06",
+      "T11",
+      "T12"
+    ]
+  },
+  {
+    "id": "RN-057",
+    "modulo": "Pedidos y pagos",
+    "estado": "PARCIAL",
+    "evidencia": "apps/api/prisma/schema.prisma: Order.promisedFrom/promisedTo/toleranceUntil; apps/api/src/modules/order/application/createOrderUseCase.ts",
+    "brecha": "Campos de ventana existen; creación actual no calcula ni valida horarios/anticipación/ventana única con capacidad.",
+    "tareas": [
+      "T06",
+      "T11",
+      "T12"
+    ]
+  },
+  {
+    "id": "RN-058",
+    "modulo": "Pedidos y pagos",
+    "estado": "PARCIAL",
+    "evidencia": "apps/api/prisma/schema.prisma: Order.promisedFrom/promisedTo/toleranceUntil; apps/api/src/modules/order/application/createOrderUseCase.ts",
+    "brecha": "Campos de ventana existen; creación actual no calcula ni valida horarios/anticipación/ventana única con capacidad.",
+    "tareas": [
+      "T06",
+      "T11",
+      "T12"
+    ]
+  },
+  {
+    "id": "RN-059",
+    "modulo": "Pedidos y pagos",
+    "estado": "PARCIAL",
+    "evidencia": "apps/api/prisma/schema.prisma: Order.promisedFrom/promisedTo/toleranceUntil; apps/api/src/modules/order/application/createOrderUseCase.ts",
+    "brecha": "Campos de ventana existen; creación actual no calcula ni valida horarios/anticipación/ventana única con capacidad.",
+    "tareas": [
+      "T06",
+      "T11",
+      "T12"
+    ]
+  },
+  {
+    "id": "RN-060",
+    "modulo": "Pedidos y pagos",
+    "estado": "PARCIAL",
+    "evidencia": "apps/api/src/modules/order/domain/order.ts; apps/api/src/modules/payment/infrastructure/prismaPaymentOrderStockAdapter.ts",
+    "brecha": "Máquinas y cancelación parcial; usa EXPIRED en lugar de CANCELADO al expirar. Flujo con proveedor no expuesto ni integrado.",
+    "tareas": [
+      "T14",
+      "T15"
+    ]
+  },
+  {
+    "id": "RN-061",
+    "modulo": "Pedidos y pagos",
+    "estado": "PARCIAL",
+    "evidencia": "apps/api/src/modules/order/domain/order.ts; apps/api/src/modules/payment/infrastructure/prismaPaymentOrderStockAdapter.ts",
+    "brecha": "Máquinas y cancelación parcial; usa EXPIRED en lugar de CANCELADO al expirar. Flujo con proveedor no expuesto ni integrado.",
+    "tareas": [
+      "T14",
+      "T15"
+    ]
+  },
+  {
+    "id": "RN-062",
+    "modulo": "Pedidos y pagos",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/modules/order/domain/order.ts: OrderStatus (sin NO_RETIRADO); apps/api/prisma/schema.prisma: OrderStatus; apps/api/src/index.ts: processEligiblePickups; apps/api/src/modules/kitchen/application/activatePickupWhenEligibleUseCase.ts: execute; apps/api/test/kitchen/activateEligiblePickups.test.ts (activación, no cierre por tolerancia)",
+    "brecha": "No se localizó implementación/verificación específica para: Ejecutar PARA_RETIRAR -> NO_RETIRADO al finalizar toleranceUntil sin entrega. Búsqueda: apps/api/src/modules/order/application/createOrderUseCase.ts: execute, infrastructure/prismaOrderRepository.ts y apps/api/src/index.ts; no se localizó guard/job ni prueba específica de esta política.",
+    "tareas": [
+      "T11",
+      "T14",
+      "T15"
+    ]
+  },
+  {
+    "id": "RN-063",
+    "modulo": "Pedidos y pagos",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/modules/order/infrastructure/http/orderRoutes.ts; apps/api/src/modules/payment/",
+    "brecha": "No se localizó cancelación excepcional pagada por buffet con motivo y devolución.",
+    "tareas": [
+      "T14",
+      "T18"
+    ]
+  },
+  {
+    "id": "RN-064",
+    "modulo": "Pedidos y pagos",
+    "estado": "PROBADO",
+    "evidencia": "apps/api/src/modules/order/domain/order.ts; apps/api/prisma/schema.prisma: OrderStatus; apps/api/test/kitchen/finishPreparation.test.ts",
+    "brecha": "No hay estado PREPARADO separado; preparedAt conserva preparación sin estado extra.",
+    "tareas": [
+      "T18"
+    ]
+  },
+  {
+    "id": "RN-065",
+    "modulo": "Pedidos y pagos",
+    "estado": "PARCIAL",
+    "evidencia": "apps/api/src/modules/kitchen/application/activatePickupWhenEligibleUseCase.ts; apps/api/src/index.ts; apps/api/test/kitchen/activatePickupWhenEligible.test.ts",
+    "brecha": "Preparación previa y activación por ventana probadas con reloj; no se generan ventanas en pedido actual y falta replanificación tras perder ventana.",
+    "tareas": [
+      "T11",
+      "T18",
+      "T20"
+    ]
+  },
+  {
+    "id": "RN-066",
+    "modulo": "Pedidos y pagos",
+    "estado": "PARCIAL",
+    "evidencia": "apps/api/prisma/schema.prisma: Order.promisedFrom/promisedTo/toleranceUntil; apps/api/src/modules/order/application/createOrderUseCase.ts",
+    "brecha": "Campos de ventana existen; creación actual no calcula ni valida horarios/anticipación/ventana única con capacidad.",
+    "tareas": [
+      "T06",
+      "T11",
+      "T12"
+    ]
+  },
+  {
+    "id": "RN-067",
+    "modulo": "Pedidos y pagos",
+    "estado": "PARCIAL",
+    "evidencia": "apps/api/prisma/schema.prisma: Order.promisedFrom/promisedTo/toleranceUntil; apps/api/src/modules/order/application/createOrderUseCase.ts",
+    "brecha": "Campos de ventana existen; creación actual no calcula ni valida horarios/anticipación/ventana única con capacidad.",
+    "tareas": [
+      "T06",
+      "T11",
+      "T12"
+    ]
+  },
+  {
+    "id": "RN-068",
+    "modulo": "Pedidos y pagos",
+    "estado": "PARCIAL",
+    "evidencia": "apps/api/src/modules/payment/domain/paymentPort.ts; apps/api/src/app.ts",
+    "brecha": "Puerto/casos de uso presentes; no router payment ni pasarela real registrada.",
+    "tareas": [
+      "T14",
+      "T15"
+    ]
+  },
+  {
+    "id": "RN-069",
+    "modulo": "Pedidos y pagos",
+    "estado": "PROBADO",
+    "evidencia": "apps/api/src/modules/payment/domain/payment.ts; apps/api/prisma/schema.prisma: PaymentStatus; apps/api/test/payment.test.ts",
+    "brecha": "Cuatro estados principales y transiciones probados; no implica proveedor operativo.",
+    "tareas": [
+      "T14"
+    ]
+  },
+  {
+    "id": "RN-070",
+    "modulo": "Pedidos y pagos",
+    "estado": "PARCIAL",
+    "evidencia": "apps/api/src/modules/order/application/createOrderUseCase.ts: reservedUntil",
+    "brecha": "Desvío confirmado en CreateOrderUseCase.execute: reservedUntil = Date.now() + 15 * 60 * 1000; el Master exige máximo 5 minutos. Falta ajustar y verificar expiración coherente con pago y checkout, incluidos límites temporales.",
+    "tareas": [
+      "T14",
+      "T15"
+    ]
+  },
+  {
+    "id": "RN-071",
+    "modulo": "Pedidos y pagos",
+    "estado": "PARCIAL",
+    "evidencia": "apps/api/src/modules/kitchen/application/startPreparationUseCase.ts; apps/api/test/kitchen/startPreparation.test.ts",
+    "brecha": "Cocina exige CONFIRMED; cálculo integral de carga/scheduler todavía ausente.",
+    "tareas": [
+      "T12",
+      "T14"
+    ]
+  },
+  {
+    "id": "RN-072",
+    "modulo": "Pedidos y pagos",
+    "estado": "PARCIAL",
+    "evidencia": "apps/api/src/modules/payment/infrastructure/prismaPaymentOrderStockAdapter.ts; apps/api/src/modules/payment/application/processPaymentResultUseCase.ts; apps/api/test/paymentOrderStock.test.ts; apps/api/test/paymentCompensation.test.ts",
+    "brecha": "Lógica con puertos/fakes probada; webhook/proveedor no integrado, dos pruebas PostgreSQL omitidas aun en CI por guard de host/puerto.",
+    "tareas": [
+      "T14",
+      "T31"
+    ]
+  },
+  {
+    "id": "RN-073",
+    "modulo": "Pedidos y pagos",
+    "estado": "PARCIAL",
+    "evidencia": "apps/api/src/modules/payment/infrastructure/prismaPaymentOrderStockAdapter.ts; apps/api/src/modules/payment/application/processPaymentResultUseCase.ts; apps/api/test/paymentOrderStock.test.ts; apps/api/test/paymentCompensation.test.ts",
+    "brecha": "Lógica con puertos/fakes probada; webhook/proveedor no integrado, dos pruebas PostgreSQL omitidas aun en CI por guard de host/puerto.",
+    "tareas": [
+      "T14",
+      "T31"
+    ]
+  },
+  {
+    "id": "RN-074",
+    "modulo": "Pedidos y pagos",
+    "estado": "PARCIAL",
+    "evidencia": "apps/api/src/modules/order/application/releaseExpiredReservationsUseCase.ts; apps/api/src/index.ts; apps/api/src/modules/payment/infrastructure/prismaPaymentOrderStockAdapter.ts",
+    "brecha": "Caso de uso existe; sin job invocado, reserva 15 min y transición EXPIRED en vez de CANCELADO.",
+    "tareas": [
+      "T14",
+      "T32"
+    ]
+  },
+  {
+    "id": "RN-075",
+    "modulo": "Pedidos y pagos",
+    "estado": "PARCIAL",
+    "evidencia": "apps/api/src/modules/payment/infrastructure/prismaPaymentOrderStockAdapter.ts; apps/api/src/modules/payment/application/processPaymentResultUseCase.ts; apps/api/test/paymentOrderStock.test.ts; apps/api/test/paymentCompensation.test.ts",
+    "brecha": "Lógica con puertos/fakes probada; webhook/proveedor no integrado, dos pruebas PostgreSQL omitidas aun en CI por guard de host/puerto.",
+    "tareas": [
+      "T14",
+      "T31"
+    ]
+  },
+  {
+    "id": "RN-076",
+    "modulo": "Pedidos y pagos",
+    "estado": "PROBADO",
+    "evidencia": "apps/api/src/modules/order/infrastructure/http/orderRoutes.ts; apps/api/test/orderRoutes.test.ts",
+    "brecha": "Ruta del CUSTOMER rechaza cancelación fuera de RESERVED/CANCELLED, probada por HTTP.",
+    "tareas": [
+      "T31"
+    ]
+  },
+  {
+    "id": "RN-077",
+    "modulo": "Pedidos y pagos",
+    "estado": "PARCIAL",
+    "evidencia": "apps/api/prisma/schema.prisma: PaymentCompensation; apps/api/src/modules/payment/application/processLatePaymentCompensationUseCase.ts",
+    "brecha": "Compensación con referencia/estado presente; falta devolución real y trazabilidad completa de causa/momento operacional.",
+    "tareas": [
+      "T14"
+    ]
+  },
+  {
+    "id": "RN-078",
+    "modulo": "Pedidos y pagos",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/modules/order/application/createOrderUseCase.ts: execute; apps/api/src/modules/order/infrastructure/http/orderRoutes.ts: POST /orders; apps/api/src/modules/order/infrastructure/prismaOrderRepository.ts: findActiveByCustomer; apps/api/test/orderRoutes.test.ts; apps/api/test/orderStock.test.ts",
+    "brecha": "execute y POST /orders no consultan pedidos activos ni comparan ventana vigente antes de crear. Existe findActiveByCustomer, pero su existencia no demuestra un guard de solapamiento. En orderRoutes.test.ts y orderStock.test.ts no se localizó prueba del rechazo por EN_PREPARACIÓN/PARA_RETIRAR en ventana activa. Falta integrar la política y probar límites temporales y concurrencia; se conserva NO_LOCALIZADO para la política específica.",
+    "tareas": [
+      "T11",
+      "T14",
+      "T15"
+    ]
+  },
+  {
+    "id": "RN-079",
+    "modulo": "Inventario",
+    "estado": "PENDIENTE_VALIDACION",
+    "evidencia": "apps/api/prisma/schema.prisma: ProductStock/AdditionStock; apps/api/src/modules/stock/",
+    "brecha": "Balance por producto/adicional existente; pruebas locales PostgreSQL no ejecutadas, ausencia de balance permite venta sin control.",
+    "tareas": [
+      "T07",
+      "T31"
+    ]
+  },
+  {
+    "id": "RN-080",
+    "modulo": "Inventario",
+    "estado": "PENDIENTE_VALIDACION",
+    "evidencia": "apps/api/prisma/schema.prisma: ProductStock/AdditionStock; apps/api/src/modules/stock/",
+    "brecha": "Balance por producto/adicional existente; pruebas locales PostgreSQL no ejecutadas, ausencia de balance permite venta sin control.",
+    "tareas": [
+      "T07",
+      "T31"
+    ]
+  },
+  {
+    "id": "RN-081",
+    "modulo": "Inventario",
+    "estado": "PENDIENTE_VALIDACION",
+    "evidencia": "apps/api/src/modules/order/infrastructure/prismaOrderReservation.ts; apps/api/test/orderReservationIntegration.test.ts",
+    "brecha": "Transacción, lock por buffet y decremento condicional localizados; test concurrente omitido localmente, CI histórico exitoso.",
+    "tareas": [
+      "T03",
+      "T31"
+    ]
+  },
+  {
+    "id": "RN-082",
+    "modulo": "Inventario",
+    "estado": "PROBADO",
+    "evidencia": "apps/api/src/modules/order/infrastructure/http/orderRoutes.ts; apps/api/test/orderRoutes.test.ts; apps/api/test/orderStock.test.ts",
+    "brecha": "Precios/identidad del navegador ignorados y catálogo/stock revalidados en el circuito probado con puertos; carrera DB corresponde RN-081.",
+    "tareas": [
+      "T31"
+    ]
+  },
+  {
+    "id": "RN-083",
+    "modulo": "Inventario",
+    "estado": "PENDIENTE_VALIDACION",
+    "evidencia": "apps/api/src/modules/order/infrastructure/prismaOrderReservation.ts; apps/api/src/modules/payment/infrastructure/prismaPaymentOrderStockAdapter.ts; apps/api/src/modules/pickup/infrastructure/prismaConfirmPickupAdapter.ts",
+    "brecha": "Reserva temporal y consumo en adaptadores; verificar circuito PostgreSQL real y semántica stock no configurado.",
+    "tareas": [
+      "T14",
+      "T19",
+      "T31"
+    ]
+  },
+  {
+    "id": "RN-084",
+    "modulo": "Inventario",
+    "estado": "PENDIENTE_VALIDACION",
+    "evidencia": "apps/api/src/modules/order/infrastructure/prismaOrderReservation.ts; apps/api/src/modules/payment/infrastructure/prismaPaymentOrderStockAdapter.ts; apps/api/src/modules/pickup/infrastructure/prismaConfirmPickupAdapter.ts",
+    "brecha": "Reserva temporal y consumo en adaptadores; verificar circuito PostgreSQL real y semántica stock no configurado.",
+    "tareas": [
+      "T14",
+      "T19",
+      "T31"
+    ]
+  },
+  {
+    "id": "RN-085",
+    "modulo": "Inventario",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/modules/stock/; apps/api/prisma/schema.prisma",
+    "brecha": "No se localizó implementación/verificación específica para: Crear una unidad recuperada con producto y adicionales exactos cuando un preparado termina NO_RETIRADO, sin devolverlo al stock base. Búsqueda: apps/api/prisma/schema.prisma (StockMovement, ProductStock, AdditionStock), apps/api/src/modules/stock/infrastructure/prismaStockRepository.ts y apps/api/src/index.ts; sin modelo/caso de uso específico localizado para esta conducta.",
+    "tareas": [
+      "T07",
+      "T23"
+    ]
+  },
+  {
+    "id": "RN-086",
+    "modulo": "Inventario",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/modules/stock/; apps/api/prisma/schema.prisma",
+    "brecha": "No se localizó implementación/verificación específica para: Comparar producto y combinación exacta de adicionales antes de reasignar una unidad recuperada. Búsqueda: apps/api/prisma/schema.prisma (StockMovement, ProductStock, AdditionStock), apps/api/src/modules/stock/infrastructure/prismaStockRepository.ts y apps/api/src/index.ts; sin modelo/caso de uso específico localizado para esta conducta.",
+    "tareas": [
+      "T07",
+      "T23"
+    ]
+  },
+  {
+    "id": "RN-087",
+    "modulo": "Inventario",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/modules/stock/; apps/api/prisma/schema.prisma",
+    "brecha": "No se localizó implementación/verificación específica para: Asignar primero la unidad recuperada idéntica antes de reservar preparación nueva. Búsqueda: apps/api/prisma/schema.prisma (StockMovement, ProductStock, AdditionStock), apps/api/src/modules/stock/infrastructure/prismaStockRepository.ts y apps/api/src/index.ts; sin modelo/caso de uso específico localizado para esta conducta.",
+    "tareas": [
+      "T07",
+      "T23"
+    ]
+  },
+  {
+    "id": "RN-088",
+    "modulo": "Inventario",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/modules/stock/; apps/api/prisma/schema.prisma",
+    "brecha": "No se localizó implementación/verificación específica para: Asignar unidades recuperadas a ventas digitales/presenciales compatibles cobrando el precio normal vigente. Búsqueda: apps/api/prisma/schema.prisma (StockMovement, ProductStock, AdditionStock), apps/api/src/modules/stock/infrastructure/prismaStockRepository.ts y apps/api/src/index.ts; sin modelo/caso de uso específico localizado para esta conducta.",
+    "tareas": [
+      "T07",
+      "T23"
+    ]
+  },
+  {
+    "id": "RN-089",
+    "modulo": "Inventario",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/modules/stock/; apps/api/prisma/schema.prisma",
+    "brecha": "No se localizó implementación/verificación específica para: Descartar recuperados no vendidos al cierre diario y registrar desperdicio/pérdida. Búsqueda: apps/api/prisma/schema.prisma (StockMovement, ProductStock, AdditionStock), apps/api/src/modules/stock/infrastructure/prismaStockRepository.ts y apps/api/src/index.ts; sin modelo/caso de uso específico localizado para esta conducta.",
+    "tareas": [
+      "T07",
+      "T23"
+    ]
+  },
+  {
+    "id": "RN-090",
+    "modulo": "Inventario",
+    "estado": "PENDIENTE_INTEGRACION",
+    "evidencia": "PR #89, rama feature/C2-frontend-rutas-base@7831234b2875c67c01daf81508b52e76e0e60b9b: apps/api/src/modules/stock/infrastructure/http/stockRoutes.ts; apps/web/src/components/stock-view.tsx",
+    "brecha": "Ajustes en PR no integrado; cotejar actor/motivo/delta/fecha y restock antes de declarar cumplimiento.",
+    "tareas": [
+      "T02",
+      "T07"
+    ]
+  },
+  {
+    "id": "RN-091",
+    "modulo": "Inventario",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/modules/stock/; apps/api/prisma/schema.prisma",
+    "brecha": "No se localizó implementación/verificación específica para: Registrar revisión operativa del stock base los lunes a primera hora y seguimiento semanal por movimientos/reabastecimientos. Búsqueda: apps/api/prisma/schema.prisma (StockMovement, ProductStock, AdditionStock), apps/api/src/modules/stock/infrastructure/prismaStockRepository.ts y apps/api/src/index.ts; sin modelo/caso de uso específico localizado para esta conducta.",
+    "tareas": [
+      "T07",
+      "T23"
+    ]
+  },
+  {
+    "id": "RN-092",
+    "modulo": "CocIA",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/modules/; apps/api/prisma/schema.prisma",
+    "brecha": "No se localizó implementación/verificación específica para: Separar predictor de tiempos y planificador determinístico en un circuito CocIA ejecutable. Búsqueda: apps/api/prisma/schema.prisma (Product.basePreparationSeconds, Order.promisedFrom/promisedTo), apps/api/src/modules/order/application/createOrderUseCase.ts, apps/api/src/modules/kitchen/application/ y apps/api/src/index.ts; sin módulo/predictor/scheduler CocIA integrado localizado.",
+    "tareas": [
+      "T12",
+      "T16",
+      "T20"
+    ]
+  },
+  {
+    "id": "RN-093",
+    "modulo": "CocIA",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/modules/; apps/api/prisma/schema.prisma",
+    "brecha": "No se localizó implementación/verificación específica para: Demostrar estimación mejorada por IA; ordenar por retiro no acredita esta regla ni se localizó predictor integrado. Búsqueda: apps/api/prisma/schema.prisma (Product.basePreparationSeconds, Order.promisedFrom/promisedTo), apps/api/src/modules/order/application/createOrderUseCase.ts, apps/api/src/modules/kitchen/application/ y apps/api/src/index.ts; sin módulo/predictor/scheduler CocIA integrado localizado.",
+    "tareas": [
+      "T12",
+      "T16",
+      "T20"
+    ]
+  },
+  {
+    "id": "RN-094",
+    "modulo": "CocIA",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/modules/; apps/api/prisma/schema.prisma",
+    "brecha": "No se localizó implementación/verificación específica para: Computar carga con CONFIRMADO, EN_PREPARACIÓN y ventas presenciales en preparación. Búsqueda: apps/api/prisma/schema.prisma (Product.basePreparationSeconds, Order.promisedFrom/promisedTo), apps/api/src/modules/order/application/createOrderUseCase.ts, apps/api/src/modules/kitchen/application/ y apps/api/src/index.ts; sin módulo/predictor/scheduler CocIA integrado localizado.",
+    "tareas": [
+      "T12",
+      "T16",
+      "T20"
+    ]
+  },
+  {
+    "id": "RN-095",
+    "modulo": "CocIA",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/modules/; apps/api/prisma/schema.prisma",
+    "brecha": "No se localizó implementación/verificación específica para: Excluir RESERVADO, PARA_RETIRAR, RETIRADO, NO_RETIRADO y CANCELADO del cálculo de carga actual. Búsqueda: apps/api/prisma/schema.prisma (Product.basePreparationSeconds, Order.promisedFrom/promisedTo), apps/api/src/modules/order/application/createOrderUseCase.ts, apps/api/src/modules/kitchen/application/ y apps/api/src/index.ts; sin módulo/predictor/scheduler CocIA integrado localizado.",
+    "tareas": [
+      "T12",
+      "T16",
+      "T20"
+    ]
+  },
+  {
+    "id": "RN-096",
+    "modulo": "CocIA",
+    "estado": "PENDIENTE_VALIDACION",
+    "evidencia": "apps/api/src/modules/catalog/domain/product.ts; apps/web/src/components/catalog-admin.tsx; apps/api/test/modules/catalog/",
+    "brecha": "Tiempo base existente; verificar persistencia y edición real, no equivale a CocIA.",
+    "tareas": [
+      "T12",
+      "T34"
+    ]
+  },
+  {
+    "id": "RN-097",
+    "modulo": "CocIA",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/modules/; apps/api/prisma/schema.prisma",
+    "brecha": "No se localizó implementación/verificación específica para: Sumar 30 segundos por adicional por defecto y permitir configurar ese incremento por buffet. Búsqueda: apps/api/prisma/schema.prisma (Product.basePreparationSeconds, Order.promisedFrom/promisedTo), apps/api/src/modules/order/application/createOrderUseCase.ts, apps/api/src/modules/kitchen/application/ y apps/api/src/index.ts; sin módulo/predictor/scheduler CocIA integrado localizado.",
+    "tareas": [
+      "T12",
+      "T16",
+      "T20"
+    ]
+  },
+  {
+    "id": "RN-098",
+    "modulo": "CocIA",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/modules/; apps/api/prisma/schema.prisma",
+    "brecha": "No se localizó implementación/verificación específica para: Sumar tres minutos por unidad adicional del mismo producto por defecto y configurar ese incremento por buffet. Búsqueda: apps/api/prisma/schema.prisma (Product.basePreparationSeconds, Order.promisedFrom/promisedTo), apps/api/src/modules/order/application/createOrderUseCase.ts, apps/api/src/modules/kitchen/application/ y apps/api/src/index.ts; sin módulo/predictor/scheduler CocIA integrado localizado.",
+    "tareas": [
+      "T12",
+      "T16",
+      "T20"
+    ]
+  },
+  {
+    "id": "RN-099",
+    "modulo": "CocIA",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/modules/; apps/api/prisma/schema.prisma",
+    "brecha": "No se localizó implementación/verificación específica para: Aplicar tramos de carga 0–5/+0, 6–10/+3, 11–15/+6 y >15/+10 minutos, configurables por buffet. Búsqueda: apps/api/prisma/schema.prisma (Product.basePreparationSeconds, Order.promisedFrom/promisedTo), apps/api/src/modules/order/application/createOrderUseCase.ts, apps/api/src/modules/kitchen/application/ y apps/api/src/index.ts; sin módulo/predictor/scheduler CocIA integrado localizado.",
+    "tareas": [
+      "T12",
+      "T16",
+      "T20"
+    ]
+  },
+  {
+    "id": "RN-100",
+    "modulo": "CocIA",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/modules/; apps/api/prisma/schema.prisma",
+    "brecha": "No se localizó implementación/verificación específica para: Calcular fallback con tiempo base, cantidad, adicionales y penalización por carga. Búsqueda: apps/api/prisma/schema.prisma (Product.basePreparationSeconds, Order.promisedFrom/promisedTo), apps/api/src/modules/order/application/createOrderUseCase.ts, apps/api/src/modules/kitchen/application/ y apps/api/src/index.ts; sin módulo/predictor/scheduler CocIA integrado localizado.",
+    "tareas": [
+      "T12",
+      "T16",
+      "T20"
+    ]
+  },
+  {
+    "id": "RN-101",
+    "modulo": "CocIA",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/modules/; apps/api/prisma/schema.prisma",
+    "brecha": "No se localizó implementación/verificación específica para: Verificar que el predictor/cálculo CocIA no use cantidad de personal; ausencia de CocIA no demuestra esta prohibición. Búsqueda: apps/api/prisma/schema.prisma (Product.basePreparationSeconds, Order.promisedFrom/promisedTo), apps/api/src/modules/order/application/createOrderUseCase.ts, apps/api/src/modules/kitchen/application/ y apps/api/src/index.ts; sin módulo/predictor/scheduler CocIA integrado localizado.",
+    "tareas": [
+      "T12",
+      "T16",
+      "T20"
+    ]
+  },
+  {
+    "id": "RN-102",
+    "modulo": "CocIA",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/modules/; apps/api/prisma/schema.prisma",
+    "brecha": "No se localizó implementación/verificación específica para: Planificar inicio y final del pedido completo dentro de su ventana, evitando retraso y preparación excesivamente temprana. Búsqueda: apps/api/prisma/schema.prisma (Product.basePreparationSeconds, Order.promisedFrom/promisedTo), apps/api/src/modules/order/application/createOrderUseCase.ts, apps/api/src/modules/kitchen/application/ y apps/api/src/index.ts; sin módulo/predictor/scheduler CocIA integrado localizado.",
+    "tareas": [
+      "T12",
+      "T16",
+      "T20"
+    ]
+  },
+  {
+    "id": "RN-103",
+    "modulo": "CocIA",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/modules/; apps/api/prisma/schema.prisma",
+    "brecha": "No se localizó implementación/verificación específica para: Rechazar o reubicar un nuevo pedido si perjudica compromisos previamente aceptados. Búsqueda: apps/api/prisma/schema.prisma (Product.basePreparationSeconds, Order.promisedFrom/promisedTo), apps/api/src/modules/order/application/createOrderUseCase.ts, apps/api/src/modules/kitchen/application/ y apps/api/src/index.ts; sin módulo/predictor/scheduler CocIA integrado localizado.",
+    "tareas": [
+      "T12",
+      "T16",
+      "T20"
+    ]
+  },
+  {
+    "id": "RN-104",
+    "modulo": "CocIA",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/modules/; apps/api/prisma/schema.prisma",
+    "brecha": "No se localizó implementación/verificación específica para: Continuar la planificación mediante fallback determinístico ante caída del predictor IA. Búsqueda: apps/api/prisma/schema.prisma (Product.basePreparationSeconds, Order.promisedFrom/promisedTo), apps/api/src/modules/order/application/createOrderUseCase.ts, apps/api/src/modules/kitchen/application/ y apps/api/src/index.ts; sin módulo/predictor/scheduler CocIA integrado localizado.",
+    "tareas": [
+      "T12",
+      "T16",
+      "T20"
+    ]
+  },
+  {
+    "id": "RN-105",
+    "modulo": "CocIA",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/modules/; apps/api/prisma/schema.prisma",
+    "brecha": "No se localizó implementación/verificación específica para: Recalcular ventana y tolerancia ante retrasos y notificar al cliente la nueva promesa. Búsqueda: apps/api/prisma/schema.prisma (Product.basePreparationSeconds, Order.promisedFrom/promisedTo), apps/api/src/modules/order/application/createOrderUseCase.ts, apps/api/src/modules/kitchen/application/ y apps/api/src/index.ts; sin módulo/predictor/scheduler CocIA integrado localizado.",
+    "tareas": [
+      "T12",
+      "T16",
+      "T20"
+    ]
+  },
+  {
+    "id": "RN-106",
+    "modulo": "CocIA",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/modules/; apps/api/prisma/schema.prisma",
+    "brecha": "No se localizó implementación/verificación específica para: Consultar compromisos confirmados de la fecha/hora futura al ofrecer nuevas ventanas. Búsqueda: apps/api/prisma/schema.prisma (Product.basePreparationSeconds, Order.promisedFrom/promisedTo), apps/api/src/modules/order/application/createOrderUseCase.ts, apps/api/src/modules/kitchen/application/ y apps/api/src/index.ts; sin módulo/predictor/scheduler CocIA integrado localizado.",
+    "tareas": [
+      "T12",
+      "T16",
+      "T20"
+    ]
+  },
+  {
+    "id": "RN-107",
+    "modulo": "Cocina y presencial",
+    "estado": "PENDIENTE_INTEGRACION",
+    "evidencia": "PR #89, rama feature/C2-frontend-rutas-base@7831234b2875c67c01daf81508b52e76e0e60b9b: apps/web/src/components/kitchen-queue.tsx; apps/api/src/modules/kitchen/infrastructure/http/kitchenRoutes.ts",
+    "brecha": "Cola en PR; no hay scheduler CocIA integrado que determine prioridad.",
+    "tareas": [
+      "T02",
+      "T12",
+      "T18"
+    ]
+  },
+  {
+    "id": "RN-108",
+    "modulo": "Cocina y presencial",
+    "estado": "PARCIAL",
+    "evidencia": "apps/api/src/modules/kitchen/infrastructure/http/kitchenRoutes.ts; apps/api/test/kitchen/",
+    "brecha": "Inicio/fin por staff probados HTTP; UI employee está en PR #89 (feature/C2-frontend-rutas-base@7831234b2875c67c01daf81508b52e76e0e60b9b, apps/web/src/components/kitchen-queue.tsx) y falta ventana completa operativa.",
+    "tareas": [
+      "T18"
+    ]
+  },
+  {
+    "id": "RN-109",
+    "modulo": "Cocina y presencial",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/modules/kitchen/; apps/api/src/index.ts",
+    "brecha": "No se localizó implementación/verificación específica para: Registrar VENTA_PRESENCIAL sin exigir CUSTOMER; los pedidos actuales requieren customerId. Búsqueda: apps/api/prisma/schema.prisma (Order.customerId obligatorio), apps/api/src/modules/kitchen/infrastructure/http/kitchenRoutes.ts y apps/api/src/app.ts; sin modelo/ruta/caso de uso de venta presencial localizado.",
+    "tareas": [
+      "T18"
+    ]
+  },
+  {
+    "id": "RN-110",
+    "modulo": "Cocina y presencial",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/modules/kitchen/; apps/api/src/index.ts",
+    "brecha": "No se localizó implementación/verificación específica para: Registrar pago/retiro comercial inmediatos y descontar stock al registrar venta presencial. Búsqueda: apps/api/prisma/schema.prisma (Order.customerId obligatorio), apps/api/src/modules/kitchen/infrastructure/http/kitchenRoutes.ts y apps/api/src/app.ts; sin modelo/ruta/caso de uso de venta presencial localizado.",
+    "tareas": [
+      "T18"
+    ]
+  },
+  {
+    "id": "RN-111",
+    "modulo": "Cocina y presencial",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/modules/kitchen/; apps/api/src/index.ts",
+    "brecha": "No se localizó implementación/verificación específica para: Generar tarea de cocina para venta presencial que requiere preparación y contabilizarla como carga hasta finalizar. Búsqueda: apps/api/prisma/schema.prisma (Order.customerId obligatorio), apps/api/src/modules/kitchen/infrastructure/http/kitchenRoutes.ts y apps/api/src/app.ts; sin modelo/ruta/caso de uso de venta presencial localizado.",
+    "tareas": [
+      "T18"
+    ]
+  },
+  {
+    "id": "RN-112",
+    "modulo": "Cocina y presencial",
+    "estado": "PARCIAL",
+    "evidencia": "apps/api/src/modules/catalog/domain/catalogAuthorization.ts: assertCanManageStoreCatalog; apps/api/src/modules/organization/domain/organizationAuthorization.ts: assertCanManageOrganization; apps/api/test/modules/catalog/domain/catalogDomain.test.ts; apps/api/test/modules/catalog/application/productUseCases.test.ts; apps/api/test/modules/organization/domain/organizationDomain.test.ts",
+    "brecha": "Implementado: catálogo/precios solo para STORE_ADMIN del buffet; administración de organización solo para ORGANIZATION_ADMIN de su organización; tests rechazan STORE_EMPLOYEE para catálogo/productos y organización. Falta implementar/localizar configuración CocIA y verificar denegación a STORE_EMPLOYEE para todos sus parámetros y futuras rutas de configuración administrativa. La inexistencia de esas rutas no acredita sus permisos.",
+    "tareas": [
+      "T34"
+    ]
+  },
+  {
+    "id": "RN-113",
+    "modulo": "Retiro",
+    "estado": "PENDIENTE_VALIDACION",
+    "evidencia": "apps/api/src/modules/pickup/infrastructure/prismaIssuePickupTokenAdapter.ts; apps/api/test/pickup/prismaConfirmPickupAdapter.test.ts",
+    "brecha": "Adaptador exige READY_FOR_PICKUP y propiedad; prueba DB local omitida, UI QR no integrada.",
+    "tareas": [
+      "T19"
+    ]
+  },
+  {
+    "id": "RN-114",
+    "modulo": "Retiro",
+    "estado": "PENDIENTE_VALIDACION",
+    "evidencia": "apps/api/src/modules/pickup/infrastructure/prismaIssuePickupTokenAdapter.ts; prismaConfirmPickupAdapter.ts",
+    "brecha": "Token 256 bits, hash, consumo condicional; falta repetir concurrencia PostgreSQL local.",
+    "tareas": [
+      "T19",
+      "T31"
+    ]
+  },
+  {
+    "id": "RN-115",
+    "modulo": "Retiro",
+    "estado": "PARCIAL",
+    "evidencia": "apps/api/src/modules/pickup/infrastructure/prismaConfirmPickupAdapter.ts; prismaManualPickupAdapter.ts",
+    "brecha": "Valida buffet/estado/token, pero no promisedFrom/toleranceUntil; manual sin vencimiento y QR expira a emisión+5 min.",
+    "tareas": [
+      "T19",
+      "T22"
+    ]
+  },
+  {
+    "id": "RN-116",
+    "modulo": "Retiro",
+    "estado": "PENDIENTE_VALIDACION",
+    "evidencia": "apps/api/src/modules/pickup/infrastructure/prismaConfirmPickupAdapter.ts; apps/api/test/pickup/prismaPickupConcurrency.test.ts",
+    "brecha": "Transacción estado/token/stock existente; PostgreSQL local omitido y falta guard temporal de RN-115.",
+    "tareas": [
+      "T19",
+      "T31"
+    ]
+  },
+  {
+    "id": "RN-117",
+    "modulo": "Retiro",
+    "estado": "PENDIENTE_INTEGRACION",
+    "evidencia": "apps/api/src/modules/pickup/infrastructure/http/pickupRoutes.ts; PR #89, rama feature/C2-frontend-rutas-base@7831234b2875c67c01daf81508b52e76e0e60b9b: apps/web/src/components/kitchen-queue.tsx",
+    "brecha": "HTTP manual presente y probado; UI operativa está fuera de develop.",
+    "tareas": [
+      "T02",
+      "T19"
+    ]
+  },
+  {
+    "id": "RN-118",
+    "modulo": "Retiro",
+    "estado": "PENDIENTE_VALIDACION",
+    "evidencia": "apps/api/src/modules/pickup/infrastructure/prismaConfirmPickupAdapter.ts; apps/api/prisma/schema.prisma: pickedUpAt/pickedUpByUserId/pickupMethod",
+    "brecha": "Campos auditables persistidos en transacción; prueba PostgreSQL local omitida.",
+    "tareas": [
+      "T19",
+      "T31"
+    ]
+  },
+  {
+    "id": "RN-119",
+    "modulo": "Retiro",
+    "estado": "PROBADO",
+    "evidencia": "apps/api/src/modules/pickup/infrastructure/http/pickupRoutes.ts; apps/api/test/pickup/pickupRoutes.test.ts",
+    "brecha": "Confirmación exige QR o código; no hay confirmación por nombre en contrato HTTP probado.",
+    "tareas": [
+      "T19"
+    ]
+  },
+  {
+    "id": "RN-120",
+    "modulo": "Sanciones y no retiro",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/index.ts",
+    "brecha": "No se localizó implementación/verificación específica para: Detectar vencimiento de ventana más tolerancia y cerrar automáticamente el pedido como NO_RETIRADO. Búsqueda: apps/api/prisma/schema.prisma (OrderStatus/Customer/Organization), apps/api/src/modules/order/application/, apps/api/src/modules/kitchen/application/ y apps/api/src/index.ts; sin módulo de disciplina, aviso previo o job de no retiro localizado.",
+    "tareas": [
+      "T22",
+      "T23"
+    ]
+  },
+  {
+    "id": "RN-121",
+    "modulo": "Sanciones y no retiro",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/index.ts",
+    "brecha": "No se localizó implementación/verificación específica para: Sumar un strike por organización al no retiro, salvo aviso anterior al comienzo de la ventana. Búsqueda: apps/api/prisma/schema.prisma (OrderStatus/Customer/Organization), apps/api/src/modules/order/application/, apps/api/src/modules/kitchen/application/ y apps/api/src/index.ts; sin módulo de disciplina, aviso previo o job de no retiro localizado.",
+    "tareas": [
+      "T22",
+      "T23"
+    ]
+  },
+  {
+    "id": "RN-122",
+    "modulo": "Sanciones y no retiro",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/index.ts",
+    "brecha": "No se localizó implementación/verificación específica para: Registrar fecha/hora del aviso previo, evitar strike y conservar el pago sin reembolso por ese aviso. Búsqueda: apps/api/prisma/schema.prisma (OrderStatus/Customer/Organization), apps/api/src/modules/order/application/, apps/api/src/modules/kitchen/application/ y apps/api/src/index.ts; sin módulo de disciplina, aviso previo o job de no retiro localizado.",
+    "tareas": [
+      "T22",
+      "T23"
+    ]
+  },
+  {
+    "id": "RN-123",
+    "modulo": "Sanciones y no retiro",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/index.ts",
+    "brecha": "No se localizó implementación/verificación específica para: Comparar hora de aviso con inicio de ventana y mantener strike si el aviso fue tardío y no hubo retiro. Búsqueda: apps/api/prisma/schema.prisma (OrderStatus/Customer/Organization), apps/api/src/modules/order/application/, apps/api/src/modules/kitchen/application/ y apps/api/src/index.ts; sin módulo de disciplina, aviso previo o job de no retiro localizado.",
+    "tareas": [
+      "T22",
+      "T23"
+    ]
+  },
+  {
+    "id": "RN-124",
+    "modulo": "Sanciones y no retiro",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/index.ts",
+    "brecha": "No se localizó implementación/verificación específica para: Persistir strikes, advertencias y bloqueos con alcance de organización. Búsqueda: apps/api/prisma/schema.prisma (OrderStatus/Customer/Organization), apps/api/src/modules/order/application/, apps/api/src/modules/kitchen/application/ y apps/api/src/index.ts; sin módulo de disciplina, aviso previo o job de no retiro localizado.",
+    "tareas": [
+      "T22",
+      "T23"
+    ]
+  },
+  {
+    "id": "RN-125",
+    "modulo": "Sanciones y no retiro",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/index.ts",
+    "brecha": "No se localizó implementación/verificación específica para: Bloquear nuevas operaciones transaccionales al alcanzar tres strikes en la organización. Búsqueda: apps/api/prisma/schema.prisma (OrderStatus/Customer/Organization), apps/api/src/modules/order/application/, apps/api/src/modules/kitchen/application/ y apps/api/src/index.ts; sin módulo de disciplina, aviso previo o job de no retiro localizado.",
+    "tareas": [
+      "T22",
+      "T23"
+    ]
+  },
+  {
+    "id": "RN-126",
+    "modulo": "Sanciones y no retiro",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/index.ts",
+    "brecha": "No se localizó implementación/verificación específica para: Restringir el bloqueo a la organización sancionada sin impedir operaciones en otras. Búsqueda: apps/api/prisma/schema.prisma (OrderStatus/Customer/Organization), apps/api/src/modules/order/application/, apps/api/src/modules/kitchen/application/ y apps/api/src/index.ts; sin módulo de disciplina, aviso previo o job de no retiro localizado.",
+    "tareas": [
+      "T22",
+      "T23"
+    ]
+  },
+  {
+    "id": "RN-127",
+    "modulo": "Sanciones y no retiro",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/index.ts",
+    "brecha": "No se localizó implementación/verificación específica para: Permitir rehabilitación únicamente al ORGANIZATION_ADMIN de la organización afectada. Búsqueda: apps/api/prisma/schema.prisma (OrderStatus/Customer/Organization), apps/api/src/modules/order/application/, apps/api/src/modules/kitchen/application/ y apps/api/src/index.ts; sin módulo de disciplina, aviso previo o job de no retiro localizado.",
+    "tareas": [
+      "T22",
+      "T23"
+    ]
+  },
+  {
+    "id": "RN-128",
+    "modulo": "Sanciones y no retiro",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/index.ts",
+    "brecha": "No se localizó implementación/verificación específica para: Reiniciar strikes a cero e incrementar una advertencia en la misma rehabilitación. Búsqueda: apps/api/prisma/schema.prisma (OrderStatus/Customer/Organization), apps/api/src/modules/order/application/, apps/api/src/modules/kitchen/application/ y apps/api/src/index.ts; sin módulo de disciplina, aviso previo o job de no retiro localizado.",
+    "tareas": [
+      "T22",
+      "T23"
+    ]
+  },
+  {
+    "id": "RN-129",
+    "modulo": "Sanciones y no retiro",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/index.ts",
+    "brecha": "No se localizó implementación/verificación específica para: Convertir dos advertencias en bloqueo permanente para esa organización. Búsqueda: apps/api/prisma/schema.prisma (OrderStatus/Customer/Organization), apps/api/src/modules/order/application/, apps/api/src/modules/kitchen/application/ y apps/api/src/index.ts; sin módulo de disciplina, aviso previo o job de no retiro localizado.",
+    "tareas": [
+      "T22",
+      "T23"
+    ]
+  },
+  {
+    "id": "RN-130",
+    "modulo": "Sanciones y no retiro",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/index.ts",
+    "brecha": "No se localizó implementación/verificación específica para: Conservar lectura de cuenta/historial/puntos/recompensas/beneficios y denegar pedido, canje y uso de beneficios al bloqueado. Búsqueda: apps/api/prisma/schema.prisma (OrderStatus/Customer/Organization), apps/api/src/modules/order/application/, apps/api/src/modules/kitchen/application/ y apps/api/src/index.ts; sin módulo de disciplina, aviso previo o job de no retiro localizado.",
+    "tareas": [
+      "T22",
+      "T23"
+    ]
+  },
+  {
+    "id": "RN-131",
+    "modulo": "Sanciones y no retiro",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/index.ts",
+    "brecha": "No se localizó implementación/verificación específica para: Conservar un strike tras recuperar/revender comida y no generarlo si hubo aviso previo válido. Búsqueda: apps/api/prisma/schema.prisma (OrderStatus/Customer/Organization), apps/api/src/modules/order/application/, apps/api/src/modules/kitchen/application/ y apps/api/src/index.ts; sin módulo de disciplina, aviso previo o job de no retiro localizado.",
+    "tareas": [
+      "T22",
+      "T23"
+    ]
+  },
+  {
+    "id": "RN-132",
+    "modulo": "Notificaciones",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/modules/; apps/web/src/; apps/api/prisma/schema.prisma",
+    "brecha": "No se localizó implementación/verificación específica para: Entregar notificaciones in-app y push; no se localizó persistencia, suscripción ni envío de esos canales. Búsqueda: apps/api/prisma/schema.prisma, apps/api/src/app.ts, apps/api/src/index.ts y apps/api/src/modules/kitchen/application/activatePickupWhenEligibleUseCase.ts: execute; sin módulo/canal de notificaciones integrado localizado.",
+    "tareas": [
+      "T24"
+    ]
+  },
+  {
+    "id": "RN-133",
+    "modulo": "Notificaciones",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/modules/; apps/web/src/; apps/api/prisma/schema.prisma",
+    "brecha": "No se localizó implementación/verificación específica para: Emitir notificación de pedido listo al pasar a PARA_RETIRAR. Búsqueda: apps/api/prisma/schema.prisma, apps/api/src/app.ts, apps/api/src/index.ts y apps/api/src/modules/kitchen/application/activatePickupWhenEligibleUseCase.ts: execute; sin módulo/canal de notificaciones integrado localizado.",
+    "tareas": [
+      "T24"
+    ]
+  },
+  {
+    "id": "RN-134",
+    "modulo": "Notificaciones",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/modules/; apps/web/src/; apps/api/prisma/schema.prisma",
+    "brecha": "No se localizó implementación/verificación específica para: Emitir notificación con nueva ventana cuando CocIA replanifica. Búsqueda: apps/api/prisma/schema.prisma, apps/api/src/app.ts, apps/api/src/index.ts y apps/api/src/modules/kitchen/application/activatePickupWhenEligibleUseCase.ts: execute; sin módulo/canal de notificaciones integrado localizado.",
+    "tareas": [
+      "T24"
+    ]
+  },
+  {
+    "id": "RN-135",
+    "modulo": "Notificaciones",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/modules/; apps/web/src/; apps/api/prisma/schema.prisma",
+    "brecha": "No se localizó implementación/verificación específica para: Verificar que iniciar tolerancia no envíe una notificación separada; ausencia del subsistema no demuestra esta prohibición. Búsqueda: apps/api/prisma/schema.prisma, apps/api/src/app.ts, apps/api/src/index.ts y apps/api/src/modules/kitchen/application/activatePickupWhenEligibleUseCase.ts: execute; sin módulo/canal de notificaciones integrado localizado.",
+    "tareas": [
+      "T24"
+    ]
+  },
+  {
+    "id": "RN-136",
+    "modulo": "Notificaciones",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/modules/; apps/web/src/; apps/api/prisma/schema.prisma",
+    "brecha": "No se localizó implementación/verificación específica para: Permitir eventos transaccionales proactivos sin iniciar conversaciones/recomendaciones MenIA. Búsqueda: apps/api/prisma/schema.prisma, apps/api/src/app.ts, apps/api/src/index.ts y apps/api/src/modules/kitchen/application/activatePickupWhenEligibleUseCase.ts: execute; sin módulo/canal de notificaciones integrado localizado.",
+    "tareas": [
+      "T24"
+    ]
+  },
+  {
+    "id": "RN-137",
+    "modulo": "Puntos",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Persistir saldo de puntos por cliente y organización, sin saldo global entre organizaciones. Búsqueda: apps/api/prisma/schema.prisma, apps/api/src/app.ts, apps/api/src/modules/pickup/infrastructure/prismaConfirmPickupAdapter.ts: confirm y apps/web/src/components/order-view.tsx; sin cuenta/movimientos/cálculo de puntos localizado.",
+    "tareas": [
+      "T26",
+      "T25"
+    ]
+  },
+  {
+    "id": "RN-138",
+    "modulo": "Puntos",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Permitir gastar puntos de distintos buffets de una misma organización, sin cruce entre organizaciones. Búsqueda: apps/api/prisma/schema.prisma, apps/api/src/app.ts, apps/api/src/modules/pickup/infrastructure/prismaConfirmPickupAdapter.ts: confirm y apps/web/src/components/order-view.tsx; sin cuenta/movimientos/cálculo de puntos localizado.",
+    "tareas": [
+      "T26",
+      "T25"
+    ]
+  },
+  {
+    "id": "RN-139",
+    "modulo": "Puntos",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Conservar puntos sin vencimiento; ausencia de cuenta/movimientos no demuestra la política de no expiración. Búsqueda: apps/api/prisma/schema.prisma, apps/api/src/app.ts, apps/api/src/modules/pickup/infrastructure/prismaConfirmPickupAdapter.ts: confirm y apps/web/src/components/order-view.tsx; sin cuenta/movimientos/cálculo de puntos localizado.",
+    "tareas": [
+      "T26",
+      "T25"
+    ]
+  },
+  {
+    "id": "RN-140",
+    "modulo": "Puntos",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Acreditar puntualidad solo a pedidos normales y excluir canjes físicos. Búsqueda: apps/api/prisma/schema.prisma, apps/api/src/app.ts, apps/api/src/modules/pickup/infrastructure/prismaConfirmPickupAdapter.ts: confirm y apps/web/src/components/order-view.tsx; sin cuenta/movimientos/cálculo de puntos localizado.",
+    "tareas": [
+      "T26",
+      "T25"
+    ]
+  },
+  {
+    "id": "RN-141",
+    "modulo": "Puntos",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Acreditar diez puntos al pedido normal retirado en los primeros dos minutos de su ventana vigente. Búsqueda: apps/api/prisma/schema.prisma, apps/api/src/app.ts, apps/api/src/modules/pickup/infrastructure/prismaConfirmPickupAdapter.ts: confirm y apps/web/src/components/order-view.tsx; sin cuenta/movimientos/cálculo de puntos localizado.",
+    "tareas": [
+      "T26",
+      "T25"
+    ]
+  },
+  {
+    "id": "RN-142",
+    "modulo": "Puntos",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Acreditar siete puntos al pedido normal retirado en los minutos tres y cuatro. Búsqueda: apps/api/prisma/schema.prisma, apps/api/src/app.ts, apps/api/src/modules/pickup/infrastructure/prismaConfirmPickupAdapter.ts: confirm y apps/web/src/components/order-view.tsx; sin cuenta/movimientos/cálculo de puntos localizado.",
+    "tareas": [
+      "T26",
+      "T25"
+    ]
+  },
+  {
+    "id": "RN-143",
+    "modulo": "Puntos",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Acreditar cinco puntos al pedido normal retirado en el minuto cinco. Búsqueda: apps/api/prisma/schema.prisma, apps/api/src/app.ts, apps/api/src/modules/pickup/infrastructure/prismaConfirmPickupAdapter.ts: confirm y apps/web/src/components/order-view.tsx; sin cuenta/movimientos/cálculo de puntos localizado.",
+    "tareas": [
+      "T26",
+      "T25"
+    ]
+  },
+  {
+    "id": "RN-144",
+    "modulo": "Puntos",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Acreditar tres puntos al pedido normal retirado durante los cinco minutos de tolerancia. Búsqueda: apps/api/prisma/schema.prisma, apps/api/src/app.ts, apps/api/src/modules/pickup/infrastructure/prismaConfirmPickupAdapter.ts: confirm y apps/web/src/components/order-view.tsx; sin cuenta/movimientos/cálculo de puntos localizado.",
+    "tareas": [
+      "T26",
+      "T25"
+    ]
+  },
+  {
+    "id": "RN-145",
+    "modulo": "Puntos",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Asignar cero puntos a NO_RETIRADO; ausencia de acreditador no demuestra la regla. Búsqueda: apps/api/prisma/schema.prisma, apps/api/src/app.ts, apps/api/src/modules/pickup/infrastructure/prismaConfirmPickupAdapter.ts: confirm y apps/web/src/components/order-view.tsx; sin cuenta/movimientos/cálculo de puntos localizado.",
+    "tareas": [
+      "T26",
+      "T25"
+    ]
+  },
+  {
+    "id": "RN-146",
+    "modulo": "Puntos",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Calcular puntos contra la ventana replanificada vigente, no la original. Búsqueda: apps/api/prisma/schema.prisma, apps/api/src/app.ts, apps/api/src/modules/pickup/infrastructure/prismaConfirmPickupAdapter.ts: confirm y apps/web/src/components/order-view.tsx; sin cuenta/movimientos/cálculo de puntos localizado.",
+    "tareas": [
+      "T26",
+      "T25"
+    ]
+  },
+  {
+    "id": "RN-147",
+    "modulo": "Puntos",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Mantener puntos de puntualidad en pedidos normales que usan beneficio de diez por ciento. Búsqueda: apps/api/prisma/schema.prisma, apps/api/src/app.ts, apps/api/src/modules/pickup/infrastructure/prismaConfirmPickupAdapter.ts: confirm y apps/web/src/components/order-view.tsx; sin cuenta/movimientos/cálculo de puntos localizado.",
+    "tareas": [
+      "T26",
+      "T25"
+    ]
+  },
+  {
+    "id": "RN-148",
+    "modulo": "Puntos",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Integrar movimientos de puntos en historial global con sus operaciones. Búsqueda: apps/api/prisma/schema.prisma, apps/api/src/app.ts, apps/api/src/modules/pickup/infrastructure/prismaConfirmPickupAdapter.ts: confirm y apps/web/src/components/order-view.tsx; sin cuenta/movimientos/cálculo de puntos localizado.",
+    "tareas": [
+      "T26",
+      "T25"
+    ]
+  },
+  {
+    "id": "RN-149",
+    "modulo": "Oferta de recompensas",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Definir tipos/costos de recompensa a nivel Take&Go e impedir su edición por administradores de organización/buffet. Búsqueda: apps/api/prisma/schema.prisma y apps/api/src/app.ts; sin catálogo/oferta/saldo de recompensas integrado. Referencia feature/C3-01-menia@fae7add08f318e6a554947067328bdf3049bb1b4: apps/api/src/modules/menia/infrastructure/deterministicResponder.ts: respond devuelve cards/actions vacíos.",
+    "tareas": [
+      "T27",
+      "T21"
+    ]
+  },
+  {
+    "id": "RN-150",
+    "modulo": "Oferta de recompensas",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Definir costos fijos café 250, snack 300, panadería 350, bebida fría 350 y descuento diez por ciento 500 puntos. Búsqueda: apps/api/prisma/schema.prisma y apps/api/src/app.ts; sin catálogo/oferta/saldo de recompensas integrado. Referencia feature/C3-01-menia@fae7add08f318e6a554947067328bdf3049bb1b4: apps/api/src/modules/menia/infrastructure/deterministicResponder.ts: respond devuelve cards/actions vacíos.",
+    "tareas": [
+      "T27",
+      "T21"
+    ]
+  },
+  {
+    "id": "RN-151",
+    "modulo": "Oferta de recompensas",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Excluir recompensas de descuento monetario fijo; ausencia del módulo no demuestra esa restricción del catálogo. Búsqueda: apps/api/prisma/schema.prisma y apps/api/src/app.ts; sin catálogo/oferta/saldo de recompensas integrado. Referencia feature/C3-01-menia@fae7add08f318e6a554947067328bdf3049bb1b4: apps/api/src/modules/menia/infrastructure/deterministicResponder.ts: respond devuelve cards/actions vacíos.",
+    "tareas": [
+      "T27",
+      "T21"
+    ]
+  },
+  {
+    "id": "RN-152",
+    "modulo": "Oferta de recompensas",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Permitir al STORE_ADMIN elegir qué tipos de recompensa ofrece su buffet. Búsqueda: apps/api/prisma/schema.prisma y apps/api/src/app.ts; sin catálogo/oferta/saldo de recompensas integrado. Referencia feature/C3-01-menia@fae7add08f318e6a554947067328bdf3049bb1b4: apps/api/src/modules/menia/infrastructure/deterministicResponder.ts: respond devuelve cards/actions vacíos.",
+    "tareas": [
+      "T27",
+      "T21"
+    ]
+  },
+  {
+    "id": "RN-153",
+    "modulo": "Oferta de recompensas",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Limitar a dos los productos del buffet asociados a cada tipo de recompensa física. Búsqueda: apps/api/prisma/schema.prisma y apps/api/src/app.ts; sin catálogo/oferta/saldo de recompensas integrado. Referencia feature/C3-01-menia@fae7add08f318e6a554947067328bdf3049bb1b4: apps/api/src/modules/menia/infrastructure/deterministicResponder.ts: respond devuelve cards/actions vacíos.",
+    "tareas": [
+      "T27",
+      "T21"
+    ]
+  },
+  {
+    "id": "RN-154",
+    "modulo": "Oferta de recompensas",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Filtrar recompensas por costo menor o igual al saldo de la organización activa. Búsqueda: apps/api/prisma/schema.prisma y apps/api/src/app.ts; sin catálogo/oferta/saldo de recompensas integrado. Referencia feature/C3-01-menia@fae7add08f318e6a554947067328bdf3049bb1b4: apps/api/src/modules/menia/infrastructure/deterministicResponder.ts: respond devuelve cards/actions vacíos.",
+    "tareas": [
+      "T27",
+      "T21"
+    ]
+  },
+  {
+    "id": "RN-155",
+    "modulo": "Oferta de recompensas",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Mostrar solo productos elegibles disponibles y ocultar recompensa física sin productos disponibles. Búsqueda: apps/api/prisma/schema.prisma y apps/api/src/app.ts; sin catálogo/oferta/saldo de recompensas integrado. Referencia feature/C3-01-menia@fae7add08f318e6a554947067328bdf3049bb1b4: apps/api/src/modules/menia/infrastructure/deterministicResponder.ts: respond devuelve cards/actions vacíos.",
+    "tareas": [
+      "T27",
+      "T21"
+    ]
+  },
+  {
+    "id": "RN-156",
+    "modulo": "MenIA fidelización",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/app.ts; apps/api/prisma/schema.prisma",
+    "brecha": "No se localizó implementación/verificación específica para: Responder saldo de la organización activa y preguntar si desea canjear ante consulta de puntos a MenIA. Búsqueda: apps/api/prisma/schema.prisma y apps/api/src/app.ts; sin catálogo/oferta/saldo de recompensas integrado. Referencia feature/C3-01-menia@fae7add08f318e6a554947067328bdf3049bb1b4: apps/api/src/modules/menia/infrastructure/deterministicResponder.ts: respond devuelve cards/actions vacíos.",
+    "tareas": [
+      "T21"
+    ]
+  },
+  {
+    "id": "RN-157",
+    "modulo": "MenIA fidelización",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/app.ts; apps/api/prisma/schema.prisma",
+    "brecha": "No se localizó implementación/verificación específica para: Terminar el flujo de canje sin acción ante respuesta No; requiere flujo implementado para comprobarlo. Búsqueda: apps/api/prisma/schema.prisma y apps/api/src/app.ts; sin catálogo/oferta/saldo de recompensas integrado. Referencia feature/C3-01-menia@fae7add08f318e6a554947067328bdf3049bb1b4: apps/api/src/modules/menia/infrastructure/deterministicResponder.ts: respond devuelve cards/actions vacíos.",
+    "tareas": [
+      "T21"
+    ]
+  },
+  {
+    "id": "RN-158",
+    "modulo": "MenIA fidelización",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/src/app.ts; apps/api/prisma/schema.prisma",
+    "brecha": "No se localizó implementación/verificación específica para: Mostrar únicamente recompensas alcanzables y disponibles después de aceptar ver opciones de canje. Búsqueda: apps/api/prisma/schema.prisma y apps/api/src/app.ts; sin catálogo/oferta/saldo de recompensas integrado. Referencia feature/C3-01-menia@fae7add08f318e6a554947067328bdf3049bb1b4: apps/api/src/modules/menia/infrastructure/deterministicResponder.ts: respond devuelve cards/actions vacíos.",
+    "tareas": [
+      "T21"
+    ]
+  },
+  {
+    "id": "RN-159",
+    "modulo": "Canjes físicos",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Recoger recompensa, producto disponible y horario y requerir confirmación de canje físico. Búsqueda: apps/api/prisma/schema.prisma, apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/api/src/modules/pickup/infrastructure/prismaConfirmPickupAdapter.ts: confirm; sin entidad/ruta/caso de uso de canje físico localizado.",
+    "tareas": [
+      "T27",
+      "T23"
+    ]
+  },
+  {
+    "id": "RN-160",
+    "modulo": "Canjes físicos",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Validar horario, cierre, horizonte futuro, stock y capacidad CocIA en canjes igual que en pedidos normales. Búsqueda: apps/api/prisma/schema.prisma, apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/api/src/modules/pickup/infrastructure/prismaConfirmPickupAdapter.ts: confirm; sin entidad/ruta/caso de uso de canje físico localizado.",
+    "tareas": [
+      "T27",
+      "T23"
+    ]
+  },
+  {
+    "id": "RN-161",
+    "modulo": "Canjes físicos",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Descontar puntos y reservar recursos de canje de forma coordinada al confirmar. Búsqueda: apps/api/prisma/schema.prisma, apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/api/src/modules/pickup/infrastructure/prismaConfirmPickupAdapter.ts: confirm; sin entidad/ruta/caso de uso de canje físico localizado.",
+    "tareas": [
+      "T27",
+      "T23"
+    ]
+  },
+  {
+    "id": "RN-162",
+    "modulo": "Canjes físicos",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Impedir más de un canje físico confirmado/activo por cliente y organización. Búsqueda: apps/api/prisma/schema.prisma, apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/api/src/modules/pickup/infrastructure/prismaConfirmPickupAdapter.ts: confirm; sin entidad/ruta/caso de uso de canje físico localizado.",
+    "tareas": [
+      "T27",
+      "T23"
+    ]
+  },
+  {
+    "id": "RN-163",
+    "modulo": "Canjes físicos",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Permitir coexistencia de un canje físico y un pedido normal sin aplicarles exclusión mutua. Búsqueda: apps/api/prisma/schema.prisma, apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/api/src/modules/pickup/infrastructure/prismaConfirmPickupAdapter.ts: confirm; sin entidad/ruta/caso de uso de canje físico localizado.",
+    "tareas": [
+      "T27",
+      "T23"
+    ]
+  },
+  {
+    "id": "RN-164",
+    "modulo": "Canjes físicos",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Presentar pedido y canje de la misma ventana como una instancia de retiro, manteniendo operaciones separadas. Búsqueda: apps/api/prisma/schema.prisma, apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/api/src/modules/pickup/infrastructure/prismaConfirmPickupAdapter.ts: confirm; sin entidad/ruta/caso de uso de canje físico localizado.",
+    "tareas": [
+      "T27",
+      "T23"
+    ]
+  },
+  {
+    "id": "RN-165",
+    "modulo": "Canjes físicos",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Excluir canjes de la acreditación de puntos aun cuando se retiren con un pedido normal. Búsqueda: apps/api/prisma/schema.prisma, apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/api/src/modules/pickup/infrastructure/prismaConfirmPickupAdapter.ts: confirm; sin entidad/ruta/caso de uso de canje físico localizado.",
+    "tareas": [
+      "T27",
+      "T23"
+    ]
+  },
+  {
+    "id": "RN-166",
+    "modulo": "Canjes físicos",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Denegar cancelación del cliente para canje físico ya confirmado. Búsqueda: apps/api/prisma/schema.prisma, apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/api/src/modules/pickup/infrastructure/prismaConfirmPickupAdapter.ts: confirm; sin entidad/ruta/caso de uso de canje físico localizado.",
+    "tareas": [
+      "T27",
+      "T23"
+    ]
+  },
+  {
+    "id": "RN-167",
+    "modulo": "Canjes físicos",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Devolver todos los puntos y mostrar disculpas si el buffet cancela un canje por causa propia. Búsqueda: apps/api/prisma/schema.prisma, apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/api/src/modules/pickup/infrastructure/prismaConfirmPickupAdapter.ts: confirm; sin entidad/ruta/caso de uso de canje físico localizado.",
+    "tareas": [
+      "T27",
+      "T23"
+    ]
+  },
+  {
+    "id": "RN-168",
+    "modulo": "Canjes físicos",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Perder puntos gastados y aplicar strike por canje no retirado, salvo excepción de aviso antes de ventana. Búsqueda: apps/api/prisma/schema.prisma, apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/api/src/modules/pickup/infrastructure/prismaConfirmPickupAdapter.ts: confirm; sin entidad/ruta/caso de uso de canje físico localizado.",
+    "tareas": [
+      "T27",
+      "T23"
+    ]
+  },
+  {
+    "id": "RN-169",
+    "modulo": "Canjes físicos",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Preparar café al validar llegada y medir sanciones por presentación, sin contar demora posterior de preparación. Búsqueda: apps/api/prisma/schema.prisma, apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/api/src/modules/pickup/infrastructure/prismaConfirmPickupAdapter.ts: confirm; sin entidad/ruta/caso de uso de canje físico localizado.",
+    "tareas": [
+      "T27",
+      "T23"
+    ]
+  },
+  {
+    "id": "RN-170",
+    "modulo": "Canjes físicos",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Convertir panadería preparada no retirada de un canje en unidad recuperada. Búsqueda: apps/api/prisma/schema.prisma, apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/api/src/modules/pickup/infrastructure/prismaConfirmPickupAdapter.ts: confirm; sin entidad/ruta/caso de uso de canje físico localizado.",
+    "tareas": [
+      "T27",
+      "T23"
+    ]
+  },
+  {
+    "id": "RN-171",
+    "modulo": "Canjes físicos",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Devolver snack cerrado no retirado del canje al stock normal. Búsqueda: apps/api/prisma/schema.prisma, apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/api/src/modules/pickup/infrastructure/prismaConfirmPickupAdapter.ts: confirm; sin entidad/ruta/caso de uso de canje físico localizado.",
+    "tareas": [
+      "T27",
+      "T23"
+    ]
+  },
+  {
+    "id": "RN-172",
+    "modulo": "Canjes físicos",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Devolver bebida fría envasada no retirada del canje al stock normal. Búsqueda: apps/api/prisma/schema.prisma, apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/api/src/modules/pickup/infrastructure/prismaConfirmPickupAdapter.ts: confirm; sin entidad/ruta/caso de uso de canje físico localizado.",
+    "tareas": [
+      "T27",
+      "T23"
+    ]
+  },
+  {
+    "id": "RN-173",
+    "modulo": "Beneficio 10%",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Descontar exactamente 500 puntos al canjear beneficio de diez por ciento. Búsqueda: apps/api/prisma/schema.prisma (Order/Payment), apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/api/src/modules/payment/application/; sin entidad/ciclo de beneficio de descuento localizado.",
+    "tareas": [
+      "T28",
+      "T21"
+    ]
+  },
+  {
+    "id": "RN-174",
+    "modulo": "Beneficio 10%",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Restringir a un beneficio de diez por ciento activo por cliente y organización. Búsqueda: apps/api/prisma/schema.prisma (Order/Payment), apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/api/src/modules/payment/application/; sin entidad/ciclo de beneficio de descuento localizado.",
+    "tareas": [
+      "T28",
+      "T21"
+    ]
+  },
+  {
+    "id": "RN-175",
+    "modulo": "Beneficio 10%",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Ocultar en MenIA la opción de otro beneficio de diez por ciento mientras exista uno activo. Búsqueda: apps/api/prisma/schema.prisma (Order/Payment), apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/api/src/modules/payment/application/; sin entidad/ciclo de beneficio de descuento localizado.",
+    "tareas": [
+      "T28",
+      "T21"
+    ]
+  },
+  {
+    "id": "RN-176",
+    "modulo": "Beneficio 10%",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Consumir cada beneficio de diez por ciento una sola vez. Búsqueda: apps/api/prisma/schema.prisma (Order/Payment), apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/api/src/modules/payment/application/; sin entidad/ciclo de beneficio de descuento localizado.",
+    "tareas": [
+      "T28",
+      "T21"
+    ]
+  },
+  {
+    "id": "RN-177",
+    "modulo": "Beneficio 10%",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Fijar vencimiento del beneficio a treinta días desde su canje y comprobar sus límites temporales. Búsqueda: apps/api/prisma/schema.prisma (Order/Payment), apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/api/src/modules/payment/application/; sin entidad/ciclo de beneficio de descuento localizado.",
+    "tareas": [
+      "T28",
+      "T21"
+    ]
+  },
+  {
+    "id": "RN-178",
+    "modulo": "Beneficio 10%",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: No devolver puntos cuando el beneficio vence sin uso; requiere ciclo de expiración verificable. Búsqueda: apps/api/prisma/schema.prisma (Order/Payment), apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/api/src/modules/payment/application/; sin entidad/ciclo de beneficio de descuento localizado.",
+    "tareas": [
+      "T28",
+      "T21"
+    ]
+  },
+  {
+    "id": "RN-179",
+    "modulo": "Beneficio 10%",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Calcular diez por ciento sin tope sobre el precio final incluidos adicionales. Búsqueda: apps/api/prisma/schema.prisma (Order/Payment), apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/api/src/modules/payment/application/; sin entidad/ciclo de beneficio de descuento localizado.",
+    "tareas": [
+      "T28",
+      "T21"
+    ]
+  },
+  {
+    "id": "RN-180",
+    "modulo": "Beneficio 10%",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Impedir aplicar más de un beneficio en la misma compra. Búsqueda: apps/api/prisma/schema.prisma (Order/Payment), apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/api/src/modules/payment/application/; sin entidad/ciclo de beneficio de descuento localizado.",
+    "tareas": [
+      "T28",
+      "T21"
+    ]
+  },
+  {
+    "id": "RN-181",
+    "modulo": "Beneficio 10%",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Preguntar mediante MenIA si se desea aplicar el beneficio activo antes de usarlo. Búsqueda: apps/api/prisma/schema.prisma (Order/Payment), apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/api/src/modules/payment/application/; sin entidad/ciclo de beneficio de descuento localizado.",
+    "tareas": [
+      "T28",
+      "T21"
+    ]
+  },
+  {
+    "id": "RN-182",
+    "modulo": "Beneficio 10%",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Conservar el beneficio rechazado para esa compra hasta su vencimiento original. Búsqueda: apps/api/prisma/schema.prisma (Order/Payment), apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/api/src/modules/payment/application/; sin entidad/ciclo de beneficio de descuento localizado.",
+    "tareas": [
+      "T28",
+      "T21"
+    ]
+  },
+  {
+    "id": "RN-183",
+    "modulo": "Beneficio 10%",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Conservar beneficio y vencimiento original si el pago falla o la reserva expira antes de confirmación. Búsqueda: apps/api/prisma/schema.prisma (Order/Payment), apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/api/src/modules/payment/application/; sin entidad/ciclo de beneficio de descuento localizado.",
+    "tareas": [
+      "T28",
+      "T21"
+    ]
+  },
+  {
+    "id": "RN-184",
+    "modulo": "Beneficio 10%",
+    "estado": "NO_LOCALIZADO",
+    "evidencia": "apps/api/prisma/schema.prisma; apps/api/src/modules/",
+    "brecha": "No se localizó implementación/verificación específica para: Restaurar automáticamente el beneficio con vencimiento original si el buffet cancela el pedido confirmado que lo usó. Búsqueda: apps/api/prisma/schema.prisma (Order/Payment), apps/api/src/app.ts, apps/api/src/modules/order/application/createOrderUseCase.ts y apps/api/src/modules/payment/application/; sin entidad/ciclo de beneficio de descuento localizado.",
+    "tareas": [
+      "T28",
+      "T21"
+    ]
+  }
+]
