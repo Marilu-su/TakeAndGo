@@ -65,13 +65,24 @@ def check_matrix():
 
 
 def update_source_hashes():
-    # Operación independiente: nunca regenera la matriz ni modifica las fuentes.
-    sources = ROOT / 'docs/reference'
-    manifest = {p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
-                for p in sorted(sources.rglob('*'))
-                if p.is_file() and p.suffix in {'.md', '.pdf'} and p.name != 'README.md'}
+    # Operación explícita: solo actualiza fuentes ya seleccionadas en el manifiesto.
+    # No descubre archivos locales ni cambia la matriz o las fuentes originales.
     destination = AUDIT / 'evidence/source-sha256.json'
-    destination.parent.mkdir(parents=True, exist_ok=True)
+    registered = json.loads(destination.read_text(encoding='utf-8'))
+    require(isinstance(registered, dict) and bool(registered), 'Manifiesto vacío o inválido')
+    sources_root = (ROOT / 'docs/reference').resolve()
+    manifest = {}
+    for name in registered:
+        require(isinstance(name, str) and bool(name), 'Ruta de fuente inválida')
+        relative = Path(name)
+        require(not relative.is_absolute() and '..' not in relative.parts,
+                f'Ruta de fuente no permitida: {name}')
+        source = (ROOT / relative).resolve()
+        require(source.is_relative_to(sources_root) and source.is_file(),
+                f'Fuente registrada inexistente o fuera de docs/reference: {name}')
+        require(source.suffix in {'.md', '.pdf'}, f'Tipo de fuente no permitido: {name}')
+        manifest[name] = hashlib.sha256(source.read_bytes()).hexdigest()
+    # Resolver todas las fuentes antes de escribir evita actualizaciones parciales.
     destination.write_bytes((json.dumps(manifest, ensure_ascii=False, indent=2) + '\n').encode('utf-8'))
     print(json.dumps({'operation': 'update-hashes', 'sources': len(manifest)}))
 
