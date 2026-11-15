@@ -1,0 +1,86 @@
+{
+  "date": "2026-11-13",
+  "timezone": "America/Buenos_Aires",
+  "repository": "Marilu-su/TakeAndGo",
+  "branches": [
+    {
+      "name": "develop",
+      "sha": "54b84064dc393477ec197c202a5ebd8a48b56aa8",
+      "protected": false
+    },
+    {
+      "name": "main",
+      "sha": "23d857dbe159db6d9a005251106b9adf9a77480f",
+      "protected": false
+    }
+  ],
+  "open_prs": [
+    {
+      "number": 89,
+      "url": "https://github.com/Marilu-su/TakeAndGo/pull/89",
+      "base": "develop",
+      "head_sha": "7831234b2875c67c01daf81508b52e76e0e60b9b"
+    }
+  ],
+  "runs": [
+    {
+      "id": 42688463183,
+      "name": "Deploy frontend to Vercel",
+      "status": "completed",
+      "conclusion": "failure",
+      "sha": "54b84064dc393477ec197c202a5ebd8a48b56aa8",
+      "url": "https://github.com/Marilu-su/TakeAndGo/actions/runs/42688463183",
+      "created_at": "2026-11-09T19:58:33Z"
+    },
+    {
+      "id": 42688463114,
+      "name": "API CI",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "54b84064dc393477ec197c202a5ebd8a48b56aa8",
+      "url": "https://github.com/Marilu-su/TakeAndGo/actions/runs/42688463114",
+      "created_at": "2026-11-09T19:58:33Z"
+    },
+    {
+      "id": 42522434228,
+      "name": "API CI",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "b322e8d14bf1d28cc2298e7fcaa5c41b6edb7e0f",
+      "url": "https://github.com/Marilu-su/TakeAndGo/actions/runs/42522434228",
+      "created_at": "2026-11-08T20:53:57Z"
+    },
+    {
+      "id": 42297039022,
+      "name": "API CI",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "85518a3ebbf88e4fe14c6bde27b0d4d8f18758c7",
+      "url": "https://github.com/Marilu-su/TakeAndGo/actions/runs/42297039022",
+      "created_at": "2026-11-06T21:28:43Z"
+    },
+    {
+      "id": 41436941471,
+      "name": "API CI",
+      "status": "completed",
+      "conclusion": "success",
+      "sha": "b734fced911321bc5b4232b86fb539aca39ae7c8",
+      "url": "https://github.com/Marilu-su/TakeAndGo/actions/runs/41436941471",
+      "created_at": "2026-11-02T11:27:07Z"
+    }
+  ],
+  "rulesets": [
+    {
+      "id": 23904079,
+      "name": "Protección main y develop",
+      "enforcement": "disabled"
+    }
+  ],
+  "characterization": {
+    "command": "node apps/api/node_modules/tsx/dist/cli.mjs --test docs/audits/tests/payment-compensation.characterization.test.ts",
+    "pass": 2,
+    "fail": 0,
+    "skip": 0,
+    "scope": "Caso de uso real con repositorios/provider en memoria; no PostgreSQL ni pasarela real"
+  }
+}
