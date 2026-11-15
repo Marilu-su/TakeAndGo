@@ -19,9 +19,11 @@ Este cierre documenta límites y brechas; no certifica el MVP ni declara T04 DON
 | [Relevamiento inicial](T04-RELEVAMIENTO-INICIAL.md) | Snapshot del 12/11, no estado actual |
 | [Seguimiento](T04-SEGUIMIENTO-2026-11-13.md) | Snapshot del 13/11 y caracterización B07; no describe commits posteriores |
 
-Commits ya realizados: 7c524db (RN), 5a6a307 (frontend), de8a43d (backend/testing),
-afbb927 (infraestructura/despliegue). El cierre reducido todavía espera aprobación
-para git add/commits. Cada futura operación Git requiere autorización; antes de
+Seis commits aprobados y realizados: 7c524db (RN), 5a6a307 (frontend),
+de8a43d (backend/testing), afbb927 (infraestructura/despliegue),
+0bedab9 (fuentes y hashes) y 81a71d7 (cierre documental y evidencias).
+El cierre reducido está versionado. La corrección de compatibilidad LF está
+preparada para revisión; su séptimo commit todavía no fue autorizado ni realizado. Cada futura operación Git requiere autorización; antes de
 cada commit se presentan archivos, pruebas y mensaje. No se autoriza push, merge,
 PR, configuración o despliegue por el mero hecho de completar documentación.
 
@@ -95,3 +97,23 @@ PostgreSQL, Neon, pasarela, flujos autenticados y pruebas de producción requier
 entorno dedicado/autorizado y no se ejecutan como parte del cierre reducido.
 El plan T04 también pide publicación/revisión; no se declara completada ni se crean
 issues/PR sin autorización. Los bloqueos de aceptación permanecen explícitos.
+
+
+## Finales de línea y compatibilidad de checkout
+
+La auditoría se reproduce con archivos textuales LF, como los blobs de las fuentes
+preservadas. La revisión integral detectó que core.autocrlf=true podía materializar
+CRLF y romper los hashes y la comparación exacta de la matriz, sin cambiar su texto
+funcional. No se recalcularon hashes para encubrir esa diferencia.
+
+La corrección propuesta en .gitattributes fija text/eol=lf solo para las referencias
+textuales seleccionadas y artefactos de docs/audits; el PDF queda binary. Las siete
+copias auxiliares excluidas no reciben reglas nuevas de texto. No se establece una
+política global para el código productivo ni se cambian configuraciones personales.
+
+La política se verifica en repositorios temporales con checkout real tanto con
+core.autocrlf=true como false, usando HEAD más los tres archivos propuestos
+(.gitattributes, este README y el resumen). No se renormaliza ni se edita ninguna
+fuente original en el workspace. Tras aprobar/versionar esta corrección, los nuevos
+checkouts deben materializar LF en ambos modos; no se promete convertir sin acción
+archivos de un checkout anterior que ya tuviera CRLF.

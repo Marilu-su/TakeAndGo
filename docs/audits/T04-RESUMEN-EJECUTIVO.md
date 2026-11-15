@@ -82,14 +82,24 @@ como Luana (solicitante); corresponde al equipo confirmar la asignación nominal
 
 ## Estado de entrega y cierre
 
-Cuatro commits aprobados y realizados: 7c524db, 5a6a307, de8a43d y afbb927.
-El cierre reducido propone 27 archivos nuevos y un script modificado, sin incluir
-siete copias auxiliares ni AI-DECISIONS.md raíz. Veinte fuentes originales conservan
-sus hashes; los snapshots del 12/11 y 13/11 no se presentan como actuales.
+Seis commits aprobados y realizados: 7c524db, 5a6a307, de8a43d, afbb927,
+0bedab9 y 81a71d7. Los dos últimos versionaron el cierre reducido: 27 archivos
+nuevos y un script modificado, sin las siete copias auxiliares ni AI-DECISIONS.md
+raíz. Veinte fuentes originales conservan sus hashes; los snapshots del 12/11 y
+13/11 no se presentan como actuales.
+
+La auditoría es reproducible con finales LF. La revisión integral detectó pérdida
+de compatibilidad al materializar CRLF con core.autocrlf=true. Se prepara una
+corrección acotada en .gitattributes para conservar LF en nuevos checkouts de
+Windows/Linux/macOS, con PDF binario y sin editar fuentes ni cambiar hashes.
+La comprobación del conjunto propuesto usa checkouts temporales en ambos modos
+de autocrlf. Es corrección de reproducción documental, no de reglas de negocio;
+el séptimo commit permanece pendiente de autorización.
 Las fuentes y los TDD son accesibles mediante el [índice](README.md#fuentes-preservadas).
 
-T04 no se marca DONE administrativo ni producto terminado: falta aprobar/versionar
-este cierre y realizar el PR/revisión cuando el usuario autorice. El plan contempla
+T04 no se marca DONE administrativo ni producto terminado: el cierre reducido ya
+está versionado; falta aprobar/versionar la corrección LF y realizar el PR/revisión
+cuando el usuario autorice. El plan contempla
 issues/matriz, política de merge y estado de producción; los issues no se publicaron,
 la política efectiva y producción siguen con límites explícitos. Corregir o aceptar
 esos bloqueos requiere decisión humana, no simular validación externa.
