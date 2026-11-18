@@ -1,3 +1,4 @@
+import { DomainError } from '../../../shared/domain/DomainError';
 import { getPrisma } from '../../../infrastructure/database/prisma';
 import { makeAssociateCustomerToStore } from '../application/associateCustomerToStore';
 import { makeCreateCustomer } from '../application/createCustomer';
@@ -78,5 +79,25 @@ export function createPrismaRegisterCustomer(): RegisterCustomer {
         });
 
         return registerCustomer(identity, command);
+    };
+}
+
+export type CustomerPreferences = { dietaryRestrictions: string[]; allergies: string[] };
+export function createPrismaCustomerPreferences() {
+    return {
+        get: async (authUserId: string): Promise<CustomerPreferences> => {
+            const customer = await getPrisma().customer.findUnique({ where: { authUserId }, select: { dietaryRestrictions: true, allergies: true } });
+            if (!customer) throw new DomainError('CUSTOMER_NOT_FOUND', 'No se encontró el perfil de cliente.');
+            return customer;
+        },
+        save: async (authUserId: string, preferences: CustomerPreferences): Promise<CustomerPreferences> => {
+            try {
+                const customer = await getPrisma().customer.update({ where: { authUserId }, data: preferences, select: { dietaryRestrictions: true, allergies: true } });
+                return customer;
+            } catch (error) {
+                if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') throw new DomainError('CUSTOMER_NOT_FOUND', 'No se encontró el perfil de cliente.');
+                throw error;
+            }
+        },
     };
 }

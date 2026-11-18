@@ -17,6 +17,11 @@ export function createKitchenRouter({
 }: Dependencies): Router {
   const router = Router();
 
+  router.get('/stores/:storeId/kitchen/orders', async (req, res) => {
+    const actor = await requireActor(resolveActor, req);
+    res.json(await kitchenModule.listKitchenQueue(actor, req.params.storeId));
+  });
+
   // Iniciar preparación
   router.post(
     '/stores/:storeId/kitchen/orders/:orderId/start',

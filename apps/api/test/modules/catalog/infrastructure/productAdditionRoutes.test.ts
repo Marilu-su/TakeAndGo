@@ -104,6 +104,9 @@ test('crea un producto con los datos del cuerpo y el buffet de la URL', async ()
         categoryId: 'category-1',
         name: 'Café con leche',
         description: undefined,
+        dietaryTags: undefined,
+        allergens: undefined,
+        allergensVerified: undefined,
         priceCents: 150000,
         basePreparationSeconds: 120,
     });
@@ -242,4 +245,21 @@ test('traduce los errores de productos y adicionales a códigos HTTP', async () 
     const response = await request(additionApp).patch(`${ADDITIONS_URL}/addition-1`).send({ priceCents: 1 });
 
     assert.equal(response.status, 404);
+});
+
+test('creacion de productos: conserva etiquetas y alergenos e impide tipos invalidos', async () => {
+    let received: unknown;
+    const app = appWith(storeAdmin, fakeProductUseCases({
+        createProduct: async (_actor, command) => { received = command; return product; },
+    }));
+    const body = { categoryId: 'category-1', name: 'Producto', priceCents: 100, basePreparationSeconds: 120,
+        dietaryTags: ['VEGETARIAN'], allergens: ['Leche'], allergensVerified: true };
+    const response = await request(app).post(PRODUCTS_URL).send(body);
+    assert.equal(response.status, 201);
+    assert.deepEqual(received, { ...body, storeId: 'store-a', description: undefined });
+    for (const changes of [{ dietaryTags: 'VEGAN' }, { allergens: [1] }, { allergensVerified: 'true' }]) {
+        const invalid = await request(app).post(PRODUCTS_URL).send({ ...body, ...changes });
+        assert.equal(invalid.status, 400);
+        assert.equal(invalid.body.code, 'INVALID_REQUEST');
+    }
 });

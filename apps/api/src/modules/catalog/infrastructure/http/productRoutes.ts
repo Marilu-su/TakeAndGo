@@ -7,8 +7,10 @@ import type { ProductChanges } from '../../domain/product';
 import type { ProductUseCases } from '../catalogModule';
 import {
     optionalNullableString,
+    optionalBoolean,
     optionalNumber,
     optionalString,
+    optionalStringArray,
     requireNumber,
     requireString,
     requireStringArray,
@@ -26,6 +28,9 @@ function readProductChanges(body: unknown): ProductChanges {
         description: optionalNullableString(body, 'description'),
         priceCents: optionalNumber(body, 'priceCents'),
         basePreparationSeconds: optionalNumber(body, 'basePreparationSeconds'),
+        dietaryTags: optionalStringArray(body, 'dietaryTags'),
+        allergens: optionalStringArray(body, 'allergens'),
+        allergensVerified: optionalBoolean(body, 'allergensVerified'),
     };
 
     const hasChanges = Object.values(changes).some((value) => value !== undefined);
@@ -50,6 +55,9 @@ export function createProductRouter({ useCases, resolveActor }: Dependencies) {
         description: optionalNullableString(req.body, 'description'),
         priceCents: requireNumber(req.body, 'priceCents'),
         basePreparationSeconds: requireNumber(req.body, 'basePreparationSeconds'),
+        dietaryTags: optionalStringArray(req.body, 'dietaryTags'),
+        allergens: optionalStringArray(req.body, 'allergens'),
+        allergensVerified: optionalBoolean(req.body, 'allergensVerified'),
         });
 
         res.status(201).json(product);
