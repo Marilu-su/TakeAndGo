@@ -26,17 +26,18 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: takeandgo_test
+          POSTGRES_DB: takeandgo
         ports:
-          - 5432:5432
+          # Los guards de persistencia requieren 127.0.0.1:5434/takeandgo.
+          - "127.0.0.1:5434:5432"
         options: >-
-          --health-cmd "pg_isready -U postgres"
+          --health-cmd "pg_isready -h 127.0.0.1 -U postgres -d takeandgo"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
 
     env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/takeandgo_test
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5434/takeandgo
 
     defaults:
       run:
@@ -56,11 +57,14 @@ jobs:
       - name: Configurar npm
         run: npm install --global "$(node -p "require('./package.json').packageManager")"
 
-      - name: Instalar dependencias
+      - name: Instalar dependencias y generar Prisma Client
         run: npm ci
 
       - name: Verificar tipos
         run: npm run typecheck
+
+      - name: Compilar API
+        run: npm run build
 
       - name: Aplicar migraciones
         run: npm run db:deploy
