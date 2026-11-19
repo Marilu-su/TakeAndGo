@@ -1,4 +1,5 @@
-import { AdditionStock, ProductStock } from './stock';
+import { AdditionStock, ProductStock, StockMovementRecord } from './stock';
+import type { WeeklyReviewItem } from './weeklyReview';
 
 export interface ReserveStockItemInput {
   productId?: string | null;
@@ -25,4 +26,15 @@ export interface StockRepository {
   // Ajuste manual de stock por el buffet
   setProductStock(storeId: string, productId: string, availableQuantity: number, reason: string, actorUserId: string): Promise<ProductStock>;
   setAdditionStock(storeId: string, additionId: string, availableQuantity: number, reason: string, actorUserId: string): Promise<AdditionStock>;
+  
+  // Reposición: suma unidades al stock disponible y registra el movimiento
+  restockProduct(storeId: string, productId: string, quantity: number, reason: string, actorUserId: string): Promise<ProductStock>;
+  restockAddition(storeId: string, additionId: string, quantity: number, reason: string, actorUserId: string): Promise<AdditionStock>;
+
+  // Historial de movimientos del buffet, del más reciente al más antiguo
+  listMovements(storeId: string, limit: number): Promise<StockMovementRecord[]>;
+
+  // Revisión semanal: fija el disponible a partir de lo contado, todo o nada. Devuelve el id de la revisión.
+  recordWeeklyReview(storeId: string, items: WeeklyReviewItem[], actorUserId: string): Promise<string>;
+  findLastWeeklyReviewAt(storeId: string): Promise<Date | null>;
 }

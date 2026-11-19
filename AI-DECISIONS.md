@@ -735,3 +735,42 @@ Verificación automatizada: 326 pruebas backend aprobadas, ninguna fallida y 3 o
 **Cambio realizado:** se presentan por separado el recorrido de compra y el acceso para personal/administradores, se conserva temporalmente el nombre para precargar un perfil pendiente y el login dirige solo los roles administradores a administración. STORE_EMPLOYEE recibe un aviso explícito de que el acceso de cocina todavía no está disponible.
 
 **Validación humana:** pendiente.
+
+---
+
+### 2026-11-18 — Stock: reposición, historial y revisión semanal
+
+**TDD / Issue:** T07 — Stock: reposición, ajustes auditables y revisión semanal  
+**Autor humano:** Flores Lautaro  
+**Herramienta/modelo:** Claude 
+**Prompt / instrucción utilizada:** Asistir en la revisión del módulo de stock existente, reutilizando lo integrado en el PR #89.
+
+#### Problema
+
+El stock solo podía fijarse con un ajuste manual. No era posible reponer unidades, consultar el historial de movimientos ni registrar la revisión semanal que pide el documento funcional (RN-090 y RN-091).
+
+#### Contexto dado a la IA
+
+- auditoría transaccional de T03;
+- módulo de stock y ajuste manual integrados en el PR #89;
+- reglas del documento funcional sobre ajustes auditables y revisión de los lunes.
+
+#### Propuesta de la IA
+
+- Detectar que el ajuste manual no usaba el bloqueo por buffet de la reserva de pedidos, por lo que un ajuste simultáneo podía pisar una reserva; se agregó el mismo bloqueo a todas las operaciones de stock.
+- Reposición con incremento atómico, en vez de fijar el valor.
+- Endpoint de historial con el nombre del producto o adicional.
+- Revisión semanal todo o nada, que descuenta lo reservado de lo contado y agrupa los movimientos con un identificador de revisión.
+
+#### Validación humana
+
+Se verificó:
+
+- 344 tests aprobados, incluidas pruebas contra PostgreSQL de reposiciones simultáneas y de revisión semanal todo o nada;
+- prueba manual con un usuario real STORE_ADMIN: reposición, revisión semanal, estado de la semana e historial.
+
+#### Correcciones o cambios hechos por el equipo
+
+- El documento funcional no define qué registra el sistema en la revisión de los lunes; se definió como carga de unidades contadas por el administrador del buffet. Queda abierto si también deben poder hacerla los empleados.
+- La semana se calcula en hora de Argentina (UTC-3), ya que los buffets objetivo están en el país; la zona horaria por buffet queda para T06.
+- Los fakes de `orderStock.test.ts` están desactualizados respecto de la interfaz de pedidos (errores de tipos solo en el editor); no se corrigieron por estar fuera del alcance de T07.

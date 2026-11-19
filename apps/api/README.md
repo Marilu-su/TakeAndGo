@@ -268,9 +268,31 @@ El catálogo agrupa los productos por categoría e incluye, para cada producto, 
 | STORE_EMPLOYEE / STORE_ADMIN | Si pertenece a ese buffet |
 | ORGANIZATION_ADMIN y otros | No (`403`) |
 
-**Disponibilidad provisoria:** hasta que exista el módulo de stock, todos los productos y adicionales activos se consideran disponibles (`AllAvailableCatalogAvailability`). El módulo de stock debe reemplazarla implementando `CatalogAvailabilityPort`.
+**Disponibilidad:** el catálogo oculta los productos y adicionales sin stock disponible. Un producto o adicional sin registro de stock se considera de stock no controlado y se muestra como disponible (`StockCatalogAvailability`).
 
 **Uso desde otros módulos:** pedidos y MenIA deben obtener el catálogo mediante `getStoreCatalog` de `catalogModule`, sin acceder a las tablas del catálogo.
+
+### Stock
+
+Solo el administrador del buffet (STORE_ADMIN) puede consultar y modificar el stock. Todas las operaciones de stock de un buffet se serializan con la reserva de pedidos (bloqueo por buffet), para que un ajuste no pise reservas simultáneas. Cada cambio queda registrado como movimiento con cantidad, motivo, actor y momento.
+
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| `GET` | `/api/v1/stores/:storeId/stock` | Stock disponible y reservado de cada producto y adicional |
+| `PUT` | `/api/v1/stores/:storeId/stock` | Ajuste: fija el disponible (`{ "productId" o "additionId", "availableStock", "reason" }`) |
+| `POST` | `/api/v1/stores/:storeId/stock/restock` | Reposición: suma unidades (`{ "productId" o "additionId", "quantity", "reason" }`) |
+| `GET` | `/api/v1/stores/:storeId/stock/movements?limit=50` | Historial de movimientos, del más reciente al más antiguo (máximo 200) |
+| `POST` | `/api/v1/stores/:storeId/stock/weekly-review` | Revisión semanal: registra lo contado (`{ "items": [{ "productId" o "additionId", "countedStock" }] }`) |
+| `GET` | `/api/v1/stores/:storeId/stock/weekly-review` | Indica si la revisión de la semana actual está hecha |
+
+**Revisión semanal:** el administrador carga las unidades contadas físicamente. El disponible pasa a ser lo contado menos lo reservado por pedidos. La operación es todo o nada: si un ítem es inválido, no se guarda ninguno. Si lo contado es menor que lo reservado, se rechaza con `STOCK_BELOW_RESERVED` (`422`). La semana empieza el lunes a las 00:00, hora de Argentina (UTC-3, sin horario de verano).
+
+| Código | Caso |
+| --- | --- |
+| `400` | Datos inválidos (`INVALID_REQUEST`) |
+| `401` / `403` | Sin autenticación o sin permisos sobre el buffet |
+| `404` | Producto o adicional de otro buffet (`PRODUCT_NOT_FOUND`, `ADDITION_NOT_FOUND`) |
+| `422` | Cantidad contada menor que la reservada (`STOCK_BELOW_RESERVED`) |
 
 ## Autenticación
 

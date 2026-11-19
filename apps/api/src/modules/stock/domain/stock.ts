@@ -2,7 +2,9 @@ export type StockMovementType =
   | 'INVENTORY_ADJUSTMENT'
   | 'ORDER_RESERVED'
   | 'ORDER_CANCELLED'
-  | 'ORDER_FULFILLED';
+  | 'ORDER_FULFILLED'
+  | 'RESTOCK'
+  | 'WEEKLY_REVIEW';
 
 export interface ProductStock {
   id: string;
@@ -28,4 +30,16 @@ export interface StockCheckItem {
   productId?: string | null;
   additionIds?: string[];
   quantity: number;
+}
+
+export interface StockMovementRecord {
+  id: string;
+  productId: string | null;
+  additionId: string | null;
+  quantity: number;
+  type: StockMovementType;
+  reason: string | null;
+  actorUserId: string | null;
+  referenceId: string | null;
+  createdAt: Date;
 }
