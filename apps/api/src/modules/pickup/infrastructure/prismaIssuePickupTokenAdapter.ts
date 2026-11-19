@@ -18,6 +18,10 @@ export class PrismaIssuePickupTokenAdapter
     const prisma = getPrisma();
 
     return prisma.$transaction(async (tx) => {
+      // Bloquear el pedido: si llegan dos emisiones de QR a la vez, la segunda
+      // espera a que termine la primera y así siempre queda un único QR vigente.
+      await tx.$queryRaw`SELECT id FROM "Order" WHERE id = ${input.orderId} FOR UPDATE`;
+
       // Buscar el pedido y verificar que pertenezca al cliente.
       const order = await tx.order.findFirst({
         where: {
