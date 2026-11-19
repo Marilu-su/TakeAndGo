@@ -1,3 +1,4 @@
+import { parseWeeklyReviewItems, startOfWeek } from '../../domain/weeklyReview';
 import { Router } from 'express';
 import type { ActorResolver } from '../../../../shared/http/actorResolver';
 import { requireActor } from '../../../../shared/http/requireActor';
@@ -78,6 +79,31 @@ export function createStockRouter(deps: {
       ...movement,
       itemName: movement.productId ? productNames.get(movement.productId) ?? null : movement.additionId ? additionNames.get(movement.additionId) ?? null : null,
     })));
+  });
+
+    router.post('/stores/:storeId/stock/weekly-review', async (req, res) => {
+    const actor = await requireActor(deps.resolveActor, req);
+    const storeId = req.params.storeId;
+    assertCanManageStoreCatalog(actor, storeId);
+    const items = parseWeeklyReviewItems(req.body?.items);
+    const [products, additions] = await Promise.all([deps.products(actor, storeId), deps.additions(actor, storeId)]);
+    const productIds = new Set(products.map(product => product.id));
+    const additionIds = new Set(additions.map(addition => addition.id));
+    for (const item of items) {
+      if (item.productId && !productIds.has(item.productId)) throw new DomainError('PRODUCT_NOT_FOUND', 'El producto no existe en este buffet');
+      if (item.additionId && !additionIds.has(item.additionId)) throw new DomainError('ADDITION_NOT_FOUND', 'El adicional no existe en este buffet');
+    }
+    const reviewId = await deps.stock.recordWeeklyReview(storeId, items, actor.userId);
+    res.status(201).json({ reviewId, reviewedItems: items.length });
+  });
+
+  router.get('/stores/:storeId/stock/weekly-review', async (req, res) => {
+    const actor = await requireActor(deps.resolveActor, req);
+    const storeId = req.params.storeId;
+    assertCanManageStoreCatalog(actor, storeId);
+    const weekStart = startOfWeek(new Date());
+    const lastReviewAt = await deps.stock.findLastWeeklyReviewAt(storeId);
+    res.json({ weekStart, lastReviewAt, done: lastReviewAt !== null && lastReviewAt >= weekStart });
   });
   
   return router;
