@@ -25,4 +25,8 @@ export interface StockRepository {
   // Ajuste manual de stock por el buffet
   setProductStock(storeId: string, productId: string, availableQuantity: number, reason: string, actorUserId: string): Promise<ProductStock>;
   setAdditionStock(storeId: string, additionId: string, availableQuantity: number, reason: string, actorUserId: string): Promise<AdditionStock>;
+  
+  // Reposición: suma unidades al stock disponible y registra el movimiento
+  restockProduct(storeId: string, productId: string, quantity: number, reason: string, actorUserId: string): Promise<ProductStock>;
+  restockAddition(storeId: string, additionId: string, quantity: number, reason: string, actorUserId: string): Promise<AdditionStock>;
 }
