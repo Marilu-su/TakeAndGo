@@ -129,6 +129,7 @@ class InMemoryStockRepository implements StockRepository {
   async setAdditionStock(): Promise<any> {}
   async restockProduct(): Promise<any> {}
   async restockAddition(): Promise<any> {}
+  async listMovements(): Promise<any> { return []; }
 }
 
 describe('Módulo Transaccional: Pedidos y Stock (C2-15)', () => {

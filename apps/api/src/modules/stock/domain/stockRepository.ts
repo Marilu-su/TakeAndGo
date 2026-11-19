@@ -1,4 +1,4 @@
-import { AdditionStock, ProductStock } from './stock';
+import { AdditionStock, ProductStock, StockMovementRecord } from './stock';
 
 export interface ReserveStockItemInput {
   productId?: string | null;
@@ -29,4 +29,7 @@ export interface StockRepository {
   // Reposición: suma unidades al stock disponible y registra el movimiento
   restockProduct(storeId: string, productId: string, quantity: number, reason: string, actorUserId: string): Promise<ProductStock>;
   restockAddition(storeId: string, additionId: string, quantity: number, reason: string, actorUserId: string): Promise<AdditionStock>;
+
+  // Historial de movimientos del buffet, del más reciente al más antiguo
+  listMovements(storeId: string, limit: number): Promise<StockMovementRecord[]>;
 }

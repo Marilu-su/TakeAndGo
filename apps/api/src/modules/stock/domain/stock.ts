@@ -31,3 +31,15 @@ export interface StockCheckItem {
   additionIds?: string[];
   quantity: number;
 }
+
+export interface StockMovementRecord {
+  id: string;
+  productId: string | null;
+  additionId: string | null;
+  quantity: number;
+  type: StockMovementType;
+  reason: string | null;
+  actorUserId: string | null;
+  referenceId: string | null;
+  createdAt: Date;
+}

@@ -1,5 +1,5 @@
 import { getPrisma } from '../../../infrastructure/database/prisma';
-import { AdditionStock, ProductStock } from '../domain/stock';
+import { AdditionStock, ProductStock, StockMovementRecord } from '../domain/stock';
 import { ReserveStockItemInput, StockRepository } from '../domain/stockRepository';
 import type { Prisma } from '../../../generated/prisma/client';
 import { DomainError } from '../../../shared/domain/DomainError';
@@ -307,5 +307,27 @@ export class PrismaStockRepository implements StockRepository {
       return record;
     };
     return this.transaction ? restock(this.transaction) : getPrisma().$transaction(restock);
+  }
+
+  
+  async listMovements(storeId: string, limit: number): Promise<StockMovementRecord[]> {
+    const prisma = this.transaction ?? getPrisma();
+
+    return prisma.stockMovement.findMany({
+      where: { storeId },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      select: {
+        id: true,
+        productId: true,
+        additionId: true,
+        quantity: true,
+        type: true,
+        reason: true,
+        actorUserId: true,
+        referenceId: true,
+        createdAt: true,
+      },
+    });
   }
 }
