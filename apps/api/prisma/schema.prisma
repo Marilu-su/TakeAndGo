@@ -259,6 +259,8 @@ enum StockMovementType {
   ORDER_RESERVED
   ORDER_CANCELLED
   ORDER_FULFILLED
+  RESTOCK
+  WEEKLY_REVIEW
 }
 
 model ProductStock {
