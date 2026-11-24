@@ -1,15 +1,7 @@
 name: API CI
 
 on:
-  pull_request:
-    branches:
-      - develop
-      - main
-    paths:
-      - "apps/api/**"
-      - ".github/workflows/api-ci.yml"
-      - ".node-version"
-      - ".gitattributes"
+  workflow_call:
   push:
     branches:
       - develop
@@ -18,6 +10,9 @@ on:
       - ".github/workflows/api-ci.yml"
       - ".node-version"
       - ".gitattributes"
+
+permissions:
+  contents: read
 
 jobs:
   test:
@@ -50,6 +45,8 @@ jobs:
     steps:
       - name: Descargar repositorio
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Configurar Node.js
         uses: actions/setup-node@v4

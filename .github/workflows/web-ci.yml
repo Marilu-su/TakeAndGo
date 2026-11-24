@@ -1,15 +1,7 @@
 name: Web CI
 
 on:
-  pull_request:
-    branches:
-      - develop
-      - main
-    paths:
-      - "apps/web/**"
-      - ".github/workflows/web-ci.yml"
-      - ".node-version"
-      - ".gitattributes"
+  workflow_call:
 
 permissions:
   contents: read
@@ -32,6 +24,8 @@ jobs:
     steps:
       - name: Descargar repositorio
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Configurar Node.js
         uses: actions/setup-node@v4
