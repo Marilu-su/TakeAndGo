@@ -774,3 +774,7 @@ Se verificó:
 - El documento funcional no define qué registra el sistema en la revisión de los lunes; se definió como carga de unidades contadas por el administrador del buffet. Queda abierto si también deben poder hacerla los empleados.
 - La semana se calcula en hora de Argentina (UTC-3), ya que los buffets objetivo están en el país; la zona horaria por buffet queda para T06.
 - Los fakes de `orderStock.test.ts` están desactualizados respecto de la interfaz de pedidos (errores de tipos solo en el editor); no se corrigieron por estar fuera del alcance de T07.
+
+### T08 — Check agregado de PR y políticas de infraestructura
+
+Codex propuso reutilizar las suites de API y web en un workflow de PR sin filtros de rutas a nivel de evento. Se verificó localmente la selección de suites y el resultado agregado con 27 casos. La revisión humana, la ejecución en GitHub y la activación de protecciones están pendientes. El [documento de infraestructura T08](docs/architecture/T08-INFRAESTRUCTURA-CI-CD.md) registra la decisión, la evidencia anterior de frontend y los pendientes de autenticación, npm audit y fuentes.
