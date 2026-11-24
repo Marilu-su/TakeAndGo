@@ -8,12 +8,16 @@ on:
     paths:
       - "apps/api/**"
       - ".github/workflows/api-ci.yml"
+      - ".node-version"
+      - ".gitattributes"
   push:
     branches:
       - develop
     paths:
       - "apps/api/**"
       - ".github/workflows/api-ci.yml"
+      - ".node-version"
+      - ".gitattributes"
 
 jobs:
   test:
