@@ -55,12 +55,13 @@ test('crea una intención de pago simulada', async () => {
 
   const result = await paymentPort.createPaymentIntent({
     paymentId: 'payment-123',
+    orderId: 'order-123',
     amountCents: 500000,
     expiresAt: new Date('2026-11-01T15:00:00Z'),
   });
 
   assert.equal(
-    result.providerPaymentId,
+    result.providerPreferenceId,
     'fake-payment-123',
   );
 });
@@ -70,6 +71,7 @@ test('registra las solicitudes enviadas al simulador', async () => {
 
   const input = {
     paymentId: 'payment-456',
+    orderId: 'order-456',
     amountCents: 250000,
     expiresAt: new Date('2026-11-01T15:00:00Z'),
   };
@@ -96,7 +98,8 @@ test('crea un pago pendiente e inicia la intención de pago', async () => {
   assert.equal(payment.status, 'PENDING');
   assert.equal(payment.orderId, 'order-123');
   assert.equal(payment.amountCents, 500000);
-  assert.equal(payment.providerPaymentId, 'fake-payment-1');
+  assert.equal(payment.providerPreferenceId, 'fake-payment-1');
+  assert.equal(payment.checkoutUrl, 'https://checkout.test/payment-1');
   assert.equal(port.createdIntents.length, 1);
 });
 
@@ -144,7 +147,7 @@ test('guarda la referencia del proveedor al crear el pago', async () => {
 
   assert.ok(savedPayment);
   assert.equal(
-    savedPayment.providerPaymentId,
+    savedPayment.providerPreferenceId,
     'fake-payment-1',
   );
 });
@@ -370,7 +373,7 @@ test('permite reintentar cuando falla la pasarela', async () => {
 
   assert.ok(pending);
   assert.equal(pending.status, 'PENDING');
-  assert.equal(pending.providerPaymentId, null);
+  assert.equal(pending.checkoutUrl, null);
 
   const recovered = await useCase.execute(
     'order-retry',
@@ -379,7 +382,8 @@ test('permite reintentar cuando falla la pasarela', async () => {
   );
 
   assert.equal(recovered.id, pending.id);
-  assert.equal(recovered.providerPaymentId, `fake-${pending.id}`);
+  assert.equal(recovered.providerPreferenceId, `fake-${pending.id}`);
+  assert.equal(recovered.checkoutUrl, `https://checkout.test/${pending.id}`);
   assert.equal(attempts, 2);
 });
 

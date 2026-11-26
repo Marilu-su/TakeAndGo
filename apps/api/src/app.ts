@@ -74,6 +74,14 @@ import {
 
 import { createKitchenRouter } from './modules/kitchen/infrastructure/http/kitchenRoutes';
 
+// Módulo Pagos (MVP-06)
+import {
+  createPaymentModule,
+  type PaymentModule,
+} from './modules/payment/infrastructure/paymentModule';
+
+import { createPaymentRouter } from './modules/payment/infrastructure/http/paymentRoutes';
+
 export type AppDependencies = {
   checkDatabase: () => Promise<boolean>;
   resolveActor: ActorResolver;
@@ -89,7 +97,7 @@ export type AppDependencies = {
   orderModule: OrderModule;
   kitchenModule: KitchenModule;
   pickupModule: PickupModule;
-
+  paymentModule: PaymentModule;
 };
 
 function defaultDependencies(): AppDependencies {
@@ -119,7 +127,7 @@ function defaultDependencies(): AppDependencies {
     orderModule,
     kitchenModule,
     pickupModule,
-
+    paymentModule: createPaymentModule(),
   };
 }
 
@@ -245,6 +253,15 @@ app.use(
   }),
 );
 
+// Rutas de Pagos (MVP-06)
+app.use(
+  '/api/v1',
+  createPaymentRouter({
+    resolveActor: dependencies.resolveActor,
+    findOrder: orderId => dependencies.orderModule.orderRepository.findById(orderId),
+    paymentModule: dependencies.paymentModule,
+  }),
+);
 
   app.use((_req, res) => {
     res.status(404).json({
