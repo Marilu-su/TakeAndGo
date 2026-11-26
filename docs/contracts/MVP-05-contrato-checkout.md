@@ -73,12 +73,15 @@ Si el pago sigue pendiente, la API consulta a Mercado Pago y, si ya hay resultad
 | `CONFIRMED` | Pago aprobado, pedido confirmado | "Pago aprobado. Tu pedido está confirmado" |
 | `REJECTED` | Pago rechazado, pedido cancelado y stock liberado | "El pago fue rechazado" |
 | `EXPIRED` | Venció la reserva sin pago aprobado | "Se venció el tiempo para pagar" |
+| `CANCELLED` | El cliente canceló el pedido antes de pagar | "Cancelaste el pedido" |
 
 ## 3. Aviso del proveedor (webhook)
 
 `POST /api/v1/payments/webhooks/mercadopago` — público, solo para Mercado Pago.
 
-La API valida la firma del aviso, consulta el pago real a Mercado Pago y aplica el resultado **una sola vez**: los avisos repetidos no vuelven a confirmar el pedido ni a liberar stock. Siempre responde `200` a un aviso válido, aunque ya se haya procesado.
+La API valida la firma del aviso, consulta el pago real a Mercado Pago y aplica el resultado **una sola vez**: los avisos repetidos no vuelven a confirmar el pedido ni a liberar stock. Siempre responde `200` a un aviso válido, aunque ya se haya procesado. Si Mercado Pago no responde a la consulta, devuelve `502` para que reintente el aviso.
+
+El aviso solo **confirma** pagos aprobados. Un rechazo no cancela el pedido desde el aviso, porque en el checkout el cliente puede reintentar con otra tarjeta: el rechazo se aplica cuando el cliente vuelve y la web consulta el estado.
 
 ## 4. Errores
 
@@ -92,6 +95,7 @@ Mismo formato que el resto de la API: `{ "error": "mensaje", "code": "CÓDIGO" }
 | `409` | `ORDER_NOT_PAYABLE` | El pedido no está RESERVADO (ya pagado, cancelado o vencido) |
 | `409` | `RESERVATION_EXPIRED` | Venció la reserva antes de iniciar el pago |
 | `502` | `PAYMENT_PROVIDER_ERROR` | Mercado Pago no respondió; se puede reintentar |
+| `401` | `INVALID_WEBHOOK_SIGNATURE` | Aviso con firma inválida (solo webhook) |
 
 ## 5. Reglas acordadas
 
@@ -103,12 +107,19 @@ Mismo formato que el resto de la API: `{ "error": "mensaje", "code": "CÓDIGO" }
 
 Para que la web avance sin depender de la integración real, la API acepta `PAYMENT_PROVIDER=fake` en desarrollo: `checkoutUrl` apunta a `/pedidos/:id?pago=retorno` y el pago se aprueba al consultarlo. Nunca se usa en producción.
 
-## 7. Configuración del backend
+## 7. Cómo probar un pago en el sandbox
+
+1. Abrir el `checkoutUrl` en una ventana de incógnito.
+2. Iniciar sesión con la **cuenta de prueba de comprador** (pagar sin cuenta da error: las dos partes tienen que ser de prueba).
+3. Pagar con una tarjeta de prueba de Mercado Pago. El nombre del titular define el resultado: `APRO` aprobado, `OTHE` rechazado.
+
+## 8. Configuración del backend
 
 | Variable | Uso |
 | --- | --- |
 | `PAYMENT_PROVIDER` | `mercadopago` o `fake` |
 | `MERCADOPAGO_ACCESS_TOKEN` | Access token de prueba (secreto) |
+| `MERCADOPAGO_SANDBOX` | `false`: checkout normal. Con credenciales de prueba se paga iniciando sesión con la cuenta de prueba de comprador |
 | `MERCADOPAGO_WEBHOOK_SECRET` | Clave para validar la firma de los avisos (secreto) |
 | `PUBLIC_API_URL` | URL pública de la API, para el webhook |
 | `FRONTEND_URL` | URL de la web, para la vuelta del checkout |
