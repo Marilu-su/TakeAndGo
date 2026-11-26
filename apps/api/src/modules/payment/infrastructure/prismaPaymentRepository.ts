@@ -58,7 +58,22 @@ async findByOrderId(orderId: string): Promise<Payment | null> {
       data: { providerPaymentId },
     });
   }
-  
+
+  async saveCheckout(
+    id: string,
+    checkout: { providerPreferenceId: string; checkoutUrl: string },
+  ): Promise<Payment> {
+    const prisma = getPrisma();
+
+    return prisma.payment.update({
+      where: { id },
+      data: {
+        providerPreferenceId: checkout.providerPreferenceId,
+        checkoutUrl: checkout.checkoutUrl,
+      },
+    });
+  }
+
 async transitionStatus(
   id: string,
   expectedStatus: Payment['status'],

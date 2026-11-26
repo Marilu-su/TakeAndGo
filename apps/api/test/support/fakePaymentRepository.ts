@@ -16,6 +16,8 @@ export class FakePaymentRepository implements PaymentRepository {
       expiresAt: input.expiresAt,
       status: 'PENDING',
       providerPaymentId: input.providerPaymentId ?? null,
+      providerPreferenceId: null,
+      checkoutUrl: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -44,6 +46,23 @@ async updateProviderPaymentId(
   }
 
   payment.providerPaymentId = providerPaymentId;
+  payment.updatedAt = new Date();
+
+  return payment;
+}
+
+async saveCheckout(
+  id: string,
+  checkout: { providerPreferenceId: string; checkoutUrl: string },
+): Promise<Payment> {
+  const payment = await this.findById(id);
+
+  if (!payment) {
+    throw new Error('Pago no encontrado');
+  }
+
+  payment.providerPreferenceId = checkout.providerPreferenceId;
+  payment.checkoutUrl = checkout.checkoutUrl;
   payment.updatedAt = new Date();
 
   return payment;
