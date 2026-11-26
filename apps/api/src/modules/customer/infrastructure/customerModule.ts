@@ -83,16 +83,17 @@ export function createPrismaRegisterCustomer(): RegisterCustomer {
 }
 
 export type CustomerPreferences = { dietaryRestrictions: string[]; allergies: string[] };
+// customerId es el id del perfil de cliente (Customer.id), el mismo que trae el Actor en userId.
 export function createPrismaCustomerPreferences() {
     return {
-        get: async (authUserId: string): Promise<CustomerPreferences> => {
-            const customer = await getPrisma().customer.findUnique({ where: { authUserId }, select: { dietaryRestrictions: true, allergies: true } });
+        get: async (customerId: string): Promise<CustomerPreferences> => {
+            const customer = await getPrisma().customer.findUnique({ where: { id: customerId }, select: { dietaryRestrictions: true, allergies: true } });
             if (!customer) throw new DomainError('CUSTOMER_NOT_FOUND', 'No se encontró el perfil de cliente.');
             return customer;
         },
-        save: async (authUserId: string, preferences: CustomerPreferences): Promise<CustomerPreferences> => {
+        save: async (customerId: string, preferences: CustomerPreferences): Promise<CustomerPreferences> => {
             try {
-                const customer = await getPrisma().customer.update({ where: { authUserId }, data: preferences, select: { dietaryRestrictions: true, allergies: true } });
+                const customer = await getPrisma().customer.update({ where: { id: customerId }, data: preferences, select: { dietaryRestrictions: true, allergies: true } });
                 return customer;
             } catch (error) {
                 if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') throw new DomainError('CUSTOMER_NOT_FOUND', 'No se encontró el perfil de cliente.');
