@@ -4,6 +4,11 @@ import type {
   PaymentIntentResult,
   PaymentPort,
 } from '../domain/paymentPort';
+import type {
+  PaymentStatusPort,
+  ProviderPayment,
+  ProviderPaymentStatus,
+} from '../domain/paymentStatusPort';
 import { checkoutReturnUrl } from './checkoutReturnUrl';
 
 const MERCADOPAGO_API_URL = 'https://api.mercadopago.com';
@@ -26,6 +31,34 @@ type PreferenceResponse = {
   sandbox_init_point?: string;
 };
 
+type MercadoPagoPayment = {
+  id?: number | string;
+  status?: string;
+  external_reference?: string | null;
+  transaction_amount?: number;
+};
+
+/** Traduce el estado de Mercado Pago a los resultados que entiende nuestro sistema. */
+export function toProviderStatus(status: string | undefined): ProviderPaymentStatus {
+  if (status === 'approved') return 'APPROVED';
+  if (status === 'rejected' || status === 'cancelled') return 'REJECTED';
+  // pending, in_process, authorized, etc.: todavía no hay resultado definitivo.
+  return 'PENDING';
+}
+
+function toProviderPayment(raw: MercadoPagoPayment): ProviderPayment | null {
+  if (raw.id === undefined || raw.id === null) {
+    return null;
+  }
+
+  return {
+    providerPaymentId: String(raw.id),
+    externalReference: raw.external_reference ?? null,
+    status: toProviderStatus(raw.status),
+    amountCents: Math.round(Number(raw.transaction_amount ?? 0) * 100),
+  };
+}
+
 /** Fecha en el formato de Mercado Pago, en hora de Argentina (UTC-3). */
 export function toMercadoPagoDate(date: Date): string {
   const argentina = new Date(date.getTime() - 3 * 60 * 60 * 1000);
@@ -45,7 +78,7 @@ function providerError(message: string): DomainError {
  * Crea una preferencia por pago: monto del pedido, vencimiento igual a la reserva
  * y referencia externa igual al id del pago, para reconocerlo después.
  */
-export class MercadoPagoPaymentPort implements PaymentPort {
+export class MercadoPagoPaymentPort implements PaymentPort, PaymentStatusPort {
   private readonly fetchFn: typeof fetch;
   private readonly now: () => Date;
 
@@ -55,10 +88,6 @@ export class MercadoPagoPaymentPort implements PaymentPort {
   }
 
   async createPaymentIntent(input: CreatePaymentIntentInput): Promise<PaymentIntentResult> {
-    if (!this.config.accessToken) {
-      throw providerError('El proveedor de pagos no está configurado');
-    }
-
     const returnUrl = checkoutReturnUrl(this.config.frontendUrl, input.orderId);
 
     const body: Record<string, unknown> = {
@@ -93,27 +122,14 @@ export class MercadoPagoPaymentPort implements PaymentPort {
       body.notification_url = `${apiUrl}/api/v1/payments/webhooks/mercadopago`;
     }
 
-    let response: Response;
-
-    try {
-      response = await this.fetchFn(`${MERCADOPAGO_API_URL}/checkout/preferences`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${this.config.accessToken}`,
-          'Content-Type': 'application/json',
-          'X-Idempotency-Key': input.paymentId,
-        },
-        body: JSON.stringify(body),
-        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-      });
-    } catch (error) {
-      console.error('[Pagos] Mercado Pago no respondió:', error);
-      throw providerError('Mercado Pago no respondió. Probá de nuevo.');
-    }
+    const response = await this.request('/checkout/preferences', {
+      method: 'POST',
+      headers: { 'X-Idempotency-Key': input.paymentId },
+      body: JSON.stringify(body),
+    });
 
     if (!response.ok) {
-      const detail = await response.text().catch(() => '');
-      console.error(`[Pagos] Mercado Pago respondió ${response.status}:`, detail);
+      await this.logFailure(response);
       throw providerError('Mercado Pago rechazó la creación del pago. Probá de nuevo.');
     }
 
@@ -127,5 +143,75 @@ export class MercadoPagoPaymentPort implements PaymentPort {
     }
 
     return { providerPreferenceId: preference.id, checkoutUrl };
+  }
+
+  async getPayment(providerPaymentId: string): Promise<ProviderPayment | null> {
+    const response = await this.request(`/v1/payments/${encodeURIComponent(providerPaymentId)}`);
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      await this.logFailure(response);
+      throw providerError('No se pudo consultar el pago en Mercado Pago');
+    }
+
+    return toProviderPayment((await response.json()) as MercadoPagoPayment);
+  }
+
+  async findPaymentByReference(payment: { id: string }): Promise<ProviderPayment | null> {
+    const paymentId = payment.id;
+    const query = new URLSearchParams({
+      external_reference: paymentId,
+      sort: 'date_created',
+      criteria: 'desc',
+    });
+
+    const response = await this.request(`/v1/payments/search?${query.toString()}`);
+
+    if (!response.ok) {
+      await this.logFailure(response);
+      throw providerError('No se pudo consultar el pago en Mercado Pago');
+    }
+
+    const { results = [] } = (await response.json()) as { results?: MercadoPagoPayment[] };
+    const payments = results
+      .map(toProviderPayment)
+      .filter((found): found is ProviderPayment => found !== null && found.externalReference === paymentId);
+
+    // Un mismo checkout puede tener varios intentos (por ejemplo, un rechazo y después una aprobación).
+    return (
+      payments.find(found => found.status === 'APPROVED') ??
+      payments.find(found => found.status === 'PENDING') ??
+      payments[0] ??
+      null
+    );
+  }
+
+  private async request(path: string, init: RequestInit = {}): Promise<Response> {
+    if (!this.config.accessToken) {
+      throw providerError('El proveedor de pagos no está configurado');
+    }
+
+    try {
+      return await this.fetchFn(`${MERCADOPAGO_API_URL}${path}`, {
+        ...init,
+        headers: {
+          Authorization: `Bearer ${this.config.accessToken}`,
+          'Content-Type': 'application/json',
+          ...(init.headers as Record<string, string> | undefined),
+        },
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      });
+    } catch (error) {
+      console.error('[Pagos] Mercado Pago no respondió:', error);
+      throw providerError('Mercado Pago no respondió. Probá de nuevo.');
+    }
+  }
+
+  private async logFailure(response: Response): Promise<void> {
+    const detail = await response.text().catch(() => '');
+    console.error(`[Pagos] Mercado Pago respondió ${response.status}:`, detail);
   }
 }
