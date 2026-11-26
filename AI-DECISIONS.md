@@ -774,3 +774,44 @@ Se verificó:
 - El documento funcional no define qué registra el sistema en la revisión de los lunes; se definió como carga de unidades contadas por el administrador del buffet. Queda abierto si también deben poder hacerla los empleados.
 - La semana se calcula en hora de Argentina (UTC-3), ya que los buffets objetivo están en el país; la zona horaria por buffet queda para T06.
 - Los fakes de `orderStock.test.ts` están desactualizados respecto de la interfaz de pedidos (errores de tipos solo en el editor); no se corrigieron por estar fuera del alcance de T07.
+
+---
+
+
+### 2026-11-26 — Pagos: iniciar el checkout en Mercado Pago sandbox
+
+**TDD / Issue:** MVP-06 — Iniciar el pago en el sandbox  
+**Autor humano:** Flores Lautaro  
+**Herramienta/modelo:** Claude (Anthropic) — Claude Opus 5.5  
+**Prompt / instrucción utilizada:** Dudas en el endpoint para iniciar el pago según el contrato de MVP-05, reutilizando el módulo de pagos existente.
+
+#### Problema
+
+El módulo de pagos tenía la lógica interna (crear el pago de forma idempotente, aplicar resultados, compensar pagos tardíos), pero no estaba conectado a ningún proveedor real ni expuesto por HTTP (brecha B1 de T03). Un pedido quedaba en RESERVADO sin forma de pagarlo.
+
+#### Contexto dado a la IA
+
+- contrato de checkout de MVP-05;
+- auditoría transaccional de T03;
+- módulo `payment` existente y sus pruebas.
+
+#### Propuesta de la IA
+
+- Adaptador de Mercado Pago (Checkout Pro, API de Preferences) detrás de la interfaz `PaymentPort` ya existente: crea una preferencia con el total del pedido, vencimiento igual a la reserva y el id del pago como referencia externa.
+- Proveedor simulado (`PAYMENT_PROVIDER=fake`) para desarrollar la web sin Mercado Pago; queda bloqueado si `NODE_ENV=production`.
+- Endpoint `POST /api/v1/orders/:orderId/payment`, solo para el cliente dueño del pedido. Repetir la solicitud devuelve el mismo pago y el mismo link.
+- Se guardan la preferencia y el link en dos columnas nuevas de `Payment` (`providerPreferenceId`, `checkoutUrl`). `providerPaymentId` queda para el id del pago real, que se conoce recién cuando el cliente paga (MVP-07).
+
+#### Validación humana
+
+Se verificó:
+
+- 366 tests aprobados, incluidas pruebas del adaptador con respuestas simuladas de Mercado Pago (éxito, error, sin respuesta) y del repositorio contra PostgreSQL;
+- prueba manual: creación de un pedido y apertura del checkout del sandbox con la cuenta de prueba de comprador.
+
+#### Correcciones o cambios hechos por el equipo
+
+- Se eligió la API de Preferences en lugar de la nueva API de Orders: Mercado Pago mantiene su soporte y cubre todo lo necesario (vencimiento del link, consulta del pago, avisos y reembolsos). Cambiar de API implicaría modificar solo el adaptador.
+- Se excluyen los pagos en efectivo: se acreditan después de los 5 minutos de reserva.
+- En local no se pide webhook ni vuelta automática, porque Mercado Pago solo acepta URLs públicas; el estado se resuelve al consultar el pago (MVP-07).
+- En la prueba manual, el link del sandbox fallaba al iniciar sesión con la cuenta de prueba, y pagar sin cuenta da error porque el comprador no es de prueba. Funcionó el checkout normal (`MERCADOPAGO_SANDBOX=false`) iniciando sesión con la cuenta de prueba de comprador y pagando con tarjeta de prueba.

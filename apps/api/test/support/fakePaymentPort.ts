@@ -14,7 +14,8 @@ export class FakePaymentPort implements PaymentPort {
     this.createdIntents.push(input);
 
     return {
-      providerPaymentId: `fake-${input.paymentId}`,
+      providerPreferenceId: `fake-${input.paymentId}`,
+      checkoutUrl: `https://checkout.test/${input.paymentId}`,
     };
   }
 }
