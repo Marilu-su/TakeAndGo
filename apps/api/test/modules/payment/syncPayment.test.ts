@@ -161,3 +161,67 @@ test('aviso: ignora pagos desconocidos o de otros sistemas', async () => {
 
   assert.equal(applied.length, 0);
 });
+
+test('pago vencido: si se aprobó tarde, se procesa para reembolsarlo', async () => {
+  const { sync, status, payment, applied, provider } = await setup();
+  status.byReference.set(payment.id, provider());
+
+  await sync.reconcileExpired(payment);
+
+  assert.deepEqual(applied, [{ paymentId: payment.id, result: 'APPROVED' }]);
+});
+
+test('pago vencido: un rechazo o un pago sin resultado no hacen nada', async () => {
+  const { sync, status, payment, applied, provider } = await setup();
+
+  await sync.reconcileExpired(payment);
+  status.byReference.set(payment.id, provider({ status: 'REJECTED' }));
+  await sync.reconcileExpired(payment);
+
+  assert.equal(applied.length, 0);
+});
+
+test('sincronización: el reembolso de un pago tardío no rompe la consulta', async () => {
+  const { sync, status, payment, provider } = await setup('LATE_PAYMENT_COMPENSATED');
+  status.byReference.set(payment.id, provider());
+  const originalWarn = console.warn;
+  const warnings: string[] = [];
+  console.warn = (message: string) => { warnings.push(message); };
+
+  try {
+    await sync.syncPending(payment);
+  } finally {
+    console.warn = originalWarn;
+  }
+
+  assert.match(warnings[0], /se reembolsó/);
+});
+
+test('sincronización: un rechazo de un pedido ya vencido se ignora sin errores', async () => {
+  const { sync, status, payment, provider } = await setup('ORDER_NOT_RESERVED');
+  status.byReference.set(payment.id, provider({ status: 'REJECTED' }));
+  const originalWarn = console.warn;
+  let warned = false;
+  console.warn = () => { warned = true; };
+
+  try {
+    await sync.syncPending(payment);
+  } finally {
+    console.warn = originalWarn;
+  }
+
+  assert.equal(warned, false);
+});
+
+test('sincronización: aprobación tardía antes de que venza el pedido queda para el proceso periódico', async () => {
+  const { sync, status, payment, provider } = await setup('ORDER_NOT_EXPIRED');
+  status.byReference.set(payment.id, provider());
+  const originalWarn = console.warn;
+  console.warn = () => {};
+
+  try {
+    await sync.syncPending(payment);
+  } finally {
+    console.warn = originalWarn;
+  }
+});

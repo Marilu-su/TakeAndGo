@@ -127,7 +127,10 @@ function defaultDependencies(): AppDependencies {
     orderModule,
     kitchenModule,
     pickupModule,
-    paymentModule: createPaymentModule(orderId => orderModule.orderRepository.findById(orderId)),
+    paymentModule: createPaymentModule({
+      orderRepository: orderModule.orderRepository,
+      releaseExpiredReservations: orderModule.releaseExpiredReservationsUseCase,
+    }),
   };
 }
 

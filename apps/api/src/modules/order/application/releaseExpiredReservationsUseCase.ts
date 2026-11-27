@@ -28,13 +28,19 @@ export class ReleaseExpiredReservationsUseCase {
 
     for (const order of expiredOrders) {
       if (this.expireOrderPort) {
-        const expired = await this.expireOrderPort.expireOrder(
-          order.id,
-          referenceDate,
-        );
+        try {
+          const expired = await this.expireOrderPort.expireOrder(
+            order.id,
+            referenceDate,
+          );
 
-        if (expired) {
-          releasedOrderIds.push(order.id);
+          if (expired) {
+            releasedOrderIds.push(order.id);
+          }
+        } catch (error) {
+          // Un pedido con problemas (por ejemplo, pago aprobado justo al vencer)
+          // no debe impedir que se liberen los demás.
+          console.error(`[Reservas] No se pudo vencer el pedido ${order.id}:`, error);
         }
 
         continue;

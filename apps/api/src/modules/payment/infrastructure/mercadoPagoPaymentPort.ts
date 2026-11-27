@@ -5,6 +5,11 @@ import type {
   PaymentPort,
 } from '../domain/paymentPort';
 import type {
+  PaymentRefundPort,
+  RefundPaymentInput,
+  RefundPaymentResult,
+} from '../domain/paymentRefundPort';
+import type {
   PaymentStatusPort,
   ProviderPayment,
   ProviderPaymentStatus,
@@ -78,7 +83,7 @@ function providerError(message: string): DomainError {
  * Crea una preferencia por pago: monto del pedido, vencimiento igual a la reserva
  * y referencia externa igual al id del pago, para reconocerlo después.
  */
-export class MercadoPagoPaymentPort implements PaymentPort, PaymentStatusPort {
+export class MercadoPagoPaymentPort implements PaymentPort, PaymentStatusPort, PaymentRefundPort {
   private readonly fetchFn: typeof fetch;
   private readonly now: () => Date;
 
@@ -187,6 +192,29 @@ export class MercadoPagoPaymentPort implements PaymentPort, PaymentStatusPort {
       payments[0] ??
       null
     );
+  }
+
+  /** Reembolso total de un pago aprobado tarde (MVP-08). */
+  async refundPayment(input: RefundPaymentInput): Promise<RefundPaymentResult> {
+    const response = await this.request(`/v1/payments/${encodeURIComponent(input.providerPaymentId)}/refunds`, {
+      method: 'POST',
+      // Misma clave en cada reintento: Mercado Pago no reembolsa dos veces.
+      headers: { 'X-Idempotency-Key': `refund-${input.paymentId}` },
+      body: JSON.stringify({}),
+    });
+
+    if (!response.ok) {
+      await this.logFailure(response);
+      throw providerError('Mercado Pago no pudo reembolsar el pago');
+    }
+
+    const refund = (await response.json()) as { id?: number | string };
+
+    if (refund.id === undefined || refund.id === null) {
+      throw providerError('Mercado Pago no confirmó el reembolso');
+    }
+
+    return { providerRefundId: String(refund.id) };
   }
 
   private async request(path: string, init: RequestInit = {}): Promise<Response> {
