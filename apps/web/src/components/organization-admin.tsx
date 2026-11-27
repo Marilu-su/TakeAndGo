@@ -1,20 +1,23 @@
 'use client';
-import { useEffect, useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { useResource } from '@/lib/use-resource';
 import { sessionRequest } from '@/lib/session';
 import type { Store } from '@/lib/types';
 import { ResourceState } from './resource-state';
+type OrganizationSettings = { id: string; maxAdvanceDays: number };
 export function OrganizationAdmin({ organizationId }: { organizationId: string }) {
   const path = `/api/v1/organizations/${encodeURIComponent(organizationId)}/stores`;
   const resource = useResource<Store[]>(path);
-  const settings = useResource<{ id: string; maxAdvanceDays: number }>(`/api/v1/organizations/${encodeURIComponent(organizationId)}/settings`);
+  const settings = useResource<OrganizationSettings>(`/api/v1/organizations/${encodeURIComponent(organizationId)}/settings`);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [pending, setPending] = useState<Store>();
   const [staffMessage, setStaffMessage] = useState('');
-  const [advanceDays, setAdvanceDays] = useState(7);
-  useEffect(() => { if (settings.data) setAdvanceDays(settings.data.maxAdvanceDays); }, [settings.data]);
+  const [advanceDaysDraft, setAdvanceDaysDraft] = useState<{ source: OrganizationSettings | undefined; value: number }>();
+  const advanceDays = advanceDaysDraft && (!settings.data || advanceDaysDraft.source === settings.data)
+    ? advanceDaysDraft.value
+    : settings.data?.maxAdvanceDays ?? 7;
   async function create(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); const form = event.currentTarget; const values = new FormData(form);
     setBusy(true); setError(''); setMessage('');
@@ -54,7 +57,7 @@ export function OrganizationAdmin({ organizationId }: { organizationId: string }
     {pending && <section role="alertdialog" aria-label="Confirmar desactivación" className="panel form-stack"><p>¿Desactivar {pending.name}?</p><div className="actions"><button disabled={busy} onClick={deactivate}>Confirmar desactivación</button><button className="secondary" disabled={busy} onClick={() => setPending(undefined)}>Volver</button></div></section>}
     <div className="cards">{resource.data?.map(store => <article key={store.id} className="panel form-stack"><h3>{store.name}</h3><p>Código: {store.code}</p><p>{store.status}</p><button className="secondary" disabled={busy || store.status === 'INACTIVE'} onClick={() => setPending(store)}>Desactivar</button></article>)}</div>
     {resource.data?.length === 0 && <p>No hay buffets registrados en esta organización.</p>}
-    <form className="panel form-stack" onSubmit={saveAdvanceDays}><h2>Anticipación de pedidos</h2><p>Máximo de días por adelantado en todos los buffets de esta organización.</p><ResourceState {...settings} retry={settings.reload} /><label>Días<input type="number" min={1} max={30} step={1} required value={advanceDays} onChange={event => setAdvanceDays(Number(event.target.value))} /></label><button disabled={busy || settings.loading}>Guardar configuración</button></form>
+    <form className="panel form-stack" onSubmit={saveAdvanceDays}><h2>Anticipación de pedidos</h2><p>Máximo de días por adelantado en todos los buffets de esta organización.</p><ResourceState {...settings} retry={settings.reload} /><label>Días<input type="number" min={1} max={30} step={1} required value={advanceDays} onChange={event => setAdvanceDaysDraft({ source: settings.data, value: Number(event.target.value) })} /></label><button disabled={busy || settings.loading}>Guardar configuración</button></form>
     <form className="panel form-stack" onSubmit={create}><h2>Crear buffet</h2><label>Nombre<input name="name" required maxLength={120} /></label><label>Código<input name="code" required pattern="[A-Za-z]{3}[0-9]{3}" maxLength={6} placeholder="ABC123" title="Tres letras y tres números" /></label><button disabled={busy}>Crear buffet</button></form>
     <form className="panel form-stack" onSubmit={assignStaff}>
       <h2>Habilitar personal de un buffet</h2>
