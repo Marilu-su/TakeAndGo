@@ -926,3 +926,35 @@ Se revisaron y aprobaron los bloques A a E.2. El equipo confirmó la interpretac
 
 - Se eligió resolver SIS001 por código y exigir la selección para el buffet de demo habilitado.
 - Se mantuvo la capacidad de cocina como bloqueo y se pospuso el recorrido con autenticación real y la verificación pública.
+
+---
+
+### 2026-11-27 — Pedidos: checkout y estado en la web
+
+- **TDD / Issue:** T15 / TDD-0007 / MVP-10 (#106)
+- **Autora humana:** Macarena Romero Olmo
+- **Herramienta/modelo:** Codex (OpenAI), basado en GPT-6
+- **Prompt / instrucción utilizada:** Implementar por bloques el inicio de pago, el retorno, la consulta y los estados del checkout con respuestas simuladas.
+
+#### Problema
+
+El backend ya gestionaba el checkout y la verificación del pago. El cliente necesitaba iniciar ese flujo desde el detalle del pedido y ver su resultado.
+
+#### Contexto dado a la IA
+
+- Contrato MVP-05, TDD-0007 y flujo de reserva de MVP-09.
+- Rama dependiente del commit aprobado de MVP-09. Verificación real del proveedor asignada a MVP-18.
+
+#### Propuesta de la IA
+
+- Usar el enlace entregado por la API tras validarlo, consultar el estado al volver o ante una acción explícita, y continuar cada tres segundos mientras esté pendiente.
+- Separar el estado del pago del estado operativo del pedido. Compartir el bloqueo de acciones y conservar los datos de retiro.
+
+#### Validación humana
+
+Se revisaron y aprobaron los bloques A a F. La evidencia de 102 pruebas, el build y la matriz de aceptación están en el [contrato web de MVP-10](docs/contracts/MVP-10-checkout-web.md).
+
+#### Correcciones o cambios hechos por el equipo
+
+- La auditoría F bloqueó otro intento de pago si falla la primera verificación. Una reserva vigente vuelve a habilitar el inicio cuando la API informa que no hay un pago iniciado.
+- Se mantuvo fuera de alcance el timeout de la solicitud de sesión. Quedaron pendientes el recorrido interactivo, el sandbox real y la regresión conjunta con `develop`.
