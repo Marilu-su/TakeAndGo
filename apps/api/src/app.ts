@@ -73,6 +73,9 @@ import {
 } from './modules/kitchen/infrastructure/kitchenModule';
 
 import { createKitchenRouter } from './modules/kitchen/infrastructure/http/kitchenRoutes';
+import { createMeniaModule } from './modules/menia/infrastructure/meniaModule';
+import { createMeniaRouter, meniaJsonErrorHandler } from './modules/menia/infrastructure/http/meniaRoutes';
+import type { MeniaUseCases } from './modules/menia/application/meniaUseCases';
 
 // Módulo Pagos (MVP-06)
 import {
@@ -97,6 +100,8 @@ export type AppDependencies = {
   orderModule: OrderModule;
   kitchenModule: KitchenModule;
   pickupModule: PickupModule;
+  meniaUseCases: MeniaUseCases;
+
   paymentModule: PaymentModule;
 };
 
@@ -127,6 +132,8 @@ function defaultDependencies(): AppDependencies {
     orderModule,
     kitchenModule,
     pickupModule,
+    meniaUseCases: createMeniaModule(),
+
     paymentModule: createPaymentModule({
       orderRepository: orderModule.orderRepository,
       releaseExpiredReservations: orderModule.releaseExpiredReservationsUseCase,
@@ -150,6 +157,12 @@ export function createApp(overrides: Partial<AppDependencies> = {}) {
   );
 
   app.use(express.json());
+  app.use('/api/v1/stores/:storeId/menia', meniaJsonErrorHandler);
+
+  app.use('/api/v1', createMeniaRouter({
+    resolveActor: dependencies.resolveActor,
+    useCases: dependencies.meniaUseCases,
+  }));
 
   app.get('/health', async (_req, res) => {
     const databaseOk = await dependencies.checkDatabase();
