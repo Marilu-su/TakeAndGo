@@ -854,3 +854,43 @@ Se verificó:
 - Se agregó el estado `CANCELLED` al contrato para pedidos cancelados por el cliente antes de pagar.
 - Si no está configurada la clave del webhook, el aviso se procesa igual: el resultado siempre se consulta a Mercado Pago con nuestro token, así que un aviso falso no puede confirmar un pedido.
 - El webhook no se puede probar en local (Mercado Pago necesita una URL pública); se prueba con la API desplegada en MVP-17.
+
+---
+
+### 2026-11-26 — Pagos: vencimiento de reservas y reembolso de pagos tardíos
+
+**TDD / Issue:** MVP-08 — Rechazo, vencimiento a los 5 minutos y pagos tardíos  
+**Autor humano:** Flores Lautaro  
+**Herramienta/modelo:** Claude (Anthropic) — Claude Opus 5.5  
+**Prompt / instrucción utilizada:** Llevar la reserva a 5 minutos, vencer automáticamente las reservas sin pagar y reembolsar en el sandbox los pagos aprobados después del vencimiento.
+
+#### Problema
+
+La auditoría de T03 marcó tres brechas: la reserva duraba 15 minutos en lugar de 5 (B3), nadie liberaba las reservas vencidas (B4) y la compensación de pagos tardíos existía pero no estaba conectada a ningún proveedor.
+
+#### Contexto dado a la IA
+
+- auditoría transaccional de T03;
+- `ReleaseExpiredReservationsUseCase` y `expireOrder` (vencimiento atómico con liberación de stock);
+- `ProcessLatePaymentCompensationUseCase` y su repositorio;
+- integración con Mercado Pago de MVP-06 y MVP-07.
+
+#### Propuesta de la IA
+
+- Reserva de 5 minutos (`RESERVATION_MINUTES`), que también es el vencimiento del link de pago.
+- Proceso automático cada 30 segundos dentro del servidor, igual al de habilitación de retiros: vence las reservas sin pagar (pedido EXPIRED, stock liberado) y revisa en Mercado Pago los pagos de pedidos vencidos en los últimos 30 minutos.
+- Si un pago se aprobó después del vencimiento, no confirma el pedido: se reembolsa en Mercado Pago (`POST /v1/payments/:id/refunds`) y el pago queda REFUNDED. Funciona aunque no llegue el aviso, porque el proceso consulta el pago.
+- El reembolso usa una clave de idempotencia (`refund-<id del pago>`): reintentarlo nunca devuelve el dinero dos veces.
+- Un pedido con problemas al vencer no frena el vencimiento de los demás.
+
+#### Validación humana
+
+Se verificó:
+
+- 411 tests aprobados, incluida una prueba contra PostgreSQL: dos pedidos vencidos, uno pagado tarde; el proceso corre dos veces, el stock se libera y el pago tardío se reembolsa una sola vez;
+- prueba manual con la API local: un pedido sin pagar pasa a EXPIRED a los 5 minutos y la API informa el stock liberado.
+
+#### Correcciones o cambios hechos por el equipo
+
+- La compensación existente no reintentaba nunca un reembolso que había fallado (quedaba PENDIENTE para siempre). Ahora, si quedó pendiente más de un minuto, se reintenta; mientras es reciente se respeta, por si otro proceso lo está haciendo.
+- El proceso corre dentro del servidor: la API desplegada tiene que quedar siempre encendida durante la demo (se coordina con MVP-01).
