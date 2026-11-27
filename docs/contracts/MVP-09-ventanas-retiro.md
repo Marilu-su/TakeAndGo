@@ -40,7 +40,7 @@ Los errores de autenticación y acceso siguen el formato `{"error":"mensaje","co
 
 Buffet Sistemas (`SIS001`) usa la zona `America/Argentina/Buenos_Aires`. La API lee el horario diario persistido para SIS001 cuando el buffet está `ACTIVE`.
 
-Se ofrecen ventanas para el día local, desde la apertura a las 08:00 inclusive hasta el cierre digital a las 21:30 exclusivo. El inicio debe estar al menos 20 minutos después de la validación, contemplando cinco minutos para pagar y quince para preparar. Puede comenzar en cualquier minuto. La ventana dura cinco minutos y tiene otros cinco de tolerancia. La tolerancia debe finalizar estrictamente antes del cierre operativo de las 22:00.
+Se ofrecen ventanas para el día local, todos los días, desde la apertura a las 08:00 inclusive hasta el cierre digital a las 21:30 exclusivo. El inicio debe estar al menos 20 minutos después de la validación, contemplando cinco minutos para pagar y quince para preparar. Puede comenzar en cualquier minuto. La ventana dura cinco minutos y tiene otros cinco de tolerancia. La tolerancia debe finalizar estrictamente antes del cierre operativo de las 22:00.
 
 La última ventana comienza a las 21:49. Una solicitud validada después de las 21:29:00 ya no tiene ventanas: el redondeo lleva el primer retiro posible a las 21:50 y su tolerancia terminaría a las 22:00.
 

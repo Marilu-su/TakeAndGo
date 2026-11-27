@@ -157,6 +157,24 @@ test('devuelve 409 si la tolerancia llega al cierre operativo o lo supera', asyn
   assert.deepEqual(writes, []);
 });
 
+test('acepta el pedido a las 21:29 y rechaza la misma ventana a las 21:30', async () => {
+  const beforeClose = fixture({ instant: '2026-11-27T21:29:00-03:00' });
+  const [lastWindow] = await beforeClose.listWindows();
+  assert.equal(lastWindow.promisedFrom.toISOString(), '2026-11-28T00:49:00.000Z');
+  assert.equal(lastWindow.toleranceUntil.toISOString(), '2026-11-28T00:59:00.000Z');
+
+  const body = { ...beforeClose.body, promisedFrom: lastWindow.promisedFrom.toISOString() };
+  const accepted = await request(beforeClose.app).post(path).send(body).expect(201);
+  assert.equal(accepted.body.status, 'RESERVED');
+  assert.deepEqual(beforeClose.writes, ['create', 'reserve']);
+
+  const atClose = fixture({ instant: '2026-11-27T21:30:00-03:00' });
+  const rejected = await request(atClose.app).post(path).send(body).expect(409);
+  assert.equal(rejected.body.code, 'PICKUP_WINDOW_UNAVAILABLE');
+  assert.deepEqual(atClose.writes, []);
+});
+
+
 test('devuelve 409 antes de abrir, al cierre digital y sin horario habilitado', async () => {
   for (const options of [
     { instant: '2026-11-27T07:59:00-03:00' },

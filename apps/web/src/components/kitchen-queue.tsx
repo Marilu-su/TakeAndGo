@@ -1,34 +1,63 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useLayoutEffect, useRef, useState, type FormEvent } from 'react';
 import { useActor } from '@/components/session-shell';
 import { useResource } from '@/lib/use-resource';
 import { sessionRequest } from '@/lib/session';
 import { ResourceState } from '@/components/resource-state';
+import { formatPickupTime } from '@/lib/pickup-windows';
 
 type KitchenOrder = {
   id: string;
   orderNumber: number;
   status: 'CONFIRMED' | 'PREPARING';
   promisedFrom?: string | null;
+  preparedAt?: string | null;
   items: { productNameSnapshot: string; quantity: number; additions: { additionNameSnapshot: string; quantity: number }[] }[];
 };
 
 export function KitchenQueue() {
-  const actor = useActor();
-  const path = `/api/v1/stores/${encodeURIComponent(actor.storeId ?? '')}/kitchen/orders`;
+  const { storeId = '' } = useActor();
+  return <StoreKitchenQueue key={storeId} storeId={storeId} />;
+}
+
+function StoreKitchenQueue({ storeId }: { storeId: string }) {
+  const path = `/api/v1/stores/${encodeURIComponent(storeId)}/kitchen/orders`;
   const resource = useResource<KitchenOrder[]>(path);
+  const locked = useRef(new Set<string>());
+  const [pending, setPending] = useState<ReadonlySet<string>>(() => new Set());
+  const [kitchenErrors, setKitchenErrors] = useState<Record<string, string>>({});
   const [credentialInput, setCredentialInput] = useState('');
   const [pickupError, setPickupError] = useState('');
   const [pickupMessage, setPickupMessage] = useState('');
   const [pickupBusy, setPickupBusy] = useState(false);
   const refresh = resource.reload;
 
+  useLayoutEffect(() => {
+    // Release after React commits the refreshed queue or the error state.
+    for (const id of locked.current) {
+      if (!pending.has(id)) locked.current.delete(id);
+    }
+  }, [pending]);
+
   async function transition(order: KitchenOrder, action: 'start' | 'finish') {
+    if (locked.current.has(order.id)) return;
+    locked.current.add(order.id);
+    setPending(current => new Set(current).add(order.id));
+    setKitchenErrors(current => ({ ...current, [order.id]: '' }));
     try {
-      await sessionRequest(`/api/v1/stores/${encodeURIComponent(actor.storeId ?? '')}/kitchen/orders/${encodeURIComponent(order.id)}/${action}`, { method: 'POST' });
+      await sessionRequest(`${path}/${encodeURIComponent(order.id)}/${action}`, { method: 'POST' });
       refresh();
-    } catch (cause) { setPickupError(cause instanceof Error ? cause.message : 'No se pudo actualizar el pedido.'); }
+    } catch (cause) {
+      const message = cause instanceof Error ? cause.message : 'No se pudo actualizar el pedido.';
+      setKitchenErrors(current => ({ ...current, [order.id]: message }));
+    } finally {
+      setPending(current => {
+        const next = new Set(current);
+        next.delete(order.id);
+        return next;
+      });
+    }
   }
   async function confirmPickup(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setPickupBusy(true); setPickupError(''); setPickupMessage('');
@@ -41,11 +70,11 @@ export function KitchenQueue() {
         orderId = scanned.orderId;
         credential = { type: 'QR', token: scanned.token };
       } else {
-        const found = await sessionRequest<{ orderId: string; orderNumber: number }>(`/api/v1/stores/${encodeURIComponent(actor.storeId ?? '')}/pickup/by-code`, { method: 'POST', body: JSON.stringify({ code: credentialInput.trim() }) });
+        const found = await sessionRequest<{ orderId: string; orderNumber: number }>(`/api/v1/stores/${encodeURIComponent(storeId)}/pickup/by-code`, { method: 'POST', body: JSON.stringify({ code: credentialInput.trim() }) });
         orderId = found.orderId;
         credential = { type: 'MANUAL', code: credentialInput.trim() };
       }
-      await sessionRequest(`/api/v1/stores/${encodeURIComponent(actor.storeId ?? '')}/pickup/orders/${encodeURIComponent(orderId)}/confirm`, { method: 'POST', body: JSON.stringify({ credential }) });
+      await sessionRequest(`/api/v1/stores/${encodeURIComponent(storeId)}/pickup/orders/${encodeURIComponent(orderId)}/confirm`, { method: 'POST', body: JSON.stringify({ credential }) });
       setCredentialInput(''); setPickupMessage('Retiro confirmado.'); refresh();
     } catch (cause) { setPickupError(cause instanceof Error ? cause.message : 'No se pudo confirmar el retiro.'); }
     finally { setPickupBusy(false); }
@@ -55,10 +84,14 @@ export function KitchenQueue() {
     <form className="panel form-stack" onSubmit={confirmPickup}><h2>Confirmar retiro</h2><p>Escaneá el QR del cliente en este campo o ingresá su código manual de 12 caracteres.</p><label>QR o código de retiro<input autoComplete="off" required value={credentialInput} onChange={event => setCredentialInput(event.target.value)} /></label>{pickupError && <p role="alert" className="error">{pickupError}</p>}{pickupMessage && <p role="status" className="success">{pickupMessage}</p>}<button disabled={pickupBusy}>{pickupBusy ? 'Validando…' : 'Confirmar entrega'}</button></form>
     {resource.data?.length === 0 && <p>No hay pedidos pendientes de preparación.</p>}
     <div className="cards">{resource.data?.map(order => <article className="panel form-stack" key={order.id}>
-      <h2>Pedido {order.orderNumber}</h2><p>{order.status === 'CONFIRMED' ? 'Confirmado' : 'En preparación'}</p>
-      {order.promisedFrom && <p>Retiro desde: {new Date(order.promisedFrom).toLocaleTimeString()}</p>}
+      <h2>Pedido {order.orderNumber}</h2>
+      <p>{order.status === 'CONFIRMED' ? 'Confirmado' : order.preparedAt ? 'Preparado' : 'En preparación'}</p>
+      {order.status === 'PREPARING' && order.preparedAt && <p>El retiro todavía no está habilitado.</p>}
+      {order.promisedFrom && <p>Inicio de la ventana prometida: {formatPickupTime(order.promisedFrom)}</p>}
       <ul>{order.items.map((item, index) => <li key={`${item.productNameSnapshot}-${index}`}>{item.quantity} × {item.productNameSnapshot}{item.additions.length > 0 && ` — ${item.additions.map(addition => `${addition.quantity} × ${addition.additionNameSnapshot}`).join(', ')}`}</li>)}</ul>
-      {order.status === 'CONFIRMED' ? <button onClick={() => void transition(order, 'start')}>Iniciar preparación</button> : <button onClick={() => void transition(order, 'finish')}>Finalizar preparación</button>}
+      {kitchenErrors[order.id] && <p role="alert" className="error">{kitchenErrors[order.id]}</p>}
+      {order.status === 'CONFIRMED' && <button disabled={pending.has(order.id)} onClick={() => void transition(order, 'start')}>{pending.has(order.id) ? 'Iniciando…' : 'Iniciar preparación'}</button>}
+      {order.status === 'PREPARING' && !order.preparedAt && <button disabled={pending.has(order.id)} onClick={() => void transition(order, 'finish')}>{pending.has(order.id) ? 'Finalizando…' : 'Finalizar preparación'}</button>}
     </article>)}</div>
   </main>;
 }
