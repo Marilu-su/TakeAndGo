@@ -32,7 +32,9 @@ jobs:
         with:
           node-version-file: .node-version
           cache: npm
-          cache-dependency-path: apps/web/package-lock.json
+          cache-dependency-path: |
+            apps/web/package-lock.json
+            apps/api/package-lock.json
 
       - name: Configurar npm
         run: npm install --global "$(node -p "require('./package.json').packageManager")"
@@ -48,6 +50,10 @@ jobs:
 
       - name: Verificar tipos
         run: npm run typecheck
+
+      - name: Instalar dependencias de API para la integración web
+        working-directory: apps/api
+        run: npm ci
 
       - name: Ejecutar tests
         run: npm test
