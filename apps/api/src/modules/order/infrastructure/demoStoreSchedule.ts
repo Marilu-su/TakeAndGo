@@ -8,7 +8,7 @@ const DEMO_STORE_CODE = createStoreCode('SIS001');
 const DEMO_SCHEDULE: StorePickupSchedule = {
   timeZone: 'America/Argentina/Buenos_Aires',
   opensAtMinute: 8 * 60,
-  digitalClosesAtMinute: 21 * 60,
+  digitalClosesAtMinute: 21 * 60 + 30,
   operationalClosesAtMinute: 22 * 60,
 };
 
