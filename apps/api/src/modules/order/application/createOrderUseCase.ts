@@ -2,11 +2,15 @@ import { OrderRepository } from '../domain/orderRepository';
 import { StockRepository } from '../../stock/domain/stockRepository';
 import { Order } from '../domain/order';
 import { getPrisma } from '../../../infrastructure/database/prisma';
+import { DomainError } from '../../../shared/domain/DomainError';
 import type { CreateOrderInput } from '../domain/orderRepository';
 import type { ReserveStockItemInput } from '../../stock/domain/stockRepository';
+import type { StorePickupScheduleSource } from './listPickupWindowsUseCase';
+import { validatePickupWindow } from './validatePickupWindow';
+import { RESERVATION_MINUTES } from '../domain/pickupWindow';
 
 /** Minutos que el pedido queda reservado esperando el pago (RN-070). */
-export const RESERVATION_MINUTES = 5;
+export { RESERVATION_MINUTES };
 
 export interface CreateOrderItemRequest {
   productId: string;
@@ -18,7 +22,10 @@ export interface CreateOrderRequest {
   storeId: string;
   customerId: string;
   items: CreateOrderItemRequest[];
+  promisedFrom?: Date;
 }
+
+type FinalizeReservation = (input: CreateOrderInput) => CreateOrderInput;
 
 export interface CatalogItemDetails {
   id: string;
@@ -54,13 +61,26 @@ export class CreateOrderUseCase {
     private readonly orderRepository: OrderRepository,
     private readonly stockRepository: StockRepository,
     private readonly catalogResolver: CatalogResolver = defaultPrismaCatalogResolver,
-    private readonly placeOrder?: (input: CreateOrderInput, items: ReserveStockItemInput[]) => Promise<Order>,
+    private readonly placeOrder?: (
+      input: CreateOrderInput,
+      items: ReserveStockItemInput[],
+      finalize?: FinalizeReservation,
+    ) => Promise<Order>,
+    private readonly schedules?: StorePickupScheduleSource,
+    private readonly now: () => Date = () => new Date(),
   ) {}
 
   async execute(input: CreateOrderRequest): Promise<Order> {
     if (!input.items || input.items.length === 0) {
       throw new Error('El pedido debe contener al menos un producto');
     }
+
+    const promisedFrom = input.promisedFrom;
+    const schedule = await this.schedules?.findByStoreId(input.storeId) ?? null;
+    if (schedule && !promisedFrom) {
+      throw new DomainError('INVALID_REQUEST', 'Seleccioná una ventana de retiro');
+    }
+    if (promisedFrom) validatePickupWindow(this.now(), promisedFrom, schedule);
 
     // 1. Chequeo previo de stock antes de armar snapshots
     const stockItemsToCheck = input.items.map((i) => ({
@@ -131,20 +151,26 @@ export class CreateOrderUseCase {
       });
     }
 
-    // 4. Ventana de reserva para pagar (RN-070)
-    const reservedUntil = new Date(Date.now() + RESERVATION_MINUTES * 60 * 1000);
-
-    // 5. Persistencia de orden
+    // Persistencia de orden. La validación final y el vencimiento comparten el reloj.
     const orderInput: CreateOrderInput = {
       storeId: input.storeId,
       customerId: input.customerId,
       status: 'RESERVED',
       totalCents,
-      reservedUntil,
       items: itemsData,
     };
-    if (this.placeOrder) return this.placeOrder(orderInput, stockItemsToCheck);
-    const createdOrder = await this.orderRepository.create(orderInput);
+    const finalize: FinalizeReservation = (order) => {
+      const now = this.now();
+      const reservedUntil = new Date(now.getTime() + RESERVATION_MINUTES * 60 * 1000);
+      const window = promisedFrom ? validatePickupWindow(now, promisedFrom, schedule) : {};
+      return { ...order, ...window, reservedUntil };
+    };
+    if (this.placeOrder) {
+      return promisedFrom
+        ? this.placeOrder(orderInput, stockItemsToCheck, finalize)
+        : this.placeOrder(finalize(orderInput), stockItemsToCheck);
+    }
+    const createdOrder = await this.orderRepository.create(finalize(orderInput));
 
     // 6. Bloqueo transaccional de stock
     await this.stockRepository.reserveStock(

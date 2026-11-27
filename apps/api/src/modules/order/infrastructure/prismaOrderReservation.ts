@@ -5,13 +5,17 @@ import type { ReserveStockItemInput } from '../../stock/domain/stockRepository';
 import { PrismaOrderRepository } from './prismaOrderRepository';
 import { PrismaStockRepository } from '../../stock/infrastructure/prismaStockRepository';
 
-export async function placeReservedOrder(input: CreateOrderInput, items: ReserveStockItemInput[]) {
+export async function placeReservedOrder(
+  input: CreateOrderInput,
+  items: ReserveStockItemInput[],
+  finalize?: (input: CreateOrderInput) => CreateOrderInput,
+) {
   return getPrisma().$transaction(async tx => {
     // Serializes numbering and reservation within this buffet; parameterized SQL.
     await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtext(${input.storeId}))`;
     const orders = new PrismaOrderRepository(tx);
     const stock = new PrismaStockRepository(tx);
-    const order = await orders.create(input);
+    const order = await orders.create(finalize ? finalize(input) : input);
     await stock.reserveStock(input.storeId, order.id, items);
     return order;
   }, { timeout: 20000 });

@@ -4,7 +4,8 @@ const API_TIMEOUT_MS = 5000;
 export class ApiError extends Error {
   constructor(
     message: string,
-    public readonly status?: number
+    public readonly status?: number,
+    public readonly code?: string,
   ) {
     super(message);
     this.name = "ApiError";
@@ -58,10 +59,11 @@ export async function apiRequest<T>(
     });
 
     if (!response.ok) {
-      const detail = await response.json().catch(() => null) as { error?: string; message?: string } | null;
+      const detail = await response.json().catch(() => null) as { error?: string; message?: string; code?: string } | null;
       throw new ApiError(
         detail?.error || detail?.message || `El backend respondió con código ${response.status}`,
-        response.status
+        response.status,
+        detail?.code
       );
     }
 

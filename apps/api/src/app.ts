@@ -5,6 +5,7 @@ import morgan from 'morgan';
 
 import errorHandler from './middlewares/errorHandler';
 import { checkDatabaseConnection } from './infrastructure/database/checkDatabase';
+import { getPrisma } from './infrastructure/database/prisma';
 import { domainErrorHandler } from './shared/http/domainErrorHandler';
 import type { ActorResolver } from './shared/http/actorResolver';
 import type { IdentityResolver } from './shared/http/identityResolver';
@@ -38,6 +39,9 @@ import {
 import { createProductRouter } from './modules/catalog/infrastructure/http/productRoutes';
 import { createAdditionRouter } from './modules/catalog/infrastructure/http/additionRoutes';
 import { createStoreCatalogRouter } from './modules/catalog/infrastructure/http/storeCatalogRoutes';
+import { makeRequireStoreCatalogAccess } from './modules/catalog/application/viewStoreCatalog';
+import { CustomerModuleMemberships } from './modules/catalog/infrastructure/customerModuleMemberships';
+import { PrismaStoreRepository } from './modules/organization/infrastructure/prismaStoreRepository';
 
 import { createMeRouter } from './infrastructure/auth/http/meRoutes';
 import { createCustomerRouter } from './modules/customer/infrastructure/http/customerRoutes';
@@ -63,6 +67,12 @@ import {
 } from './modules/order/infrastructure/orderModule';
 
 import { createOrderRouter } from './modules/order/infrastructure/http/orderRoutes';
+import { ListPickupWindowsUseCase } from './modules/order/application/listPickupWindowsUseCase';
+import { createResolvedDemoStoreSchedule } from './modules/order/infrastructure/demoStoreSchedule';
+import {
+  createPickupWindowRouter,
+  type PickupWindowHttpDependencies,
+} from './modules/order/infrastructure/http/pickupWindowRoutes';
 import { PrismaOrderRepository } from './modules/order/infrastructure/prismaOrderRepository';
 import { createStockRouter } from './modules/stock/infrastructure/http/stockRoutes';
 
@@ -98,6 +108,7 @@ export type AppDependencies = {
   storeCatalogUseCases: StoreCatalogUseCases;
   stockModule: StockModule;
   orderModule: OrderModule;
+  pickupWindows: Omit<PickupWindowHttpDependencies, 'resolveActor'>;
   kitchenModule: KitchenModule;
   pickupModule: PickupModule;
   meniaUseCases: MeniaUseCases;
@@ -109,7 +120,11 @@ function defaultDependencies(): AppDependencies {
   const auth = createDefaultAuthResolvers();
 
   const stockModule = createStockModule();
-  const orderModule = createOrderModule(stockModule.stockRepository);
+  const pickupSchedules = createResolvedDemoStoreSchedule({
+    findByCode: code => new PrismaStoreRepository(getPrisma()).findByCode(code),
+  });
+  const orderModule = createOrderModule(stockModule.stockRepository, pickupSchedules);
+  const pickupWindows = new ListPickupWindowsUseCase(pickupSchedules);
 
   // Cocina reutiliza el repositorio existente de pedidos
   const kitchenModule = createKitchenModule(orderModule.orderRepository);
@@ -130,6 +145,12 @@ function defaultDependencies(): AppDependencies {
     storeCatalogUseCases: createPrismaStoreCatalogUseCases(),
     stockModule,
     orderModule,
+    pickupWindows: {
+      requireCatalogAccess: makeRequireStoreCatalogAccess(
+        new CustomerModuleMemberships(createPrismaListCustomerStores()),
+      ),
+      getAvailability: storeId => pickupWindows.getAvailability(storeId),
+    },
     kitchenModule,
     pickupModule,
     meniaUseCases: createMeniaModule(),
@@ -239,6 +260,11 @@ export function createApp(overrides: Partial<AppDependencies> = {}) {
       getCustomerPreferences: userId => dependencies.customerPreferences.get(userId),
     }),
   );
+
+  app.use('/api/v1', createPickupWindowRouter({
+    ...dependencies.pickupWindows,
+    resolveActor: dependencies.resolveActor,
+  }));
 
   // Rutas de Pedidos (C2-12)
   app.use(

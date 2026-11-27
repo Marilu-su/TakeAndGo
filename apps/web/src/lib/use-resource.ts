@@ -6,7 +6,12 @@ export function useResource<T>(path: string | null) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [revision, setRevision] = useState(0);
-  const reload = useCallback(() => setRevision(n => n + 1), []);
+  const reload = useCallback(() => {
+    setLoading(true);
+    setError('');
+    setData(undefined);
+    setRevision(n => n + 1);
+  }, []);
   useEffect(() => {
     let active = true;
     if (!path) return;
