@@ -19,6 +19,7 @@ const SEED_PRODUCTS = [
         description: 'Café con leche en taza grande',
         priceCents: 150000,
         basePreparationSeconds: 120,
+        initialStock: 30,
     },
     {
         id: '33333333-3333-4333-8333-333333333332',
@@ -27,6 +28,7 @@ const SEED_PRODUCTS = [
         description: 'Jamón y queso, tres unidades',
         priceCents: 250000,
         basePreparationSeconds: 60,
+        initialStock: 20,
     },
     {
         id: '33333333-3333-4333-8333-333333333333',
@@ -35,12 +37,13 @@ const SEED_PRODUCTS = [
         description: null,
         priceCents: 80000,
         basePreparationSeconds: 30,
+        initialStock: 30,
     },
 ];
 
 const SEED_ADDITIONS = [
-    { id: '44444444-4444-4444-8444-444444444441', name: 'Leche de almendras', priceCents: 50000 },
-    { id: '44444444-4444-4444-8444-444444444442', name: 'Medialuna extra', priceCents: 80000 },
+    { id: '44444444-4444-4444-8444-444444444441', name: 'Leche de almendras', priceCents: 50000, initialStock: 10 },
+    { id: '44444444-4444-4444-8444-444444444442', name: 'Medialuna extra', priceCents: 80000, initialStock: 15 },
 ];
 
 const SEED_PRODUCT_ADDITIONS = [
@@ -84,19 +87,30 @@ async function main() {
         });
     }
 
-        for (const product of SEED_PRODUCTS) {
+    // Cargar el stock inicial solo para ítems sin saldo registrado.
+    for (const { initialStock, ...product } of SEED_PRODUCTS) {
         await prisma.product.upsert({
             where: { id: product.id },
             update: {},
             create: { ...product, storeId: store.id },
         });
+        await prisma.productStock.upsert({
+            where: { productId: product.id },
+            update: {},
+            create: { storeId: store.id, productId: product.id, availableStock: initialStock },
+        });
     }
 
-    for (const addition of SEED_ADDITIONS) {
+    for (const { initialStock, ...addition } of SEED_ADDITIONS) {
         await prisma.addition.upsert({
             where: { id: addition.id },
             update: {},
             create: { ...addition, storeId: store.id },
+        });
+        await prisma.additionStock.upsert({
+            where: { additionId: addition.id },
+            update: {},
+            create: { storeId: store.id, additionId: addition.id, availableStock: initialStock },
         });
     }
 
