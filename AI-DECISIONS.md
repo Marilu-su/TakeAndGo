@@ -983,3 +983,32 @@ Se revisaron y aprobaron los bloques A a F. La evidencia de 102 pruebas, el buil
 
 - La auditoría F bloqueó otro intento de pago si falla la primera verificación. Una reserva vigente vuelve a habilitar el inicio cuando la API informa que no hay un pago iniciado.
 - Se mantuvo fuera de alcance el timeout de la solicitud de sesión. Quedaron pendientes el recorrido interactivo, el sandbox real y la regresión conjunta con `develop`.
+
+---
+
+### 2026-11-27 — Cocina operativa
+
+- **TDD / Issue:** T18 / TDD-0009 / MVP-11 (#107)
+- **Autora humana:** Macarena Romero Olmo
+- **Herramienta/modelo:** Codex (OpenAI), basado en GPT-6
+- **Prompt / instrucción utilizada:** Reutilizar el flujo de cocina y comprobar la activación automática del retiro con PostgreSQL aislado.
+
+#### Problema
+
+La cola web volvía a ofrecer finalizar un pedido que ya estaba preparado y permitía solicitudes duplicadas.
+
+#### Contexto dado a la IA
+
+Flujo C2-18 (#55), Master, TDD-0007 a TDD-0009 y horarios funcionales de MVP-09.
+
+#### Propuesta de la IA
+
+Mostrar la preparación terminada a partir de `preparedAt`, bloquear las acciones por pedido y probar el proceso periódico existente con dos buffets y autenticación local.
+
+#### Validación humana
+
+Se revisaron y aprobaron los bloques A, B y C. El [contrato de cocina operativa](docs/contracts/MVP-11-cocina-operativa.md) reúne la evidencia y el procedimiento de prueba.
+
+#### Correcciones o cambios hechos por el equipo
+
+Se mantuvieron la actualización manual y el formulario de retiro existente. La validación en navegador y en el entorno público quedó pendiente.
