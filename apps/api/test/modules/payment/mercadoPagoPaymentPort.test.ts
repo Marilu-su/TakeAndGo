@@ -236,3 +236,36 @@ test('proveedor: el simulador aprueba el pago al consultarlo y no envía avisos'
   assert.equal(payment.amountCents, 500);
   assert.equal(await fake.getPayment(), null);
 });
+
+test('mercado pago: reembolsa el pago completo con clave de idempotencia', async () => {
+  const { adapter, calls } = port(new Response(JSON.stringify({ id: 987, status: 'approved' }), { status: 201 }));
+
+  const refund = await adapter.refundPayment({ paymentId: 'pay-1', providerPaymentId: '1234567890', amountCents: 230050 });
+
+  assert.deepEqual(refund, { providerRefundId: '987' });
+  assert.equal(calls[0].url, 'https://api.mercadopago.com/v1/payments/1234567890/refunds');
+  assert.equal(calls[0].init.method, 'POST');
+  assert.equal((calls[0].init.headers as Record<string, string>)['X-Idempotency-Key'], 'refund-pay-1');
+  assert.equal(calls[0].init.body, '{}');
+});
+
+test('mercado pago: si el reembolso falla, informa PAYMENT_PROVIDER_ERROR', async () => {
+  const originalError = console.error;
+  console.error = () => {};
+
+  try {
+    const input = { paymentId: 'pay-1', providerPaymentId: '1', amountCents: 1 };
+    await assert.rejects(port(new Response('{}', { status: 400 })).adapter.refundPayment(input), hasCode('PAYMENT_PROVIDER_ERROR'));
+    await assert.rejects(port(new Response('{}', { status: 201 })).adapter.refundPayment(input), hasCode('PAYMENT_PROVIDER_ERROR'));
+  } finally {
+    console.error = originalError;
+  }
+});
+
+test('proveedor: el simulador también reembolsa', async () => {
+  const fake = new FakeCheckoutPaymentPort('http://localhost:3000');
+
+  const refund = await fake.refundPayment({ paymentId: 'pay-1', providerPaymentId: 'x', amountCents: 1 });
+
+  assert.equal(refund.providerRefundId, 'fake-refund-pay-1');
+});

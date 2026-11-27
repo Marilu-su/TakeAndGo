@@ -5,6 +5,9 @@ import { getPrisma } from '../../../infrastructure/database/prisma';
 import type { CreateOrderInput } from '../domain/orderRepository';
 import type { ReserveStockItemInput } from '../../stock/domain/stockRepository';
 
+/** Minutos que el pedido queda reservado esperando el pago (RN-070). */
+export const RESERVATION_MINUTES = 5;
+
 export interface CreateOrderItemRequest {
   productId: string;
   quantity: number;
@@ -128,8 +131,8 @@ export class CreateOrderUseCase {
       });
     }
 
-    // 4. Ventana de reserva de 15 minutos
-    const reservedUntil = new Date(Date.now() + 15 * 60 * 1000);
+    // 4. Ventana de reserva para pagar (RN-070)
+    const reservedUntil = new Date(Date.now() + RESERVATION_MINUTES * 60 * 1000);
 
     // 5. Persistencia de orden
     const orderInput: CreateOrderInput = {

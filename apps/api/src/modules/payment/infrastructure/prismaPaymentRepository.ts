@@ -98,4 +98,17 @@ async transitionStatus(
   return this.findById(id);
 }
 
+  /** Pagos pendientes, con checkout iniciado, de pedidos vencidos entre `since` y `now`. */
+  async findPendingOfExpiredOrders(since: Date, now: Date): Promise<Payment[]> {
+    const prisma = getPrisma();
+
+    return prisma.payment.findMany({
+      where: {
+        status: 'PENDING',
+        checkoutUrl: { not: null },
+        expiresAt: { gte: since, lte: now },
+        order: { status: 'EXPIRED' },
+      },
+    });
+  }
 }
