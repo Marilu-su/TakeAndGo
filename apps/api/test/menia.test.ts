@@ -130,3 +130,63 @@ test('MenIA: errores inesperados usan el middleware existente sin exponer detall
   assert.equal(response.status, 500);
   assert.deepEqual(response.body, { error: 'Error interno del servidor' });
 });
+import { buildStoreCatalog } from '../src/modules/catalog/domain/storeCatalog';
+
+test('MenIA: consulta con catálogo local armado en memoria conserva contexto y catálogo', async () => {
+  const localCatalog = buildStoreCatalog({
+    storeId: 'store-1',
+    categories: [
+      {
+        id: 'cat-1',
+        storeId: 'store-1',
+        name: 'Cafetería',
+        isActive: true,
+      } as never,
+    ],
+    products: [
+      {
+        id: 'prod-1',
+        storeId: 'store-1',
+        categoryId: 'cat-1',
+        name: 'Medialuna de manteca',
+        description: null,
+        priceCents: 150000,
+        basePreparationSeconds: 120,
+        isActive: true,
+      } as never,
+    ],
+    additions: [],
+    links: [],
+    availableProductIds: new Set(['prod-1']),
+    availableAdditionIds: new Set(),
+  });
+
+  let seenCatalogCount = 0;
+  const useCases = makeMeniaUseCases(
+    dependencies({
+      responder: {
+        respond: async input => {
+          seenCatalogCount = localCatalog.categories.length;
+          assert.equal(input.message, 'Qué hay en cafetería');
+          assert.equal(input.context.storeId, 'store-1');
+          return {
+            message: {
+              role: 'assistant',
+              text: `Catálogo local cargado (${seenCatalogCount} categoría: ${localCatalog.categories[0].products[0].name}).`,
+            },
+            cards: [],
+            actions: [],
+          };
+        },
+      },
+    }),
+  );
+
+  const result = await useCases.sendMessage(actor, 'store-1', {
+    message: '  Qué hay en cafetería  ',
+  });
+
+  assert.equal(seenCatalogCount, 1);
+  assert.equal(result.context.storeId, 'store-1');
+  assert.match(result.message.text, /Medialuna de manteca/);
+});
