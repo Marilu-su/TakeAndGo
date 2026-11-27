@@ -17,8 +17,8 @@ type KitchenOrder = {
 };
 
 export function KitchenQueue() {
-  const { storeId = '' } = useActor();
-  return <StoreKitchenQueue key={storeId} storeId={storeId} />;
+  const { storeId = '', userId } = useActor();
+  return <StoreKitchenQueue key={JSON.stringify([storeId, userId])} storeId={storeId} />;
 }
 
 function StoreKitchenQueue({ storeId }: { storeId: string }) {
@@ -31,7 +31,10 @@ function StoreKitchenQueue({ storeId }: { storeId: string }) {
   const [pickupError, setPickupError] = useState('');
   const [pickupMessage, setPickupMessage] = useState('');
   const [pickupBusy, setPickupBusy] = useState(false);
+  const pickupRequest = useRef<symbol | null>(null);
   const refresh = resource.reload;
+
+  useLayoutEffect(() => () => { pickupRequest.current = null; }, []);
 
   useLayoutEffect(() => {
     // Release after React commits the refreshed queue or the error state.
@@ -60,7 +63,13 @@ function StoreKitchenQueue({ storeId }: { storeId: string }) {
     }
   }
   async function confirmPickup(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setPickupBusy(true); setPickupError(''); setPickupMessage('');
+    event.preventDefault();
+    if (pickupRequest.current !== null) return;
+    const request = Symbol();
+    pickupRequest.current = request;
+    setPickupBusy(true);
+    setPickupError('');
+    setPickupMessage('');
     try {
       let orderId: string;
       let credential: { type: 'QR'; token: string } | { type: 'MANUAL'; code: string };
@@ -70,18 +79,36 @@ function StoreKitchenQueue({ storeId }: { storeId: string }) {
         orderId = scanned.orderId;
         credential = { type: 'QR', token: scanned.token };
       } else {
-        const found = await sessionRequest<{ orderId: string; orderNumber: number }>(`/api/v1/stores/${encodeURIComponent(storeId)}/pickup/by-code`, { method: 'POST', body: JSON.stringify({ code: credentialInput.trim() }) });
+        const code = credentialInput.trim();
+        const found = await sessionRequest<{ orderId: string }>(`/api/v1/stores/${encodeURIComponent(storeId)}/pickup/by-code`, { method: 'POST', body: JSON.stringify({ code }) });
+        if (pickupRequest.current !== request) return;
         orderId = found.orderId;
-        credential = { type: 'MANUAL', code: credentialInput.trim() };
+        credential = { type: 'MANUAL', code };
       }
-      await sessionRequest(`/api/v1/stores/${encodeURIComponent(storeId)}/pickup/orders/${encodeURIComponent(orderId)}/confirm`, { method: 'POST', body: JSON.stringify({ credential }) });
-      setCredentialInput(''); setPickupMessage('Retiro confirmado.'); refresh();
-    } catch (cause) { setPickupError(cause instanceof Error ? cause.message : 'No se pudo confirmar el retiro.'); }
-    finally { setPickupBusy(false); }
+      const result = await sessionRequest<{ alreadyPickedUp?: unknown } | null>(`/api/v1/stores/${encodeURIComponent(storeId)}/pickup/orders/${encodeURIComponent(orderId)}/confirm`, { method: 'POST', body: JSON.stringify({ credential }) });
+      if (pickupRequest.current !== request) return;
+      if (typeof result?.alreadyPickedUp !== 'boolean') {
+        setPickupError('No se pudo verificar el resultado del retiro. Comprobá el estado del pedido antes de entregar.');
+        return;
+      }
+      setCredentialInput('');
+      if (result.alreadyPickedUp) setPickupError('Pedido ya retirado. No entregar nuevamente.');
+      else setPickupMessage('Retiro confirmado.');
+      refresh();
+    } catch (cause) {
+      if (pickupRequest.current === request) {
+        setPickupError(cause instanceof Error ? cause.message : 'No se pudo confirmar el retiro.');
+      }
+    } finally {
+      if (pickupRequest.current === request) {
+        pickupRequest.current = null;
+        setPickupBusy(false);
+      }
+    }
   }
 
   return <main className="page form-stack"><h1>Cocina y retiros</h1><p>Gestioná la preparación y confirmá la entrega de los pedidos.</p><button className="secondary" onClick={refresh}>Actualizar cola</button><ResourceState {...resource} retry={refresh} />
-    <form className="panel form-stack" onSubmit={confirmPickup}><h2>Confirmar retiro</h2><p>Escaneá el QR del cliente en este campo o ingresá su código manual de 12 caracteres.</p><label>QR o código de retiro<input autoComplete="off" required value={credentialInput} onChange={event => setCredentialInput(event.target.value)} /></label>{pickupError && <p role="alert" className="error">{pickupError}</p>}{pickupMessage && <p role="status" className="success">{pickupMessage}</p>}<button disabled={pickupBusy}>{pickupBusy ? 'Validando…' : 'Confirmar entrega'}</button></form>
+    <form className="panel form-stack" onSubmit={confirmPickup}><h2>Confirmar retiro</h2><p>Escaneá el QR del cliente en este campo o ingresá su código manual de 12 caracteres.</p><label>QR o código de retiro<input autoComplete="off" required disabled={pickupBusy} value={credentialInput} onChange={event => { if (pickupRequest.current === null) setCredentialInput(event.target.value); }} /></label>{pickupError && <p role="alert" className="error">{pickupError}</p>}{pickupMessage && <p role="status" className="success">{pickupMessage}</p>}<button disabled={pickupBusy}>{pickupBusy ? 'Validando…' : 'Confirmar entrega'}</button></form>
     {resource.data?.length === 0 && <p>No hay pedidos pendientes de preparación.</p>}
     <div className="cards">{resource.data?.map(order => <article className="panel form-stack" key={order.id}>
       <h2>Pedido {order.orderNumber}</h2>

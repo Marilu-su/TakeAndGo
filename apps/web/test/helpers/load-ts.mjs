@@ -33,6 +33,9 @@ async function moduleUrl(file) {
         catch { child = `${base}.tsx`; }
       }
       url = await moduleUrl(child);
+    } else if (specifier === 'react-qr-code') {
+      // Its CommonJS entry exposes the component under exports.default.
+      url = import.meta.resolve(specifier);
     } else { url = pathToFileURL(require.resolve(specifier)).href; }
     resolved = resolved.replaceAll(`'${specifier}'`, JSON.stringify(url)).replaceAll(`"${specifier}"`, JSON.stringify(url));
   }

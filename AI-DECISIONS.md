@@ -1012,3 +1012,32 @@ Se revisaron y aprobaron los bloques A, B y C. El [contrato de cocina operativa]
 #### Correcciones o cambios hechos por el equipo
 
 Se mantuvieron la actualización manual y el formulario de retiro existente. La validación en navegador y en el entorno público quedó pendiente.
+
+---
+
+### 2026-11-27 — Retiro por QR y código manual
+
+- **TDD / Issue:** T19 / TDD-0010 / MVP-12 (#109)
+- **Autora humana:** Macarena Romero Olmo
+- **Herramienta/modelo:** Codex (OpenAI), basado en GPT-6
+- **Prompt / instrucción utilizada:** Distinguir una entrega efectiva de una repetición y comprobar el recorrido de cocina a retiro con inventario consistente.
+
+#### Problema
+
+El resultado HTTP anterior permitía que el formulario mostrara la misma confirmación para una entrega nueva y un reintento idempotente.
+
+#### Contexto dado a la IA
+
+Master, TDD-0010, contrato de cocina de MVP-11 y adaptadores existentes de retiro e inventario.
+
+#### Propuesta de la IA
+
+Conservar la idempotencia y añadir `alreadyPickedUp` al resultado verificado para distinguir ambos casos en el formulario. La transacción original conserva una sola entrega, auditoría y consumo. Mantener los códigos HTTP existentes mientras se acuerda el criterio final.
+
+#### Validación humana
+
+Se revisaron y aprobaron los bloques B1, B2, C1 y C2. El [contrato de MVP-12](docs/contracts/MVP-12-retiro-qr-manual.md) reúne las pruebas DOM, la evidencia PostgreSQL del proceso periódico y la regresión.
+
+#### Correcciones o cambios hechos por el equipo
+
+Se conservó el `200` para la repetición válida como decisión provisional. Queda pendiente acordar si #109 requiere un rechazo HTTP además del rechazo operativo.

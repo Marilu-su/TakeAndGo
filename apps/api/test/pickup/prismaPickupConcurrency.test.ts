@@ -238,6 +238,7 @@ test(
       const qrRetry = await confirmAdapter.confirm(qrInput);
 
       assert.equal(qrRetry.status, 'COMPLETED');
+      assert.equal(qrRetry.alreadyPickedUp, true);
       assert.deepEqual(
         qrRetry.pickedUpAt,
         completedQr.pickedUpAt
@@ -318,10 +319,18 @@ test(
         await confirmAdapter.confirm(manualInput);
 
       assert.equal(manualRetry.status, 'COMPLETED');
+      assert.equal(manualRetry.alreadyPickedUp, true);
       assert.deepEqual(
         manualRetry.pickedUpAt,
         completedManual.pickedUpAt
       );
+
+      for (const results of [qrResults, manualResults]) {
+        const successful = results.filter(result => result.status === 'fulfilled');
+        const deliveries = successful.filter(result => result.value.alreadyPickedUp === false);
+        assert.equal(deliveries.length, 1);
+        assert.ok(successful.every(result => typeof result.value.alreadyPickedUp === 'boolean'));
+      }
 
       // =============================================
       // VERIFICACIONES FINALES
