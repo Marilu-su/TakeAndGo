@@ -19,7 +19,7 @@ const employee: Actor = {
   storeId: 'store-1',
 };
 
-function createPort() {
+function createPort(alreadyPickedUp = false) {
   const calls: ConfirmPickupInput[] = [];
 
   const port: ConfirmPickupPort = {
@@ -31,6 +31,7 @@ function createPort() {
         storeId: input.storeId,
         status: 'COMPLETED',
         pickedUpAt: input.now,
+        alreadyPickedUp,
       };
     },
   };
@@ -58,6 +59,7 @@ describe('ConfirmPickupUseCase', () => {
     );
 
     assert.equal(result.status, 'COMPLETED');
+    assert.equal(result.alreadyPickedUp, false);
     assert.equal(result.orderId, 'order-1');
     assert.deepEqual(result.pickedUpAt, fixedDate);
 
@@ -78,7 +80,7 @@ describe('ConfirmPickupUseCase', () => {
       () => fixedDate
     );
 
-    await useCase.execute(
+    const result = await useCase.execute(
       employee,
       'store-1',
       'order-1',
@@ -88,6 +90,7 @@ describe('ConfirmPickupUseCase', () => {
       }
     );
 
+    assert.equal(result.alreadyPickedUp, false);
     assert.equal(calls.length, 1);
     assert.deepEqual(calls[0].credential, {
       type: 'MANUAL',

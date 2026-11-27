@@ -38,7 +38,8 @@ const customer: Actor = {
 
 function appWith(
   actor: Actor | null,
-  confirmError?: string
+  confirmError?: string,
+  alreadyPickedUp = false
 ) {
   const confirmPort: ConfirmPickupPort = {
     async confirm(input) {
@@ -51,6 +52,7 @@ function appWith(
         storeId: input.storeId,
         status: 'COMPLETED',
         pickedUpAt: input.now,
+        alreadyPickedUp,
       };
     },
   };
@@ -184,6 +186,7 @@ describe('Pickup HTTP', () => {
 
     assert.equal(response.status, 200);
     assert.equal(response.body.status, 'COMPLETED');
+    assert.equal(response.body.alreadyPickedUp, false);
   });
 
   it('permite confirmar con código manual', async () => {
@@ -198,6 +201,17 @@ describe('Pickup HTTP', () => {
 
     assert.equal(response.status, 200);
     assert.equal(response.body.status, 'COMPLETED');
+    assert.equal(response.body.alreadyPickedUp, false);
+  });
+
+  it('devuelve HTTP 200 y el indicador cuando la confirmación es idempotente', async () => {
+    const response = await request(appWith(employee, undefined, true))
+      .post(CONFIRM_URL)
+      .send({ credential: { type: 'QR', token: 'test-token' } });
+
+    assert.equal(response.status, 200);
+    assert.equal(response.body.status, 'COMPLETED');
+    assert.equal(response.body.alreadyPickedUp, true);
   });
 
   it('rechaza confirmar sin autenticación', async () => {

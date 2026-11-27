@@ -12,6 +12,7 @@ globalThis.self = dom.window;
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 const { act, createElement, StrictMode } = await import('react');
 const { cleanup, fireEvent, render, waitFor } = await import('@testing-library/react');
+const { default: QRCode } = await import('react-qr-code');
 const { OrderDetail } = await loadTs('components/order-view.tsx');
 const { default: Page } = await loadTs('app/(customer)/pedidos/[id]/page.tsx');
 afterEach(cleanup);
@@ -186,7 +187,7 @@ test('checkout DOM: un pedido listo conserva el retiro manual tras un error al s
     if (action === 'payment') return payment('o1', 'CONFIRMED');
     if (action === 'pickup/qr') return Response.json({ error: 'No se pudo generar el QR' }, { status: 502 });
     assert.equal(action, 'pickup/manual');
-    return Response.json({ code: 'TEST01' });
+    return Response.json({ code: 'TEST00000001' });
   }, id => order(id, { status: 'READY_FOR_PICKUP' }));
   const view = render(detail('o1', true));
   await view.findByText('Pago aprobado. Tu pedido está confirmado');
@@ -194,8 +195,79 @@ test('checkout DOM: un pedido listo conserva el retiro manual tras un error al s
   fireEvent.click(view.getByRole('button', { name: 'Generar QR' }));
   await view.findByText('No se pudo generar el QR');
   fireEvent.click(view.getByRole('button', { name: 'Generar código manual' }));
-  assert.equal((await view.findByLabelText('Código manual de retiro')).textContent, 'TEST01');
+  assert.equal((await view.findByLabelText('Código manual de retiro')).textContent, 'TEST00000001');
   assert.match(view.getByText(/Tolerancia hasta las/).textContent, /12:55/);
   assert.deepEqual(actions.map(({ action, method }) => [action, method]),
     [['payment', 'GET'], ['pickup/qr', 'POST'], ['pickup/manual', 'POST']]);
+});
+
+function assertQrSvg(view, orderId, token) {
+  const actual = view.getByLabelText('Código QR de retiro').querySelector('svg');
+  assert.ok(actual, 'Se debe renderizar el SVG real del QR');
+  const reference = render(createElement(QRCode, {
+    value: JSON.stringify({ orderId, token }),
+    size: 208,
+  }));
+  try {
+    const expected = reference.container.querySelector('svg');
+    assert.ok(expected);
+    assert.ok(actual.querySelector('path[d]'));
+    assert.equal(actual.outerHTML, expected.outerHTML);
+    return actual.outerHTML;
+  } finally {
+    reference.unmount();
+  }
+}
+
+test('retiro DOM: renderiza y regenera el QR real, bloquea clics simultáneos y limpia al cambiar de pedido', async t => {
+  const first = deferred();
+  const expiresAt = '2026-11-27T15:50:00Z';
+  const tokens = ['qr-prueba-primero', 'qr-prueba-renovado'];
+  let calls = 0;
+  const actions = mockOrders(t, () => ++calls === 1
+    ? first.response
+    : Response.json({ token: tokens[1], expiresAt }), id =>
+    order(id, { status: id === 'o1' ? 'READY_FOR_PICKUP' : 'CONFIRMED' }));
+  const view = render(detail());
+  const qr = await view.findByRole('button', { name: 'Generar QR' });
+  const manual = view.getByRole('button', { name: 'Generar código manual' });
+  await act(async () => {
+    fireEvent.click(qr);
+    fireEvent.click(qr);
+    fireEvent.click(manual);
+  });
+  assert.deepEqual(actions.map(({ id, action, method }) => [id, action, method]), [['o1', 'pickup/qr', 'POST']]);
+  assert.equal(qr.disabled, true);
+  assert.equal(manual.disabled, true);
+
+  await act(async () => first.resolve(Response.json({ token: tokens[0], expiresAt })));
+  const firstSvg = assertQrSvg(view, 'o1', tokens[0]);
+  const displayedExpiry = new Intl.DateTimeFormat('es-AR', { dateStyle: 'short', timeStyle: 'short' })
+    .format(new Date(expiresAt));
+  assert.ok(view.getByText(`Vence: ${displayedExpiry}. Generá otro si vence.`));
+
+  await act(async () => fireEvent.click(qr));
+  assert.equal(calls, 2);
+  assert.notEqual(assertQrSvg(view, 'o1', tokens[1]), firstSvg);
+
+  view.rerender(detail('o2'));
+  await view.findByRole('heading', { name: 'Pedido #2' });
+  assert.equal(view.queryByLabelText('Código QR de retiro'), null);
+  assert.equal(view.queryByText(/Generá otro si vence/), null);
+  assert.equal(view.queryByRole('button', { name: 'Generar QR' }), null);
+  assert.equal(view.queryByRole('button', { name: 'Generar código manual' }), null);
+});
+
+test('retiro DOM: una credencial recibida tarde no aparece en otro pedido listo', async t => {
+  const pending = deferred();
+  const actions = mockOrders(t, () => pending.response, id => order(id, { status: 'READY_FOR_PICKUP' }));
+  const view = render(detail());
+  const manual = await view.findByRole('button', { name: 'Generar código manual' });
+  await act(async () => fireEvent.click(manual));
+  view.rerender(detail('o2'));
+  await view.findByRole('heading', { name: 'Pedido #2' });
+  await act(async () => pending.resolve(Response.json({ code: 'TEST00000001' })));
+  assert.equal(view.queryByLabelText('Código manual de retiro'), null);
+  assert.equal(view.getByRole('button', { name: 'Generar código manual' }).disabled, false);
+  assert.deepEqual(actions.map(({ id, action }) => [id, action]), [['o1', 'pickup/manual']]);
 });

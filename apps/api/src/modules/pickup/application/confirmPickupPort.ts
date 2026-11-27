@@ -22,6 +22,12 @@ export interface ConfirmPickupResult {
   storeId: string;
   status: 'COMPLETED';
   pickedUpAt: Date;
+  /**
+   * True when this confirmation returns an existing pickup without another delivery.
+   * Replays still return HTTP 200. Whether #109 requires an HTTP rejection for
+   * reuse in addition to rejecting a second physical delivery is pending team agreement.
+   */
+  alreadyPickedUp: boolean;
 }
 
 export interface ConfirmPickupPort {

@@ -78,6 +78,7 @@ export class PrismaConfirmPickupAdapter
           storeId: order.storeId,
           status: 'COMPLETED',
           pickedUpAt: order.pickedUpAt,
+          alreadyPickedUp: true,
         };
       }
 
@@ -210,6 +211,7 @@ export class PrismaConfirmPickupAdapter
         storeId: order.storeId,
         status: 'COMPLETED',
         pickedUpAt: input.now,
+        alreadyPickedUp: false,
       };
     });
   }

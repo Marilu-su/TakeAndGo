@@ -243,6 +243,7 @@ test(
       );
 
       assert.equal(qrResult.status, 'COMPLETED');
+      assert.equal(qrResult.alreadyPickedUp, false);
 
       const completedQrOrder =
         await prisma.order.findUniqueOrThrow({
@@ -268,14 +269,16 @@ test(
       assert.deepEqual(usedQr.usedAt, now);
 
       // No permitir un segundo retiro.
-      const repeatedQrResult =
-  await confirmAdapter.confirm(qrInput);
-
-assert.equal(repeatedQrResult.status, 'COMPLETED');
-assert.deepEqual(
-  repeatedQrResult.pickedUpAt,
-  completedQrOrder.pickedUpAt
-);
+      const repeatedQrResult = await confirmAdapter.confirm({
+        ...qrInput,
+        employeeUserId: 'another-employee',
+        now: new Date(now.getTime() + 60_000),
+      });
+      assert.equal(repeatedQrResult.status, 'COMPLETED');
+      assert.equal(repeatedQrResult.alreadyPickedUp, true);
+      assert.deepEqual(repeatedQrResult.pickedUpAt, completedQrOrder.pickedUpAt);
+      assert.deepEqual(await prisma.order.findUniqueOrThrow({ where: { id: qrOrder.id } }), completedQrOrder);
+      assert.deepEqual(await prisma.pickupToken.findUniqueOrThrow({ where: { tokenHash: secondHash } }), usedQr);
       assert.equal(
         await prisma.stockMovement.count({
           where: {
@@ -325,6 +328,21 @@ assert.deepEqual(
       const failedHash = createHash('sha256')
         .update(failedQr.token)
         .digest('hex');
+
+      await assert.rejects(
+        () => confirmAdapter.confirm({
+          ...qrInput,
+          credential: { type: 'QR', token: failedQr.token },
+        }),
+        /INVALID_OR_EXPIRED_PICKUP_TOKEN/
+      );
+      await assert.rejects(
+        () => confirmAdapter.confirm({
+          ...qrInput,
+          orderId: failedOrder.id,
+        }),
+        /INVALID_OR_EXPIRED_PICKUP_TOKEN/
+      );
 
       await assert.rejects(
         () =>
@@ -514,6 +532,7 @@ assert.deepEqual(
         await confirmAdapter.confirm(manualInput);
 
       assert.equal(manualResult.status, 'COMPLETED');
+      assert.equal(manualResult.alreadyPickedUp, false);
 
       const completedManual =
         await prisma.order.findUniqueOrThrow({
@@ -539,14 +558,18 @@ assert.deepEqual(
       );
 
       // No se puede entregar dos veces.
-      const repeatedManualResult =
-  await confirmAdapter.confirm(manualInput);
-
-    assert.equal(repeatedManualResult.status, 'COMPLETED');
-    assert.deepEqual(
-    repeatedManualResult.pickedUpAt,
-    completedManual.pickedUpAt
-    );
+      const repeatedManualResult = await confirmAdapter.confirm({
+        ...manualInput,
+        employeeUserId: 'another-employee',
+        now: new Date(now.getTime() + 60_000),
+      });
+      assert.equal(repeatedManualResult.status, 'COMPLETED');
+      assert.equal(repeatedManualResult.alreadyPickedUp, true);
+      assert.deepEqual(repeatedManualResult.pickedUpAt, completedManual.pickedUpAt);
+      assert.deepEqual(await prisma.order.findUniqueOrThrow({ where: { id: manualOrder.id } }), completedManual);
+      assert.equal(await prisma.stockMovement.count({
+        where: { referenceId: manualOrder.id, type: 'ORDER_FULFILLED' },
+      }), 1);
 
       // El pedido completado ya no se busca por código.
       await assert.rejects(
