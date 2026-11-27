@@ -778,3 +778,123 @@ Se verificó:
 ### T08 — Check agregado de PR y políticas de infraestructura
 
 Codex propuso reutilizar las suites de API y web en un workflow de PR sin filtros de rutas a nivel de evento. Se verificó localmente la selección de suites y el resultado agregado con 27 casos. La revisión humana, la ejecución en GitHub y la activación de protecciones están pendientes. El [documento de infraestructura T08](docs/architecture/T08-INFRAESTRUCTURA-CI-CD.md) registra la decisión, la evidencia anterior de frontend y los pendientes de autenticación, npm audit y fuentes.
+
+---
+
+
+### 2026-11-26 — Pagos: iniciar el checkout en Mercado Pago sandbox
+
+**TDD / Issue:** MVP-06 — Iniciar el pago en el sandbox  
+**Autor humano:** Flores Lautaro  
+**Herramienta/modelo:** Claude (Anthropic) — Claude Opus 5.5  
+**Prompt / instrucción utilizada:** Dudas en el endpoint para iniciar el pago según el contrato de MVP-05, reutilizando el módulo de pagos existente.
+
+#### Problema
+
+El módulo de pagos tenía la lógica interna (crear el pago de forma idempotente, aplicar resultados, compensar pagos tardíos), pero no estaba conectado a ningún proveedor real ni expuesto por HTTP (brecha B1 de T03). Un pedido quedaba en RESERVADO sin forma de pagarlo.
+
+#### Contexto dado a la IA
+
+- contrato de checkout de MVP-05;
+- auditoría transaccional de T03;
+- módulo `payment` existente y sus pruebas.
+
+#### Propuesta de la IA
+
+- Adaptador de Mercado Pago (Checkout Pro, API de Preferences) detrás de la interfaz `PaymentPort` ya existente: crea una preferencia con el total del pedido, vencimiento igual a la reserva y el id del pago como referencia externa.
+- Proveedor simulado (`PAYMENT_PROVIDER=fake`) para desarrollar la web sin Mercado Pago; queda bloqueado si `NODE_ENV=production`.
+- Endpoint `POST /api/v1/orders/:orderId/payment`, solo para el cliente dueño del pedido. Repetir la solicitud devuelve el mismo pago y el mismo link.
+- Se guardan la preferencia y el link en dos columnas nuevas de `Payment` (`providerPreferenceId`, `checkoutUrl`). `providerPaymentId` queda para el id del pago real, que se conoce recién cuando el cliente paga (MVP-07).
+
+#### Validación humana
+
+Se verificó:
+
+- 366 tests aprobados, incluidas pruebas del adaptador con respuestas simuladas de Mercado Pago (éxito, error, sin respuesta) y del repositorio contra PostgreSQL;
+- prueba manual: creación de un pedido y apertura del checkout del sandbox con la cuenta de prueba de comprador.
+
+#### Correcciones o cambios hechos por el equipo
+
+- Se eligió la API de Preferences en lugar de la nueva API de Orders: Mercado Pago mantiene su soporte y cubre todo lo necesario (vencimiento del link, consulta del pago, avisos y reembolsos). Cambiar de API implicaría modificar solo el adaptador.
+- Se excluyen los pagos en efectivo: se acreditan después de los 5 minutos de reserva.
+- En local no se pide webhook ni vuelta automática, porque Mercado Pago solo acepta URLs públicas; el estado se resuelve al consultar el pago (MVP-07).
+- En la prueba manual, el link del sandbox fallaba al iniciar sesión con la cuenta de prueba, y pagar sin cuenta da error porque el comprador no es de prueba. Funcionó el checkout normal (`MERCADOPAGO_SANDBOX=false`) iniciando sesión con la cuenta de prueba de comprador y pagando con tarjeta de prueba.
+
+---
+
+### 2026-11-26 — Pagos: confirmar el pedido con el resultado del proveedor
+
+**TDD / Issue:** MVP-07 — Recibir el resultado y confirmar el pedido una sola vez  
+**Autor humano:** Flores Lautaro  
+**Herramienta/modelo:** Claude (Anthropic) — Claude Opus 5.5  
+**Prompt / instrucción utilizada:** Implementar la consulta del estado del pago y el aviso de Mercado Pago según el contrato de MVP-05, con confirmación idempotente.
+
+#### Problema
+
+Después de MVP-06 el cliente podía pagar en Mercado Pago, pero nuestro sistema no se enteraba: el pedido quedaba en RESERVADO aunque el pago estuviera aprobado.
+
+#### Contexto dado a la IA
+
+- contrato de checkout de MVP-05;
+- módulo `payment` existente, en especial `ProcessPaymentResultUseCase` y la transacción que confirma el pedido o libera el stock;
+- prueba manual de MVP-06 con las cuentas de prueba.
+
+#### Propuesta de la IA
+
+- `GET /api/v1/orders/:orderId/payment`: si el pago sigue pendiente, consulta a Mercado Pago por la referencia externa (el id de nuestro pago), aplica el resultado y responde el estado para la pantalla (`checkoutState`).
+- `POST /api/v1/payments/webhooks/mercadopago`: público. Valida la firma del aviso (HMAC SHA-256 con la clave del webhook) y consulta el pago real a Mercado Pago; nunca confía en el contenido del aviso.
+- Se guarda el id del pago real de Mercado Pago (`providerPaymentId`), necesario para reembolsar pagos tardíos en MVP-08.
+
+#### Validación humana
+
+Se verificó:
+
+- 397 tests aprobados, incluida una prueba contra PostgreSQL con tres avisos y una consulta simultáneos (el pedido se confirma una sola vez) y dos consultas simultáneas de un rechazo (el stock se libera una sola vez);
+- prueba manual completa con la API local: pedido, pago con la cuenta de prueba de comprador y confirmación del pedido al consultar el estado.
+
+#### Correcciones o cambios hechos por el equipo
+
+- Un aviso de rechazo no cancela el pedido: en Checkout Pro el cliente puede reintentar con otra tarjeta. El rechazo se aplica cuando el cliente vuelve a la web; si no vuelve, la reserva vence sola (MVP-08).
+- Se agregó el estado `CANCELLED` al contrato para pedidos cancelados por el cliente antes de pagar.
+- Si no está configurada la clave del webhook, el aviso se procesa igual: el resultado siempre se consulta a Mercado Pago con nuestro token, así que un aviso falso no puede confirmar un pedido.
+- El webhook no se puede probar en local (Mercado Pago necesita una URL pública); se prueba con la API desplegada en MVP-17.
+
+---
+
+### 2026-11-26 — Pagos: vencimiento de reservas y reembolso de pagos tardíos
+
+**TDD / Issue:** MVP-08 — Rechazo, vencimiento a los 5 minutos y pagos tardíos  
+**Autor humano:** Flores Lautaro  
+**Herramienta/modelo:** Claude (Anthropic) — Claude Opus 5.5  
+**Prompt / instrucción utilizada:** Llevar la reserva a 5 minutos, vencer automáticamente las reservas sin pagar y reembolsar en el sandbox los pagos aprobados después del vencimiento.
+
+#### Problema
+
+La auditoría de T03 marcó tres brechas: la reserva duraba 15 minutos en lugar de 5 (B3), nadie liberaba las reservas vencidas (B4) y la compensación de pagos tardíos existía pero no estaba conectada a ningún proveedor.
+
+#### Contexto dado a la IA
+
+- auditoría transaccional de T03;
+- `ReleaseExpiredReservationsUseCase` y `expireOrder` (vencimiento atómico con liberación de stock);
+- `ProcessLatePaymentCompensationUseCase` y su repositorio;
+- integración con Mercado Pago de MVP-06 y MVP-07.
+
+#### Propuesta de la IA
+
+- Reserva de 5 minutos (`RESERVATION_MINUTES`), que también es el vencimiento del link de pago.
+- Proceso automático cada 30 segundos dentro del servidor, igual al de habilitación de retiros: vence las reservas sin pagar (pedido EXPIRED, stock liberado) y revisa en Mercado Pago los pagos de pedidos vencidos en los últimos 30 minutos.
+- Si un pago se aprobó después del vencimiento, no confirma el pedido: se reembolsa en Mercado Pago (`POST /v1/payments/:id/refunds`) y el pago queda REFUNDED. Funciona aunque no llegue el aviso, porque el proceso consulta el pago.
+- El reembolso usa una clave de idempotencia (`refund-<id del pago>`): reintentarlo nunca devuelve el dinero dos veces.
+- Un pedido con problemas al vencer no frena el vencimiento de los demás.
+
+#### Validación humana
+
+Se verificó:
+
+- 411 tests aprobados, incluida una prueba contra PostgreSQL: dos pedidos vencidos, uno pagado tarde; el proceso corre dos veces, el stock se libera y el pago tardío se reembolsa una sola vez;
+- prueba manual con la API local: un pedido sin pagar pasa a EXPIRED a los 5 minutos y la API informa el stock liberado.
+
+#### Correcciones o cambios hechos por el equipo
+
+- La compensación existente no reintentaba nunca un reembolso que había fallado (quedaba PENDIENTE para siempre). Ahora, si quedó pendiente más de un minuto, se reintenta; mientras es reciente se respeta, por si otro proceso lo está haciendo.
+- El proceso corre dentro del servidor: la API desplegada tiene que quedar siempre encendida durante la demo (se coordina con MVP-01).

@@ -20,6 +20,11 @@ export interface PaymentRepository {
     providerPaymentId: string,
   ): Promise<Payment>;
 
+  saveCheckout(
+    id: string,
+    checkout: { providerPreferenceId: string; checkoutUrl: string },
+  ): Promise<Payment>;
+
   transitionStatus(
     id: string,
     expectedStatus: PaymentStatus,

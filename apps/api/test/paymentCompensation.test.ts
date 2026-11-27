@@ -224,3 +224,57 @@ test('no reembolsa otra vez si la compensación está pendiente', async () => {
   assert.equal(refundCalls, 0);
 });
 
+
+test('reintenta el reembolso si la compensación quedó trabada por un error del proveedor', async () => {
+  const now = new Date('2026-11-27T15:00:00.000Z');
+  let refundCalls = 0;
+  let pendingSince = new Date(now.getTime() - 10_000);
+
+  const paymentRepository = {
+    findById: async () => ({
+      id: 'payment-5',
+      orderId: 'order-5',
+      providerPaymentId: 'provider-5',
+      amountCents: 2500,
+      status: 'PENDING',
+    }),
+  } as unknown as Dependencies[0];
+
+  const orderRepository = {
+    findById: async () => ({ id: 'order-5', status: 'EXPIRED' }),
+  } as unknown as Dependencies[1];
+
+  const compensationRepository = {
+    tryCreatePending: async () => false,
+    findByPaymentId: async () => ({
+      status: 'PENDING' as const,
+      providerRefundId: null,
+      updatedAt: pendingSince,
+    }),
+    markCompleted: async () => ({ status: 'COMPLETED' as const }),
+  };
+
+  const refundPort = {
+    refundPayment: async () => {
+      refundCalls++;
+      return { providerRefundId: 'refund-5' };
+    },
+  };
+
+  const useCase = new ProcessLatePaymentCompensationUseCase(
+    paymentRepository,
+    orderRepository,
+    compensationRepository,
+    refundPort,
+    () => now,
+  );
+
+  // Recién creada: otro proceso puede estar reembolsando, no se repite.
+  await assert.rejects(useCase.execute('payment-5'), /COMPENSATION_ALREADY_EXISTS/);
+  assert.equal(refundCalls, 0);
+
+  // Pendiente hace más de un minuto: quedó trabada, se reintenta.
+  pendingSince = new Date(now.getTime() - 2 * 60_000);
+  await useCase.execute('payment-5');
+  assert.equal(refundCalls, 1);
+});
