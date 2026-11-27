@@ -127,7 +127,7 @@ function defaultDependencies(): AppDependencies {
     orderModule,
     kitchenModule,
     pickupModule,
-    paymentModule: createPaymentModule(),
+    paymentModule: createPaymentModule(orderId => orderModule.orderRepository.findById(orderId)),
   };
 }
 

@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {
   MercadoPagoPaymentPort,
   toMercadoPagoDate,
+  toProviderStatus,
   type MercadoPagoConfig,
 } from '../../../src/modules/payment/infrastructure/mercadoPagoPaymentPort';
 import { createPaymentPort } from '../../../src/modules/payment/infrastructure/paymentModule';
@@ -150,4 +151,88 @@ test('proveedor: el simulador nunca funciona en producción', async () => {
 
   assert.ok(!(production instanceof FakeCheckoutPaymentPort));
   await assert.rejects(production.createPaymentIntent(INPUT), hasCode('PAYMENT_PROVIDER_ERROR'));
+});
+
+const mpPayment = (overrides: Record<string, unknown> = {}) => ({
+  id: 1234567890,
+  status: 'approved',
+  external_reference: 'pay-1',
+  transaction_amount: 2300.5,
+  ...overrides,
+});
+
+test('mercado pago: traduce los estados del proveedor', () => {
+  assert.equal(toProviderStatus('approved'), 'APPROVED');
+  assert.equal(toProviderStatus('rejected'), 'REJECTED');
+  assert.equal(toProviderStatus('cancelled'), 'REJECTED');
+  for (const status of ['pending', 'in_process', 'authorized', undefined]) {
+    assert.equal(toProviderStatus(status), 'PENDING');
+  }
+});
+
+test('mercado pago: consulta un pago por id', async () => {
+  const { adapter, calls } = port(new Response(JSON.stringify(mpPayment()), { status: 200 }));
+
+  const payment = await adapter.getPayment('1234567890');
+
+  assert.equal(calls[0].url, 'https://api.mercadopago.com/v1/payments/1234567890');
+  assert.equal((calls[0].init.headers as Record<string, string>).Authorization, 'Bearer TEST-token');
+  assert.deepEqual(payment, {
+    providerPaymentId: '1234567890',
+    externalReference: 'pay-1',
+    status: 'APPROVED',
+    amountCents: 230050,
+  });
+});
+
+test('mercado pago: un pago inexistente devuelve null', async () => {
+  const { adapter } = port(new Response('{}', { status: 404 }));
+
+  assert.equal(await adapter.getPayment('nope'), null);
+});
+
+test('mercado pago: busca el pago por referencia y prioriza el intento aprobado', async () => {
+  const results = [
+    mpPayment({ id: 3, status: 'rejected' }),
+    mpPayment({ id: 2, status: 'approved' }),
+    mpPayment({ id: 9, external_reference: 'otro-pago' }),
+  ];
+  const { adapter, calls } = port(new Response(JSON.stringify({ results }), { status: 200 }));
+
+  const payment = await adapter.findPaymentByReference({ id: 'pay-1' });
+
+  const url = new URL(calls[0].url);
+  assert.equal(url.pathname, '/v1/payments/search');
+  assert.equal(url.searchParams.get('external_reference'), 'pay-1');
+  assert.equal(payment?.providerPaymentId, '2');
+  assert.equal(payment?.status, 'APPROVED');
+});
+
+test('mercado pago: sin intentos de pago devuelve null', async () => {
+  const { adapter } = port(new Response(JSON.stringify({ results: [] }), { status: 200 }));
+
+  assert.equal(await adapter.findPaymentByReference({ id: 'pay-1' }), null);
+});
+
+test('mercado pago: si la consulta falla, informa PAYMENT_PROVIDER_ERROR', async () => {
+  const originalError = console.error;
+  console.error = () => {};
+
+  try {
+    await assert.rejects(port(new Response('{}', { status: 500 })).adapter.getPayment('1'), hasCode('PAYMENT_PROVIDER_ERROR'));
+    await assert.rejects(port(new Error('timeout')).adapter.findPaymentByReference({ id: 'pay-1' }), hasCode('PAYMENT_PROVIDER_ERROR'));
+  } finally {
+    console.error = originalError;
+  }
+});
+
+test('proveedor: el simulador aprueba el pago al consultarlo y no envía avisos', async () => {
+  const fake = new FakeCheckoutPaymentPort('http://localhost:3000');
+
+  const payment = await fake.findPaymentByReference({ id: 'pay-1', amountCents: 500 });
+
+  assert.equal(payment.status, 'APPROVED');
+  assert.equal(payment.externalReference, 'pay-1');
+  assert.equal(payment.amountCents, 500);
+  assert.equal(await fake.getPayment(), null);
 });

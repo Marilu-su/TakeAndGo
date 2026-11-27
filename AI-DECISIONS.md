@@ -815,3 +815,42 @@ Se verificó:
 - Se excluyen los pagos en efectivo: se acreditan después de los 5 minutos de reserva.
 - En local no se pide webhook ni vuelta automática, porque Mercado Pago solo acepta URLs públicas; el estado se resuelve al consultar el pago (MVP-07).
 - En la prueba manual, el link del sandbox fallaba al iniciar sesión con la cuenta de prueba, y pagar sin cuenta da error porque el comprador no es de prueba. Funcionó el checkout normal (`MERCADOPAGO_SANDBOX=false`) iniciando sesión con la cuenta de prueba de comprador y pagando con tarjeta de prueba.
+
+---
+
+### 2026-11-26 — Pagos: confirmar el pedido con el resultado del proveedor
+
+**TDD / Issue:** MVP-07 — Recibir el resultado y confirmar el pedido una sola vez  
+**Autor humano:** Flores Lautaro  
+**Herramienta/modelo:** Claude (Anthropic) — Claude Opus 5.5  
+**Prompt / instrucción utilizada:** Implementar la consulta del estado del pago y el aviso de Mercado Pago según el contrato de MVP-05, con confirmación idempotente.
+
+#### Problema
+
+Después de MVP-06 el cliente podía pagar en Mercado Pago, pero nuestro sistema no se enteraba: el pedido quedaba en RESERVADO aunque el pago estuviera aprobado.
+
+#### Contexto dado a la IA
+
+- contrato de checkout de MVP-05;
+- módulo `payment` existente, en especial `ProcessPaymentResultUseCase` y la transacción que confirma el pedido o libera el stock;
+- prueba manual de MVP-06 con las cuentas de prueba.
+
+#### Propuesta de la IA
+
+- `GET /api/v1/orders/:orderId/payment`: si el pago sigue pendiente, consulta a Mercado Pago por la referencia externa (el id de nuestro pago), aplica el resultado y responde el estado para la pantalla (`checkoutState`).
+- `POST /api/v1/payments/webhooks/mercadopago`: público. Valida la firma del aviso (HMAC SHA-256 con la clave del webhook) y consulta el pago real a Mercado Pago; nunca confía en el contenido del aviso.
+- Se guarda el id del pago real de Mercado Pago (`providerPaymentId`), necesario para reembolsar pagos tardíos en MVP-08.
+
+#### Validación humana
+
+Se verificó:
+
+- 397 tests aprobados, incluida una prueba contra PostgreSQL con tres avisos y una consulta simultáneos (el pedido se confirma una sola vez) y dos consultas simultáneas de un rechazo (el stock se libera una sola vez);
+- prueba manual completa con la API local: pedido, pago con la cuenta de prueba de comprador y confirmación del pedido al consultar el estado.
+
+#### Correcciones o cambios hechos por el equipo
+
+- Un aviso de rechazo no cancela el pedido: en Checkout Pro el cliente puede reintentar con otra tarjeta. El rechazo se aplica cuando el cliente vuelve a la web; si no vuelve, la reserva vence sola (MVP-08).
+- Se agregó el estado `CANCELLED` al contrato para pedidos cancelados por el cliente antes de pagar.
+- Si no está configurada la clave del webhook, el aviso se procesa igual: el resultado siempre se consulta a Mercado Pago con nuestro token, así que un aviso falso no puede confirmar un pedido.
+- El webhook no se puede probar en local (Mercado Pago necesita una URL pública); se prueba con la API desplegada en MVP-17.
