@@ -38,6 +38,24 @@ export class PrismaStoreRepository implements StoreRepositoryPort {
         return record ? toDomain(record) : null;
     }
 
+    async findPickupScheduleByCode(code: StoreCode) {
+        return this.prisma.store.findUnique({
+            where: { code },
+            select: {
+                id: true,
+                status: true,
+                pickupSchedule: {
+                    select: {
+                        timeZone: true,
+                        opensAtMinute: true,
+                        digitalClosesAtMinute: true,
+                        operationalClosesAtMinute: true,
+                    },
+                },
+            },
+        });
+    }
+
     async findByCode(code: StoreCode): Promise<Store | null> {
     const record = await this.prisma.store.findUnique({
         where: { code },

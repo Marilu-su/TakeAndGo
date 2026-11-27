@@ -160,7 +160,7 @@ test('devuelve 409 si la tolerancia llega al cierre operativo o lo supera', asyn
 test('devuelve 409 antes de abrir, al cierre digital y sin horario habilitado', async () => {
   for (const options of [
     { instant: '2026-11-27T07:59:00-03:00' },
-    { instant: '2026-11-27T21:00:00-03:00' },
+    { instant: '2026-11-27T21:30:00-03:00' },
     { storeId: 'other' },
   ]) {
     const { app, body, writes } = fixture(options);
