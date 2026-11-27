@@ -25,7 +25,7 @@ const order = (overrides = {}) => ({
   ...overrides,
 });
 
-function mockApi(t, handle) {
+function mockApi(t, handle, getStore = () => 'demo') {
   const previous = process.env.NEXT_PUBLIC_API_URL;
   process.env.NEXT_PUBLIC_API_URL = 'http://api.example.test';
   t.after(() => {
@@ -36,14 +36,18 @@ function mockApi(t, handle) {
     if (url === '/api/auth/token') return Response.json({ token: 'jwt-prueba' });
     assert.equal(options.headers.get('Authorization'), 'Bearer jwt-prueba');
     const path = new URL(url).pathname;
-    if (path === '/api/v1/me') return Response.json({ userId: 'empleado', role: 'STORE_EMPLOYEE', storeId: 'demo' });
+    if (path === '/api/v1/me') return Response.json({ userId: 'empleado', role: 'STORE_EMPLOYEE', storeId: getStore() });
     return handle(path, options);
   });
 }
 
+function staffSession(key = 'demo') {
+  return createElement(AppRouterContext.Provider, { value: router },
+    createElement(SessionShell, { key, staff: true }, createElement(KitchenQueue)));
+}
+
 function renderQueue() {
-  return render(createElement(AppRouterContext.Provider, { value: router },
-    createElement(SessionShell, { staff: true }, createElement(KitchenQueue))));
+  return render(staffSession());
 }
 
 test('cocina DOM: muestra confirmado, productos, adicionales y horario de Buenos Aires', async t => {
@@ -152,4 +156,138 @@ test('cocina DOM: un preparado con ventana pasada o sin ventana no promete activ
   }
   assert.ok(first.getByText('Inicio de la ventana prometida: 12:45'));
   assert.equal(second.queryByText(/ventana prometida/), null);
+});
+
+const lookupPath = '/api/v1/stores/demo/pickup/by-code';
+const confirmPath = '/api/v1/stores/demo/pickup/orders/retirar/confirm';
+const code = 'TEST00000001';
+const qr = { orderId: 'retirar', token: 'qr-prueba' };
+const inputLabel = 'QR o código de retiro';
+
+function enterCredential(view, credential) {
+  const field = view.getByLabelText(inputLabel);
+  fireEvent.change(field, { target: { value: credential } });
+  return field;
+}
+
+test('retiro DOM: el QR confirma una primera entrega y distingue la repetición', async t => {
+  let attempts = 0;
+  mockApi(t, (path, options) => {
+    if (path === queuePath) return Response.json([order()]);
+    assert.equal(path, confirmPath);
+    assert.equal(options.method, 'POST');
+    assert.deepEqual(JSON.parse(options.body), { credential: { type: 'QR', token: qr.token } });
+    return Response.json({ alreadyPickedUp: ++attempts === 2 });
+  });
+  const view = renderQueue();
+  await view.findByRole('button', { name: 'Iniciar preparación' });
+  const field = enterCredential(view, JSON.stringify(qr));
+  fireEvent.submit(field.closest('form'));
+  const success = await view.findByText('Retiro confirmado.');
+  assert.ok(success.classList.contains('success'));
+  assert.equal(field.value, '');
+  fireEvent.submit(enterCredential(view, JSON.stringify(qr)).closest('form'));
+  const warning = await view.findByText('Pedido ya retirado. No entregar nuevamente.');
+  assert.equal(warning.getAttribute('role'), 'alert');
+  assert.equal(warning.classList.contains('success'), false);
+  assert.equal(view.queryByText('Retiro confirmado.'), null);
+  assert.equal(field.value, '');
+  assert.equal(field.disabled, false);
+  await view.findByRole('button', { name: 'Iniciar preparación' });
+  assert.equal(attempts, 2);
+});
+
+test('retiro DOM: bloquea el doble envío manual durante la búsqueda y la confirmación', async t => {
+  let finishLookup;
+  let finishConfirmation;
+  const requests = [];
+  mockApi(t, (path, options) => {
+    if (path === queuePath) return Response.json([]);
+    requests.push([path, options.method, JSON.parse(options.body)]);
+    if (path === lookupPath) return new Promise(resolve => { finishLookup = resolve; });
+    assert.equal(path, confirmPath);
+    return new Promise(resolve => { finishConfirmation = resolve; });
+  });
+  const view = renderQueue();
+  await view.findByText('No hay pedidos pendientes de preparación.');
+  const field = enterCredential(view, code);
+  const form = field.closest('form');
+  await act(async () => { fireEvent.submit(form); fireEvent.submit(form); });
+  assert.deepEqual(requests, [[lookupPath, 'POST', { code }]]);
+  assert.equal(field.disabled, true);
+  assert.equal(view.getByRole('button', { name: 'Validando…' }).disabled, true);
+  await act(async () => finishLookup(Response.json({ orderId: qr.orderId })));
+  assert.equal(field.disabled, true);
+  await act(async () => fireEvent.submit(form));
+  assert.deepEqual(requests, [
+    [lookupPath, 'POST', { code }],
+    [confirmPath, 'POST', { credential: { type: 'MANUAL', code } }],
+  ]);
+  await act(async () => finishConfirmation(Response.json({ alreadyPickedUp: false })));
+  assert.ok(view.getByText('Retiro confirmado.'));
+  assert.equal(field.disabled, false);
+});
+
+test('retiro DOM: conserva la credencial ante resultado incierto o error y permite reintentar', async t => {
+  const responses = [
+    Response.json({ status: 'COMPLETED' }),
+    Response.json({ alreadyPickedUp: 'false' }),
+    Response.json({ error: 'La credencial de retiro es inválida o venció' }, { status: 422 }),
+    Response.json({ error: 'No tenés permisos para operar en este buffet' }, { status: 403 }),
+    Response.json({ alreadyPickedUp: false }),
+  ];
+  mockApi(t, path => {
+    if (path === queuePath) return Response.json([order()]);
+    if (path.endsWith('/kitchen/orders/o1/start')) return Response.json({ error: 'Error de preparación' }, { status: 409 });
+    assert.equal(path, confirmPath);
+    assert.ok(responses.length);
+    return responses.shift();
+  });
+  const view = renderQueue();
+  fireEvent.click(await view.findByRole('button', { name: 'Iniciar preparación' }));
+  assert.ok((await view.findByText('Error de preparación')).closest('article'));
+  const value = JSON.stringify(qr);
+  const field = enterCredential(view, value);
+  for (const message of [
+    /No se pudo verificar el resultado del retiro/,
+    /No se pudo verificar el resultado del retiro/,
+    'La credencial de retiro es inválida o venció',
+    'No tenés permisos para operar en este buffet',
+  ]) {
+    await act(async () => fireEvent.submit(field.closest('form')));
+    assert.ok(view.getByText(message).closest('form'));
+    assert.equal(view.queryByText('Retiro confirmado.'), null);
+    assert.equal(field.value, value);
+    assert.equal(field.disabled, false);
+  }
+  fireEvent.submit(field.closest('form'));
+  await view.findByText('Retiro confirmado.');
+  assert.equal(responses.length, 0);
+  assert.ok((await view.findByText('Error de preparación')).closest('article'));
+});
+
+test('retiro DOM: cambiar de buffet descarta una búsqueda manual pendiente', async t => {
+  let store = 'demo';
+  let finishLookup;
+  const requests = [];
+  mockApi(t, path => {
+    requests.push(path);
+    if (path === queuePath) return Response.json([]);
+    if (path === '/api/v1/stores/otro/kitchen/orders') return Response.json([order({ orderNumber: 2 })]);
+    assert.equal(path, lookupPath);
+    return new Promise(resolve => { finishLookup = resolve; });
+  }, () => store);
+  const view = renderQueue();
+  await view.findByText('No hay pedidos pendientes de preparación.');
+  const field = enterCredential(view, code);
+  await act(async () => fireEvent.submit(field.closest('form')));
+  assert.equal(field.disabled, true);
+  store = 'otro';
+  view.rerender(staffSession(store));
+  await view.findByRole('heading', { name: 'Pedido 2' });
+  await act(async () => finishLookup(Response.json({ orderId: qr.orderId })));
+  assert.deepEqual(requests, [queuePath, lookupPath, '/api/v1/stores/otro/kitchen/orders']);
+  assert.equal(view.getByLabelText(inputLabel).value, '');
+  assert.equal(view.getByLabelText(inputLabel).disabled, false);
+  assert.equal(view.queryByText('Retiro confirmado.'), null);
 });
