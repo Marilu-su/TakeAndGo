@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { useActor } from '@/components/session-shell';
 import { useResource } from '@/lib/use-resource';
 import { sessionRequest } from '@/lib/session';
@@ -22,7 +22,7 @@ export function KitchenQueue() {
   const [pickupError, setPickupError] = useState('');
   const [pickupMessage, setPickupMessage] = useState('');
   const [pickupBusy, setPickupBusy] = useState(false);
-  const refresh = useCallback(() => resource.reload(), [resource.reload]);
+  const refresh = resource.reload;
 
   async function transition(order: KitchenOrder, action: 'start' | 'finish') {
     try {

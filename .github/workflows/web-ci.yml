@@ -1,0 +1,56 @@
+name: Web CI
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Lint, tipos, pruebas y build
+    runs-on: ubuntu-latest
+
+    env:
+      NEXT_PUBLIC_API_URL: http://127.0.0.1:3001
+      NEON_AUTH_BASE_URL: https://auth.example.invalid/neondb/auth
+      NEON_AUTH_COOKIE_SECRET: ci-placeholder-secret-not-for-production
+      NEXT_TELEMETRY_DISABLED: "1"
+
+    defaults:
+      run:
+        working-directory: apps/web
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Configurar npm
+        run: npm install --global "$(node -p "require('./package.json').packageManager")"
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Verificar ESLint
+        run: npm run lint -- --max-warnings 0
+
+      - name: Generar tipos de Next.js
+        run: npm exec -- next typegen
+
+      - name: Verificar tipos
+        run: npm run typecheck
+
+      - name: Ejecutar tests
+        run: npm test
+
+      - name: Compilar frontend
+        run: npm run build

@@ -1,0 +1,61 @@
+name: PR CI
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    name: Detectar cambios
+    runs-on: ubuntu-latest
+    outputs:
+      api: ${{ steps.paths.outputs.api }}
+      web: ${{ steps.paths.outputs.web }}
+    steps:
+      - name: Descargar resultado del merge del PR
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+
+      - name: Verificar la lógica del check
+        run: node --test .github/ci/pr-check.test.mjs
+
+      - name: Seleccionar suites
+        id: paths
+        run: node .github/ci/pr-check.mjs select
+
+  api:
+    if: needs.changes.outputs.api == 'true'
+    needs: changes
+    uses: ./.github/workflows/api-ci.yml
+
+  web:
+    if: needs.changes.outputs.web == 'true'
+    needs: changes
+    uses: ./.github/workflows/web-ci.yml
+
+  required:
+    name: PR checks
+    if: ${{ always() }}
+    needs: [changes, api, web]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Comprobar los resultados de las suites
+        env:
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          API_SELECTED: ${{ needs.changes.outputs.api }}
+          API_RESULT: ${{ needs.api.result }}
+          WEB_SELECTED: ${{ needs.changes.outputs.web }}
+          WEB_RESULT: ${{ needs.web.result }}
+        run: node .github/ci/pr-check.mjs gate
