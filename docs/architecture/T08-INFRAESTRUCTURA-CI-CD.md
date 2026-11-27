@@ -96,6 +96,7 @@ Las pruebas de selección cubren PR solo API, solo frontend, mixtos, documentale
 ### Seed, acceso y roles
 
 - **Seed repetido.** El equipo aplicó las migraciones de `develop` (`ec30ed82fda57cc81d7008b79868e559b6bb0ea7`) en PostgreSQL 16 descartable y ejecutó `db:seed` dos veces sobre la misma base, más una tercera ejecución de confirmación. Las tres terminaron sin errores y dejaron 1 organización, 1 buffet, 3 categorías, 3 productos y 2 adicionales.
+- **Réplica local del seed.** Con el código de `ec6315f`, se aplicaron las 20 migraciones sobre una base vacía en PostgreSQL 18.7 local. Se ejecutó `npm run db:seed` dos veces consecutivas en esa misma base. Una consulta SQL después de cada ejecución confirmó los mismos conteos: 1 organización, 1 buffet, 3 categorías, 3 productos y 2 adicionales.
 - **Acceso y roles.** El equipo verificó 19 de 19 casos con API local de `develop` y cuentas de prueba en Neon Auth de desarrollo. Los casos de otro buffet u organización usaron IDs inexistentes. Los resultados cubren las comprobaciones de la tabla siguiente. El recorrido de alta, perfil CUSTOMER, asociación al buffet SIS001, pedido y pago en sandbox se verificó con cuenta real en MVP-07.
 
 | Casos | Resultado observado |
