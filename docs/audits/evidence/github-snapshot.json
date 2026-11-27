@@ -1,0 +1,654 @@
+{
+  "date": "2026-11-12",
+  "repository": "Marilu-su/TakeAndGo",
+  "rulesets": [
+    {
+      "id": 23904079,
+      "name": "Protección main y develop",
+      "target": "branch",
+      "source_type": "Repository",
+      "source": "Marilu-su/TakeAndGo",
+      "enforcement": "disabled",
+      "node_id": "RRS_lACqUmVwb3NpdG9yec5SfKN4zgFsv08",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/Marilu-su/TakeAndGo/rulesets/23904079"
+        },
+        "html": {
+          "href": "https://github.com/Marilu-su/TakeAndGo/rules/23904079"
+        }
+      },
+      "created_at": "2026-09-23T18:40:46.429-03:00",
+      "updated_at": "2026-09-23T18:40:46.454-03:00"
+    }
+  ],
+  "rulesetDetail": {
+    "id": 23904079,
+    "name": "Protección main y develop",
+    "target": "branch",
+    "source_type": "Repository",
+    "source": "Marilu-su/TakeAndGo",
+    "enforcement": "disabled",
+    "conditions": {
+      "ref_name": {
+        "exclude": [],
+        "include": [
+          "refs/heads/main",
+          "refs/heads/develop"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "type": "deletion"
+      },
+      {
+        "type": "non_fast_forward"
+      },
+      {
+        "type": "required_signatures"
+      }
+    ],
+    "node_id": "RRS_lACqUmVwb3NpdG9yec5SfKN4zgFsv08",
+    "created_at": "2026-09-23T18:40:46.429-03:00",
+    "updated_at": "2026-09-23T18:40:46.454-03:00",
+    "bypass_actors": [],
+    "current_user_can_bypass": "never",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/Marilu-su/TakeAndGo/rulesets/23904079"
+      },
+      "html": {
+        "href": "https://github.com/Marilu-su/TakeAndGo/rules/23904079"
+      }
+    }
+  },
+  "branches": [
+    {
+      "name": "chore/C2-23-api-ci",
+      "commit": {
+        "sha": "824025e7925a8df398a0f5b9078e9afc43575a00",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/824025e7925a8df398a0f5b9078e9afc43575a00"
+      },
+      "protected": false
+    },
+    {
+      "name": "chore/CHK1-vercel-deploy",
+      "commit": {
+        "sha": "aab1df6acc4ba3cbdea4d7cd000a9b2771e7346c",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/aab1df6acc4ba3cbdea4d7cd000a9b2771e7346c"
+      },
+      "protected": false
+    },
+    {
+      "name": "develop",
+      "commit": {
+        "sha": "54b84064dc393477ec197c202a5ebd8a48b56aa8",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/54b84064dc393477ec197c202a5ebd8a48b56aa8"
+      },
+      "protected": false
+    },
+    {
+      "name": "docs/C2-21-adr-autenticacion",
+      "commit": {
+        "sha": "53159ca72c200e3f89a861c44050bbce0e193b66",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/53159ca72c200e3f89a861c44050bbce0e193b66"
+      },
+      "protected": false
+    },
+    {
+      "name": "docs/CHK1-ai-decisions",
+      "commit": {
+        "sha": "5dc7ca0ac441e1b649c006fa1a7f88c2ed10d3d3",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/5dc7ca0ac441e1b649c006fa1a7f88c2ed10d3d3"
+      },
+      "protected": false
+    },
+    {
+      "name": "docs/CHK1-cors-contract",
+      "commit": {
+        "sha": "8193fcb3132f46edd7a45658df97a322b63c8db6",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/8193fcb3132f46edd7a45658df97a322b63c8db6"
+      },
+      "protected": false
+    },
+    {
+      "name": "docs/CHK1-flujo-git",
+      "commit": {
+        "sha": "9f42af28dc76c501f65e493e7db5de2f5b864b7b",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/9f42af28dc76c501f65e493e7db5de2f5b864b7b"
+      },
+      "protected": false
+    },
+    {
+      "name": "docs/CHK1-integration-contract",
+      "commit": {
+        "sha": "588318b7f2f7f8f1eb0b7c60e719fa6a0fdaa265",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/588318b7f2f7f8f1eb0b7c60e719fa6a0fdaa265"
+      },
+      "protected": false
+    },
+    {
+      "name": "docs/CHK1-readme",
+      "commit": {
+        "sha": "394a6f1fd54b27e7c79a76674b8d618d01c5d257",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/394a6f1fd54b27e7c79a76674b8d618d01c5d257"
+      },
+      "protected": false
+    },
+    {
+      "name": "feat/C2-11-order-domain",
+      "commit": {
+        "sha": "9399fb6912a382b6af31a6a26c8149ec47003293",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/9399fb6912a382b6af31a6a26c8149ec47003293"
+      },
+      "protected": false
+    },
+    {
+      "name": "feat/C2-12-create-and-get-orders",
+      "commit": {
+        "sha": "25c2f30ca8d6e2efb9711fab5cccac6c757475e7",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/25c2f30ca8d6e2efb9711fab5cccac6c757475e7"
+      },
+      "protected": false
+    },
+    {
+      "name": "feat/C2-13-stock-management",
+      "commit": {
+        "sha": "160bbf87b902c10c1a7115a222c2dc99d34fbbe6",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/160bbf87b902c10c1a7115a222c2dc99d34fbbe6"
+      },
+      "protected": false
+    },
+    {
+      "name": "feat/C2-14-stock-reservation-lifecycle",
+      "commit": {
+        "sha": "7d2cde5cd0198d0fc4d9d5d0d9b93dd1033bddba",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/7d2cde5cd0198d0fc4d9d5d0d9b93dd1033bddba"
+      },
+      "protected": false
+    },
+    {
+      "name": "feat/C2-15-order-stock-tests",
+      "commit": {
+        "sha": "559b4f8251083de23bdbe96b1f73bfcb07e10284",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/559b4f8251083de23bdbe96b1f73bfcb07e10284"
+      },
+      "protected": false
+    },
+    {
+      "name": "feat/C2-16-payment-states",
+      "commit": {
+        "sha": "38ac43deef7317d1480352e9748f37f7cb89ea3a",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/38ac43deef7317d1480352e9748f37f7cb89ea3a"
+      },
+      "protected": false
+    },
+    {
+      "name": "feat/C2-17-payment-order-stock",
+      "commit": {
+        "sha": "edf339cf572fe7379171c0db07f9ac4ec6b5da91",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/edf339cf572fe7379171c0db07f9ac4ec6b5da91"
+      },
+      "protected": false
+    },
+    {
+      "name": "feat/C2-18-kitchen",
+      "commit": {
+        "sha": "dfb075955c59c498bdbf7cc0310883ebdee8a16a",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/dfb075955c59c498bdbf7cc0310883ebdee8a16a"
+      },
+      "protected": false
+    },
+    {
+      "name": "feat/C2-19-pickup",
+      "commit": {
+        "sha": "a65c40f44e41e284688485bfca7752b90373b912",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/a65c40f44e41e284688485bfca7752b90373b912"
+      },
+      "protected": false
+    },
+    {
+      "name": "feat/C2-20-e2e-kitchen-pickup",
+      "commit": {
+        "sha": "3c21a2d16a3590e43c22f6e843bdd521d9f05328",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/3c21a2d16a3590e43c22f6e843bdd521d9f05328"
+      },
+      "protected": false
+    },
+    {
+      "name": "feature/C2-01-backend-typescript",
+      "commit": {
+        "sha": "b07398d725465a5bacc9f87740611b2e1f69526b",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/b07398d725465a5bacc9f87740611b2e1f69526b"
+      },
+      "protected": false
+    },
+    {
+      "name": "feature/C2-01-project-setup",
+      "commit": {
+        "sha": "2916629eb212c58c5e34718e3e95a7666f23f454",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/2916629eb212c58c5e34718e3e95a7666f23f454"
+      },
+      "protected": false
+    },
+    {
+      "name": "feature/C2-02-api-base",
+      "commit": {
+        "sha": "44beb1f6886ce0b13ca2bff68913a250f5723ee3",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/44beb1f6886ce0b13ca2bff68913a250f5723ee3"
+      },
+      "protected": false
+    },
+    {
+      "name": "feature/C2-03-customer-persistence",
+      "commit": {
+        "sha": "964ae15296a80876f1bd53d5e694f865327bf135",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/964ae15296a80876f1bd53d5e694f865327bf135"
+      },
+      "protected": false
+    },
+    {
+      "name": "feature/C2-04-customer-store-membership",
+      "commit": {
+        "sha": "b657bb36e5903131ee06f80cee4f4108095e876b",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/b657bb36e5903131ee06f80cee4f4108095e876b"
+      },
+      "protected": false
+    },
+    {
+      "name": "feature/C2-05-customer-store-integration",
+      "commit": {
+        "sha": "38d1c39c7c47d1b98af7f3765291ccb745b7b741",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/38d1c39c7c47d1b98af7f3765291ccb745b7b741"
+      },
+      "protected": false
+    },
+    {
+      "name": "feature/C2-06-organization-buffet",
+      "commit": {
+        "sha": "6eef99a89ac49561d6a2af7cc22fdf497ff085b8",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/6eef99a89ac49561d6a2af7cc22fdf497ff085b8"
+      },
+      "protected": false
+    },
+    {
+      "name": "feature/C2-07-postgresql-prisma",
+      "commit": {
+        "sha": "37ae42a3ab15fc00b88a4d0ec132773c248192e8",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/37ae42a3ab15fc00b88a4d0ec132773c248192e8"
+      },
+      "protected": false
+    },
+    {
+      "name": "feature/C2-08-categories",
+      "commit": {
+        "sha": "6d80377e276b908f7df8b83e756801cf43290770",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/6d80377e276b908f7df8b83e756801cf43290770"
+      },
+      "protected": false
+    },
+    {
+      "name": "feature/C2-09-products-additions",
+      "commit": {
+        "sha": "b85f11ac6b2ff4031454fcccf2b3c29b56727539",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/b85f11ac6b2ff4031454fcccf2b3c29b56727539"
+      },
+      "protected": false
+    },
+    {
+      "name": "feature/C2-10-store-catalog",
+      "commit": {
+        "sha": "299c9d5fc8c6a84a3b05ccc8fb9bbd585d93a130",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/299c9d5fc8c6a84a3b05ccc8fb9bbd585d93a130"
+      },
+      "protected": false
+    },
+    {
+      "name": "feature/C2-21-authentication",
+      "commit": {
+        "sha": "7cba51ec403bca4aa88e9ba4eee539e0dd039b84",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/7cba51ec403bca4aa88e9ba4eee539e0dd039b84"
+      },
+      "protected": false
+    },
+    {
+      "name": "feature/C2-22-unique-category-names",
+      "commit": {
+        "sha": "6dd556f59ee19dd287315bb01f7592fba9d5daeb",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/6dd556f59ee19dd287315bb01f7592fba9d5daeb"
+      },
+      "protected": false
+    },
+    {
+      "name": "feature/C2-frontend-rutas-base",
+      "commit": {
+        "sha": "7831234b2875c67c01daf81508b52e76e0e60b9b",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/7831234b2875c67c01daf81508b52e76e0e60b9b"
+      },
+      "protected": false
+    },
+    {
+      "name": "feature/C3-01-menia",
+      "commit": {
+        "sha": "fae7add08f318e6a554947067328bdf3049bb1b4",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/fae7add08f318e6a554947067328bdf3049bb1b4"
+      },
+      "protected": false
+    },
+    {
+      "name": "feature/CHK1-api-bootstrap",
+      "commit": {
+        "sha": "32b01dd36ec53348e3c596f519ba0e4504362881",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/32b01dd36ec53348e3c596f519ba0e4504362881"
+      },
+      "protected": false
+    },
+    {
+      "name": "feature/CHK1-api-logging",
+      "commit": {
+        "sha": "58cff6d7f942786be06a20018eb4c35050a9b71e",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/58cff6d7f942786be06a20018eb4c35050a9b71e"
+      },
+      "protected": false
+    },
+    {
+      "name": "feature/CHK1-cloud-architecture-adr",
+      "commit": {
+        "sha": "fe56ea343581a305ddc0d2f63dded520a839b46f",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/fe56ea343581a305ddc0d2f63dded520a839b46f"
+      },
+      "protected": false
+    },
+    {
+      "name": "feature/CHK1-repository-bootstrap",
+      "commit": {
+        "sha": "62c9d3e8ec217915213200e6124a190125c15d73",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/62c9d3e8ec217915213200e6124a190125c15d73"
+      },
+      "protected": false
+    },
+    {
+      "name": "feature/CHK1-web-bootstrap",
+      "commit": {
+        "sha": "6c48d7d71ba02c839e1ad5402a0a1920f87df780",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/6c48d7d71ba02c839e1ad5402a0a1920f87df780"
+      },
+      "protected": false
+    },
+    {
+      "name": "feature/CHK1-web-deploy",
+      "commit": {
+        "sha": "86cb564a367f91690f2b6980bcd776ba2a80e047",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/86cb564a367f91690f2b6980bcd776ba2a80e047"
+      },
+      "protected": false
+    },
+    {
+      "name": "main",
+      "commit": {
+        "sha": "23d857dbe159db6d9a005251106b9adf9a77480f",
+        "url": "https://api.github.com/repos/Marilu-su/TakeAndGo/commits/23d857dbe159db6d9a005251106b9adf9a77480f"
+      },
+      "protected": false
+    }
+  ],
+  "runs": [
+    {
+      "id": 42688463183,
+      "name": "Deploy frontend to Vercel",
+      "sha": "54b84064dc393477ec197c202a5ebd8a48b56aa8",
+      "status": "completed",
+      "conclusion": "failure",
+      "date": "2026-11-09T19:58:33Z",
+      "url": "https://github.com/Marilu-su/TakeAndGo/actions/runs/42688463183"
+    },
+    {
+      "id": 42688463114,
+      "name": "API CI",
+      "sha": "54b84064dc393477ec197c202a5ebd8a48b56aa8",
+      "status": "completed",
+      "conclusion": "success",
+      "date": "2026-11-09T19:58:33Z",
+      "url": "https://github.com/Marilu-su/TakeAndGo/actions/runs/42688463114"
+    },
+    {
+      "id": 42522434228,
+      "name": "API CI",
+      "sha": "b322e8d14bf1d28cc2298e7fcaa5c41b6edb7e0f",
+      "status": "completed",
+      "conclusion": "success",
+      "date": "2026-11-08T20:53:57Z",
+      "url": "https://github.com/Marilu-su/TakeAndGo/actions/runs/42522434228"
+    },
+    {
+      "id": 42297039022,
+      "name": "API CI",
+      "sha": "85518a3ebbf88e4fe14c6bde27b0d4d8f18758c7",
+      "status": "completed",
+      "conclusion": "success",
+      "date": "2026-11-06T21:28:43Z",
+      "url": "https://github.com/Marilu-su/TakeAndGo/actions/runs/42297039022"
+    },
+    {
+      "id": 41436941471,
+      "name": "API CI",
+      "sha": "b734fced911321bc5b4232b86fb539aca39ae7c8",
+      "status": "completed",
+      "conclusion": "success",
+      "date": "2026-11-02T11:27:07Z",
+      "url": "https://github.com/Marilu-su/TakeAndGo/actions/runs/41436941471"
+    },
+    {
+      "id": 41251304551,
+      "name": "API CI",
+      "sha": "98f920a9a962786d5d4cdf75e6a29b0b0777d306",
+      "status": "completed",
+      "conclusion": "success",
+      "date": "2026-10-31T23:09:14Z",
+      "url": "https://github.com/Marilu-su/TakeAndGo/actions/runs/41251304551"
+    },
+    {
+      "id": 40588607138,
+      "name": "API CI",
+      "sha": "437787a8ddcdff9a3740a70132b06643894ae160",
+      "status": "completed",
+      "conclusion": "success",
+      "date": "2026-10-27T21:39:35Z",
+      "url": "https://github.com/Marilu-su/TakeAndGo/actions/runs/40588607138"
+    },
+    {
+      "id": 40588138750,
+      "name": "API CI",
+      "sha": "8e576ae5770a47006bae8af3bd6c5a82437a650a",
+      "status": "completed",
+      "conclusion": "success",
+      "date": "2026-10-27T21:36:09Z",
+      "url": "https://github.com/Marilu-su/TakeAndGo/actions/runs/40588138750"
+    },
+    {
+      "id": 40587901936,
+      "name": "API CI",
+      "sha": "1195f1e98777c294fefbfc8ba773ba57dfca1e8c",
+      "status": "completed",
+      "conclusion": "success",
+      "date": "2026-10-27T21:34:29Z",
+      "url": "https://github.com/Marilu-su/TakeAndGo/actions/runs/40587901936"
+    },
+    {
+      "id": 40553726900,
+      "name": "API CI",
+      "sha": "4e32d66999ccaa306d04a23eb846c6415039a2bf",
+      "status": "completed",
+      "conclusion": "success",
+      "date": "2026-10-27T17:46:25Z",
+      "url": "https://github.com/Marilu-su/TakeAndGo/actions/runs/40553726900"
+    }
+  ],
+  "deployJobs": {
+    "jobs": [
+      {
+        "id": 129401536191,
+        "name": "deploy",
+        "status": "completed",
+        "conclusion": "failure",
+        "run_id": 42688463183,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Descargar repositorio",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Configurar Node.js",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Instalar dependencias",
+            "status": "completed",
+            "conclusion": "failure",
+            "number": 4
+          },
+          {
+            "name": "Instalar Vercel CLI",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 5
+          },
+          {
+            "name": "Obtener configuración de Vercel",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 6
+          },
+          {
+            "name": "Compilar proyecto",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 7
+          },
+          {
+            "name": "Desplegar en Vercel",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 8
+          },
+          {
+            "name": "Post Configurar Node.js",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 15
+          },
+          {
+            "name": "Post Descargar repositorio",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 16
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 17
+          }
+        ]
+      }
+    ]
+  },
+  "apiJobs": {
+    "jobs": [
+      {
+        "id": 129401536313,
+        "name": "Typecheck y tests",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 42688463114,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Initialize containers",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Descargar repositorio",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Configurar Node.js",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Instalar dependencias",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Verificar tipos",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Aplicar migraciones",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Ejecutar tests",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Post Configurar Node.js",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 14
+          },
+          {
+            "name": "Post Descargar repositorio",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 15
+          },
+          {
+            "name": "Stop containers",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 16
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 17
+          }
+        ]
+      }
+    ]
+  }
+}

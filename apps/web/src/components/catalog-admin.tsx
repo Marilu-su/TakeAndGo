@@ -28,13 +28,16 @@ export function CatalogAdmin({ storeId }: { storeId: string }) {
     event.preventDefault(); setError(''); setMessage('');
     const form = new FormData(event.currentTarget);
     try {
-      const body: Record<string, string | number | null> = { name: String(form.get('name')).trim() };
+      const body: { name: string; priceCents?: number; categoryId?: string; description?: string | null; basePreparationSeconds?: number; dietaryTags?: string[]; allergens?: string[]; allergensVerified?: boolean } = { name: String(form.get('name')).trim() };
       if (!body.name) throw new Error('El nombre es obligatorio.');
       if (kind !== 'categories') body.priceCents = parsePriceCents(String(form.get('price')));
       if (kind === 'products') {
         body.categoryId = String(form.get('category'));
         body.description = String(form.get('description')).trim() || null;
         body.basePreparationSeconds = Number(form.get('seconds'));
+        body.dietaryTags = form.getAll('dietaryTag').map(String);
+        body.allergens = String(form.get('allergens') || '').split(',').map(value => value.trim()).filter(Boolean);
+        body.allergensVerified = form.get('allergensVerified') === 'on';
         if (!body.categoryId || !Number.isSafeInteger(body.basePreparationSeconds) || body.basePreparationSeconds < 0) throw new Error('Revisá la categoría y el tiempo de preparación.');
       }
       setPending({ path: `${base}/${kind}${edit ? '/' + encodeURIComponent(edit.id) : ''}`, method: edit ? 'PATCH' : 'POST', body, label: `${edit ? 'Guardar cambios de' : 'Crear'} ${body.name}` });
@@ -60,7 +63,7 @@ export function CatalogAdmin({ storeId }: { storeId: string }) {
     <form className="panel form-stack" key={`${kind}-${edit?.id || 'new'}-${formVersion}`} onSubmit={prepare}><h2>{edit ? `Editar ${edit.name}` : 'Crear nuevo elemento'}</h2><fieldset className="form-stack" disabled={busy || !!pending}>
       <label>Nombre<input name="name" required maxLength={120} defaultValue={edit?.name} /></label>
       {kind !== 'categories' && <label>Precio en pesos<input name="price" inputMode="decimal" required pattern="[0-9]+([.,][0-9]{1,2})?" defaultValue={edit?.priceCents !== undefined ? (edit.priceCents / 100).toFixed(2) : ''} placeholder="1500,00" /></label>}
-      {kind === 'products' && <><ResourceState {...categories} retry={categories.reload} /><label>Categoría<select name="category" required defaultValue={edit?.categoryId || ''}><option value="" disabled>Seleccionar categoría</option>{categories.data?.filter(c => c.isActive).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label><label>Descripción<textarea name="description" maxLength={2000} defaultValue={edit?.description || ''} /></label><label>Tiempo base de preparación (segundos)<input name="seconds" type="number" min={0} max={2147483647} step={1} required defaultValue={edit?.basePreparationSeconds ?? 0} /></label></>}
+      {kind === 'products' && <><ResourceState {...categories} retry={categories.reload} /><label>Categoría<select name="category" required defaultValue={edit?.categoryId || ''}><option value="" disabled>Seleccionar categoría</option>{categories.data?.filter(c => c.isActive).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label><label>Descripción<textarea name="description" maxLength={2000} defaultValue={edit?.description || ''} /></label><label>Tiempo base de preparación (segundos)<input name="seconds" type="number" min={0} max={2147483647} step={1} required defaultValue={edit?.basePreparationSeconds ?? 0} /></label><fieldset className="form-stack"><legend>Características dietarias verificadas</legend><label><span><input type="checkbox" name="dietaryTag" value="VEGETARIAN" defaultChecked={edit?.dietaryTags?.includes('VEGETARIAN')} />Vegetariano</span></label><label><span><input type="checkbox" name="dietaryTag" value="VEGAN" defaultChecked={edit?.dietaryTags?.includes('VEGAN')} />Vegano</span></label><label><span><input type="checkbox" name="dietaryTag" value="GLUTEN_FREE" defaultChecked={edit?.dietaryTags?.includes('GLUTEN_FREE')} />Sin TACC</span></label></fieldset><label>Alérgenos presentes<input name="allergens" maxLength={800} defaultValue={edit?.allergens?.join(', ') || ''} placeholder="Ej.: maní, leche" /></label><label><span><input type="checkbox" name="allergensVerified" defaultChecked={edit?.allergensVerified} />Revisé y declaré los alérgenos de este producto</span></label><p>Separalos con comas. Usá los mismos nombres que el cliente escribirá para filtrar alergias.</p></>}
       <div className="actions"><button>{edit ? 'Revisar cambios' : 'Revisar creación'}</button>{edit && <button type="button" className="secondary" onClick={() => setEdit(undefined)}>Cancelar edición</button>}</div>
     </fieldset></form></>;
 }

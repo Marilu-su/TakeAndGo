@@ -8,6 +8,7 @@ export interface PaymentCompensationRepository {
   findByPaymentId(paymentId: string): Promise<{
   status: 'PENDING' | 'COMPLETED' | 'FAILED';
   providerRefundId: string | null;
+  updatedAt?: Date;
 } | null>;
 
   markCompleted(
@@ -18,12 +19,18 @@ export interface PaymentCompensationRepository {
   }>;
 }
 
+// Una compensación pendiente hace más de este tiempo quedó trabada por un error
+// del proveedor y se reintenta. El reembolso usa una clave de idempotencia,
+// así que reintentar nunca devuelve el dinero dos veces.
+export const STALE_COMPENSATION_MS = 60_000;
+
 export class ProcessLatePaymentCompensationUseCase {
   constructor(
     private readonly paymentRepository: PaymentRepository,
     private readonly orderRepository: OrderRepository,
     private readonly compensationRepository: PaymentCompensationRepository,
     private readonly refundPort: PaymentRefundPort,
+    private readonly now: () => Date = () => new Date(),
   ) {}
 
   async execute(paymentId: string): Promise<void> {
@@ -68,7 +75,14 @@ export class ProcessLatePaymentCompensationUseCase {
     return;
   }
 
-  throw new Error('COMPENSATION_ALREADY_EXISTS');
+  const stale =
+    existing?.status === 'PENDING' &&
+    existing.updatedAt !== undefined &&
+    this.now().getTime() - existing.updatedAt.getTime() >= STALE_COMPENSATION_MS;
+
+  if (!stale) {
+    throw new Error('COMPENSATION_ALREADY_EXISTS');
+  }
 }
 
     const refund = await this.refundPort.refundPayment({

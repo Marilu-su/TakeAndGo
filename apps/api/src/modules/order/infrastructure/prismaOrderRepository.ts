@@ -124,6 +124,15 @@ export class PrismaOrderRepository implements OrderRepository {
     return orders.map((o) => this.mapToDomain(o));
   }
 
+  async findKitchenQueue(storeId: string): Promise<Order[]> {
+    const orders = await (this.transaction ?? getPrisma()).order.findMany({
+      where: { storeId, status: { in: ['CONFIRMED', 'PREPARING'] } },
+      include: { items: { include: { additions: true } } },
+      orderBy: [{ promisedFrom: 'asc' }, { createdAt: 'asc' }],
+    });
+    return orders.map(order => this.mapToDomain(order));
+  }
+
   async findExpiredReservations(now: Date): Promise<Order[]> {
     const prisma = this.transaction ?? getPrisma();
     const orders = await prisma.order.findMany({

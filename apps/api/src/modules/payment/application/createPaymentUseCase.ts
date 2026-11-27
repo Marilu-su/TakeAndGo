@@ -44,7 +44,8 @@ export class CreatePaymentUseCase {
         return payment;
       }
 
-      if (payment.providerPaymentId) {
+      // Ya tiene link de pago: se devuelve el mismo (idempotente).
+      if (payment.checkoutUrl) {
         return payment;
       }
     
@@ -66,13 +67,14 @@ export class CreatePaymentUseCase {
 
     const intent = await this.paymentPort.createPaymentIntent({
       paymentId: payment.id,
+      orderId: payment.orderId,
       amountCents: payment.amountCents,
       expiresAt: payment.expiresAt,
     });
 
-    return this.paymentRepository.updateProviderPaymentId(
-      payment.id,
-      intent.providerPaymentId,
-    );
+    return this.paymentRepository.saveCheckout(payment.id, {
+      providerPreferenceId: intent.providerPreferenceId,
+      checkoutUrl: intent.checkoutUrl,
+    });
   }
 }

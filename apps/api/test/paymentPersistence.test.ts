@@ -109,6 +109,14 @@ test(
 
       assert.equal(updated.providerPaymentId, `fake-${suffix}`);
 
+      const withCheckout = await repository.saveCheckout(payment.id, {
+        providerPreferenceId: `pref-${suffix}`,
+        checkoutUrl: `https://checkout.test/${suffix}`,
+      });
+
+      assert.equal(withCheckout.providerPreferenceId, `pref-${suffix}`);
+      assert.equal(withCheckout.checkoutUrl, `https://checkout.test/${suffix}`);
+
       const foundByOrder = await repository.findByOrderId(order.id);
 
       assert.equal(foundByOrder?.id, payment.id);

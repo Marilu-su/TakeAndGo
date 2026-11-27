@@ -1,0 +1,16 @@
+# T04: fuentes originales y artefactos reproducibles siempre en LF.
+# No se cambia la politica del codigo productivo ni de otras carpetas.
+/.gitattributes text eol=lf
+/docs/reference/planning/T04-SOLICITUD.md text eol=lf
+/docs/reference/planning/TAKEANDGO_PLAN_VERIFICADO_REPO_2026-11-12.md text eol=lf
+/docs/reference/v2/TAKEANDGO_MASTER_V2_0.md text eol=lf
+/docs/reference/v2/PANTALLAS_V2_0.md text eol=lf
+/docs/reference/v2/tdds/TDD-000[1-9]_*.md text eol=lf
+/docs/reference/v2/tdds/TDD-001[0-4]_*.md text eol=lf
+/docs/reference/v2/tdds/TDD_INDEX_V1.md text eol=lf
+/docs/reference/tpi/CONSIGNA-TPI-2026.pdf binary
+/docs/audits/*.md text eol=lf
+/docs/audits/data/*.json text eol=lf
+/docs/audits/evidence/*.json text eol=lf
+/docs/audits/scripts/*.py text eol=lf
+/docs/audits/tests/*.ts text eol=lf

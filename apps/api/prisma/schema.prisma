@@ -58,6 +58,8 @@ model Customer {
   name        String
   email       String                    @unique
   authUserId  String?                   @unique
+  dietaryRestrictions String[]          @default([])
+  allergies   String[]                  @default([])
   createdAt   DateTime                  @default(now())
   updatedAt   DateTime                  @updatedAt
 
@@ -101,6 +103,9 @@ model Product {
   priceCents             Int
   basePreparationSeconds Int
   isActive               Boolean           @default(true)
+  dietaryTags            String[]          @default([])
+  allergens              String[]          @default([])
+  allergensVerified      Boolean           @default(false)
   createdAt              DateTime          @default(now())
   updatedAt              DateTime          @updatedAt
 
@@ -254,6 +259,8 @@ enum StockMovementType {
   ORDER_RESERVED
   ORDER_CANCELLED
   ORDER_FULFILLED
+  RESTOCK
+  WEEKLY_REVIEW
 }
 
 model ProductStock {
@@ -294,6 +301,8 @@ model StockMovement {
   quantity    Int
   type        StockMovementType
   referenceId String?
+  reason      String?
+  actorUserId String?
   createdAt   DateTime          @default(now())
 
   store       Store             @relation(fields: [storeId], references: [id])
@@ -317,6 +326,9 @@ model Payment {
   amountCents       Int
   expiresAt         DateTime
   providerPaymentId String?       @unique
+  // Checkout Pro: preferencia creada en el proveedor y link de pago
+  providerPreferenceId String?    @unique
+  checkoutUrl          String?
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
   compensation      PaymentCompensation?

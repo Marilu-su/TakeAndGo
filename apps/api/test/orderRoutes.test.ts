@@ -6,9 +6,10 @@ import { createOrderRouter } from '../src/modules/order/infrastructure/http/orde
 import type { OrderModule } from '../src/modules/order/infrastructure/orderModule';
 import type { Actor } from '../src/shared/auth/actor';
 import { domainErrorHandler } from '../src/shared/http/domainErrorHandler';
+import type { CustomerPreferences } from '../src/modules/customer/infrastructure/customerModule';
 import { DomainError } from '../src/shared/domain/DomainError';
 
-function app(actor: Actor | null, status = 'RESERVED', member = true) {
+function app(actor: Actor | null, status = 'RESERVED', member = true, preferences: CustomerPreferences = { dietaryRestrictions: [], allergies: [] }) {
   const instance = express(); instance.use(express.json());
   const order = { id: 'o1', customerId: 'c1', storeId: 's1', status, pickupCode: 'secret-code' };
   const module = {
@@ -18,10 +19,11 @@ function app(actor: Actor | null, status = 'RESERVED', member = true) {
   } as unknown as OrderModule;
   instance.use(createOrderRouter(module, {
     resolveActor: async () => actor,
+    getCustomerPreferences: async id => { assert.equal(id, 'c1'); return preferences; },
     listOrders: async id => { assert.equal(id, 'c1'); return [order] as never; },
     viewCatalog: async () => {
       if (!member) throw new DomainError('FORBIDDEN', 'Sin membresía');
-      return { storeId: 's1', categories: [{ id: 'cat', name: 'Cat', products: [{ id: 'p1', name: 'P', description: null, priceCents: 100, basePreparationSeconds: 0, additions: [{ id: 'a1', name: 'A', priceCents: 20 }] }] }] };
+      return { storeId: 's1', categories: [{ id: 'cat', name: 'Cat', products: [{ id: 'p1', name: 'P', description: null, priceCents: 100, basePreparationSeconds: 0, dietaryTags: ['VEGETARIAN'], allergens: ['Leche'], allergensVerified: true, additions: [{ id: 'a1', name: 'A', priceCents: 20 }] }] }] };
     },
   })); instance.use(domainErrorHandler); return instance;
 }
@@ -69,4 +71,15 @@ test('pedidos: no expone códigos de retiro al crear, listar, consultar o cancel
   const cancelled = await request(instance).post('/orders/o1/cancel');
   assert.equal(cancelled.status, 200);
   assert.equal(Object.hasOwn(cancelled.body, 'pickupCode'), false);
+});
+
+test('pedidos: rechaza productos incompatibles con restricciones o alergias del cliente', async () => {
+  for (const preferences of [
+    { dietaryRestrictions: ['VEGAN'], allergies: [] },
+    { dietaryRestrictions: [], allergies: ['leche'] },
+  ]) {
+    const response = await request(app(actor, 'RESERVED', true, preferences)).post('/orders').send(body);
+    assert.equal(response.status, 400);
+    assert.equal(response.body.code, 'INVALID_REQUEST');
+  }
 });

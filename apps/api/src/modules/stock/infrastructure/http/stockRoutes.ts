@@ -1,9 +1,11 @@
+import { parseWeeklyReviewItems, startOfWeek } from '../../domain/weeklyReview';
 import { Router } from 'express';
 import type { ActorResolver } from '../../../../shared/http/actorResolver';
 import { requireActor } from '../../../../shared/http/requireActor';
 import type { ProductUseCases, AdditionUseCases } from '../../../catalog/infrastructure/catalogModule';
 import type { StockRepository } from '../../domain/stockRepository';
 import { assertCanManageStoreCatalog } from '../../../catalog/domain/catalogAuthorization';
+import { DomainError } from '../../../../shared/domain/DomainError';
 export function createStockRouter(deps: {
   resolveActor: ActorResolver;
   products: ProductUseCases['listProducts'];
@@ -22,5 +24,87 @@ export function createStockRouter(deps: {
       additions: await Promise.all(additions.map(async a => ({ id: a.id, name: a.name, stock: await deps.stock.getAdditionStock(storeId, a.id) }))),
     });
   });
+  router.put('/stores/:storeId/stock', async (req, res) => {
+    const actor = await requireActor(deps.resolveActor, req);
+    const storeId = req.params.storeId;
+    assertCanManageStoreCatalog(actor, storeId);
+    const { productId, additionId, availableStock, reason } = req.body ?? {};
+    if ((typeof productId === 'string') === (typeof additionId === 'string') || !Number.isSafeInteger(availableStock) || availableStock < 0 || availableStock > 2147483647 || typeof reason !== 'string' || !reason.trim()) {
+      throw new DomainError('INVALID_REQUEST', 'Indicá un producto o adicional, stock no negativo y motivo del ajuste.');
+    }
+    if (productId) {
+      const products = await deps.products(actor, storeId);
+      if (!products.some(product => product.id === productId)) throw new DomainError('NOT_FOUND', 'Producto no encontrado en este buffet.');
+      res.json(await deps.stock.setProductStock(storeId, productId, availableStock, reason.trim(), actor.userId));
+    } else {
+      const additions = await deps.additions(actor, storeId);
+      if (!additions.some(addition => addition.id === additionId)) throw new DomainError('NOT_FOUND', 'Adicional no encontrado en este buffet.');
+      res.json(await deps.stock.setAdditionStock(storeId, additionId, availableStock, reason.trim(), actor.userId));
+    }
+  });
+
+    router.post('/stores/:storeId/stock/restock', async (req, res) => {
+    const actor = await requireActor(deps.resolveActor, req);
+    const storeId = req.params.storeId;
+    assertCanManageStoreCatalog(actor, storeId);
+    const { productId, additionId, quantity, reason } = req.body ?? {};
+    if ((typeof productId === 'string') === (typeof additionId === 'string') || !Number.isSafeInteger(quantity) || quantity < 1 || quantity > 100000 || typeof reason !== 'string' || !reason.trim()) {
+      throw new DomainError('INVALID_REQUEST', 'Indicá un producto o adicional, una cantidad entera entre 1 y 100000 y el motivo de la reposición.');
+    }
+    if (productId) {
+      const products = await deps.products(actor, storeId);
+      if (!products.some(product => product.id === productId)) throw new DomainError('PRODUCT_NOT_FOUND', 'El producto no existe en este buffet');
+      res.status(201).json(await deps.stock.restockProduct(storeId, productId, quantity, reason.trim(), actor.userId));
+    } else {
+      const additions = await deps.additions(actor, storeId);
+      if (!additions.some(addition => addition.id === additionId)) throw new DomainError('ADDITION_NOT_FOUND', 'El adicional no existe en este buffet');
+      res.status(201).json(await deps.stock.restockAddition(storeId, additionId, quantity, reason.trim(), actor.userId));
+    }
+  });
+
+  router.get('/stores/:storeId/stock/movements', async (req, res) => {
+    const actor = await requireActor(deps.resolveActor, req);
+    const storeId = req.params.storeId;
+    assertCanManageStoreCatalog(actor, storeId);
+    const requested = Number(req.query.limit ?? 50);
+    const limit = Number.isSafeInteger(requested) && requested >= 1 && requested <= 200 ? requested : 50;
+    const [products, additions, movements] = await Promise.all([
+      deps.products(actor, storeId),
+      deps.additions(actor, storeId),
+      deps.stock.listMovements(storeId, limit),
+    ]);
+    const productNames = new Map(products.map(product => [product.id, product.name]));
+    const additionNames = new Map(additions.map(addition => [addition.id, addition.name]));
+    res.json(movements.map(movement => ({
+      ...movement,
+      itemName: movement.productId ? productNames.get(movement.productId) ?? null : movement.additionId ? additionNames.get(movement.additionId) ?? null : null,
+    })));
+  });
+
+    router.post('/stores/:storeId/stock/weekly-review', async (req, res) => {
+    const actor = await requireActor(deps.resolveActor, req);
+    const storeId = req.params.storeId;
+    assertCanManageStoreCatalog(actor, storeId);
+    const items = parseWeeklyReviewItems(req.body?.items);
+    const [products, additions] = await Promise.all([deps.products(actor, storeId), deps.additions(actor, storeId)]);
+    const productIds = new Set(products.map(product => product.id));
+    const additionIds = new Set(additions.map(addition => addition.id));
+    for (const item of items) {
+      if (item.productId && !productIds.has(item.productId)) throw new DomainError('PRODUCT_NOT_FOUND', 'El producto no existe en este buffet');
+      if (item.additionId && !additionIds.has(item.additionId)) throw new DomainError('ADDITION_NOT_FOUND', 'El adicional no existe en este buffet');
+    }
+    const reviewId = await deps.stock.recordWeeklyReview(storeId, items, actor.userId);
+    res.status(201).json({ reviewId, reviewedItems: items.length });
+  });
+
+  router.get('/stores/:storeId/stock/weekly-review', async (req, res) => {
+    const actor = await requireActor(deps.resolveActor, req);
+    const storeId = req.params.storeId;
+    assertCanManageStoreCatalog(actor, storeId);
+    const weekStart = startOfWeek(new Date());
+    const lastReviewAt = await deps.stock.findLastWeeklyReviewAt(storeId);
+    res.json({ weekStart, lastReviewAt, done: lastReviewAt !== null && lastReviewAt >= weekStart });
+  });
+  
   return router;
 }

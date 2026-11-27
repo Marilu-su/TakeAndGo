@@ -1,7 +1,15 @@
 import { getPrisma } from '../../../infrastructure/database/prisma';
-import { AdditionStock, ProductStock } from '../domain/stock';
+import { AdditionStock, ProductStock, StockMovementRecord } from '../domain/stock';
 import { ReserveStockItemInput, StockRepository } from '../domain/stockRepository';
 import type { Prisma } from '../../../generated/prisma/client';
+import { DomainError } from '../../../shared/domain/DomainError';
+import { randomUUID } from 'node:crypto';
+import type { WeeklyReviewItem } from '../domain/weeklyReview';
+
+// Mismo bloqueo que usa la reserva de pedidos: serializa las operaciones de stock de un buffet.
+async function lockStoreStock(tx: Prisma.TransactionClient, storeId: string): Promise<void> {
+  await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtext(${storeId}))`;
+}
 
 export class PrismaStockRepository implements StockRepository {
   constructor(private readonly transaction?: Prisma.TransactionClient) {}
@@ -253,59 +261,118 @@ export class PrismaStockRepository implements StockRepository {
     else await getPrisma().$transaction(execute);
   }
 
-  async setProductStock(storeId: string, productId: string, availableQuantity: number): Promise<ProductStock> {
-    const prisma = this.transaction ?? getPrisma();
-
-    const record = await prisma.productStock.upsert({
-      where: { productId },
-      create: {
-        storeId,
-        productId,
-        availableStock: availableQuantity,
-        reservedStock: 0,
-      },
-      update: {
-        availableStock: availableQuantity,
-      },
-    });
-
-    await prisma.stockMovement.create({
-      data: {
-        storeId,
-        productId,
-        quantity: availableQuantity,
-        type: 'INVENTORY_ADJUSTMENT',
-      },
-    });
-
-    return record;
+  async setProductStock(storeId: string, productId: string, availableQuantity: number, reason: string, actorUserId: string): Promise<ProductStock> {
+    const adjust = async (tx: Prisma.TransactionClient) => {
+      await lockStoreStock(tx, storeId);
+      const current = await tx.productStock.findUnique({ where: { productId } });
+      if (current && current.storeId !== storeId) throw new DomainError('PRODUCT_NOT_FOUND', 'El producto no existe en este buffet');
+      const difference = availableQuantity - (current?.availableStock ?? 0);
+      const record = await tx.productStock.upsert({ where: { productId }, create: { storeId, productId, availableStock: availableQuantity, reservedStock: 0 }, update: { availableStock: availableQuantity } });
+      await tx.stockMovement.create({ data: { storeId, productId, quantity: difference, type: 'INVENTORY_ADJUSTMENT', reason, actorUserId } });
+      return record;
+    };
+    return this.transaction ? adjust(this.transaction) : getPrisma().$transaction(adjust);
   }
 
-  async setAdditionStock(storeId: string, additionId: string, availableQuantity: number): Promise<AdditionStock> {
+  async setAdditionStock(storeId: string, additionId: string, availableQuantity: number, reason: string, actorUserId: string): Promise<AdditionStock> {
+    const adjust = async (tx: Prisma.TransactionClient) => {
+      await lockStoreStock(tx, storeId);
+      const current = await tx.additionStock.findUnique({ where: { additionId } });
+      if (current && current.storeId !== storeId) throw new DomainError('ADDITION_NOT_FOUND', 'El adicional no existe en este buffet');
+      const difference = availableQuantity - (current?.availableStock ?? 0);
+      const record = await tx.additionStock.upsert({ where: { additionId }, create: { storeId, additionId, availableStock: availableQuantity, reservedStock: 0 }, update: { availableStock: availableQuantity } });
+      await tx.stockMovement.create({ data: { storeId, additionId, quantity: difference, type: 'INVENTORY_ADJUSTMENT', reason, actorUserId } });
+      return record;
+    };
+    return this.transaction ? adjust(this.transaction) : getPrisma().$transaction(adjust);
+  }
+
+  async restockProduct(storeId: string, productId: string, quantity: number, reason: string, actorUserId: string): Promise<ProductStock> {
+    const restock = async (tx: Prisma.TransactionClient) => {
+      await lockStoreStock(tx, storeId);
+      const current = await tx.productStock.findUnique({ where: { productId } });
+      if (current && current.storeId !== storeId) throw new DomainError('PRODUCT_NOT_FOUND', 'El producto no existe en este buffet');
+      const record = await tx.productStock.upsert({ where: { productId }, create: { storeId, productId, availableStock: quantity, reservedStock: 0 }, update: { availableStock: { increment: quantity } } });
+      await tx.stockMovement.create({ data: { storeId, productId, quantity, type: 'RESTOCK', reason, actorUserId } });
+      return record;
+    };
+    return this.transaction ? restock(this.transaction) : getPrisma().$transaction(restock);
+  }
+
+  async restockAddition(storeId: string, additionId: string, quantity: number, reason: string, actorUserId: string): Promise<AdditionStock> {
+    const restock = async (tx: Prisma.TransactionClient) => {
+      await lockStoreStock(tx, storeId);
+      const current = await tx.additionStock.findUnique({ where: { additionId } });
+      if (current && current.storeId !== storeId) throw new DomainError('ADDITION_NOT_FOUND', 'El adicional no existe en este buffet');
+      const record = await tx.additionStock.upsert({ where: { additionId }, create: { storeId, additionId, availableStock: quantity, reservedStock: 0 }, update: { availableStock: { increment: quantity } } });
+      await tx.stockMovement.create({ data: { storeId, additionId, quantity, type: 'RESTOCK', reason, actorUserId } });
+      return record;
+    };
+    return this.transaction ? restock(this.transaction) : getPrisma().$transaction(restock);
+  }
+
+  
+  async listMovements(storeId: string, limit: number): Promise<StockMovementRecord[]> {
     const prisma = this.transaction ?? getPrisma();
 
-    const record = await prisma.additionStock.upsert({
-      where: { additionId },
-      create: {
-        storeId,
-        additionId,
-        availableStock: availableQuantity,
-        reservedStock: 0,
-      },
-      update: {
-        availableStock: availableQuantity,
-      },
-    });
-
-    await prisma.stockMovement.create({
-      data: {
-        storeId,
-        additionId,
-        quantity: availableQuantity,
-        type: 'INVENTORY_ADJUSTMENT',
+    return prisma.stockMovement.findMany({
+      where: { storeId },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      select: {
+        id: true,
+        productId: true,
+        additionId: true,
+        quantity: true,
+        type: true,
+        reason: true,
+        actorUserId: true,
+        referenceId: true,
+        createdAt: true,
       },
     });
+  }
 
-    return record;
+  
+  async recordWeeklyReview(storeId: string, items: WeeklyReviewItem[], actorUserId: string): Promise<string> {
+    const review = async (tx: Prisma.TransactionClient) => {
+      await lockStoreStock(tx, storeId);
+      const reviewId = randomUUID();
+
+      for (const item of items) {
+        if (item.productId) {
+          const productId = item.productId;
+          const current = await tx.productStock.findUnique({ where: { productId } });
+          if (current && current.storeId !== storeId) throw new DomainError('PRODUCT_NOT_FOUND', 'El producto no existe en este buffet');
+          const available = item.countedStock - (current?.reservedStock ?? 0);
+          if (available < 0) throw new DomainError('STOCK_BELOW_RESERVED', 'La cantidad contada de un producto es menor que la reservada por pedidos');
+          await tx.productStock.upsert({ where: { productId }, create: { storeId, productId, availableStock: available, reservedStock: 0 }, update: { availableStock: available } });
+          await tx.stockMovement.create({ data: { storeId, productId, quantity: available - (current?.availableStock ?? 0), type: 'WEEKLY_REVIEW', reason: 'Revisión semanal', actorUserId, referenceId: reviewId } });
+        } else if (item.additionId) {
+          const additionId = item.additionId;
+          const current = await tx.additionStock.findUnique({ where: { additionId } });
+          if (current && current.storeId !== storeId) throw new DomainError('ADDITION_NOT_FOUND', 'El adicional no existe en este buffet');
+          const available = item.countedStock - (current?.reservedStock ?? 0);
+          if (available < 0) throw new DomainError('STOCK_BELOW_RESERVED', 'La cantidad contada de un adicional es menor que la reservada por pedidos');
+          await tx.additionStock.upsert({ where: { additionId }, create: { storeId, additionId, availableStock: available, reservedStock: 0 }, update: { availableStock: available } });
+          await tx.stockMovement.create({ data: { storeId, additionId, quantity: available - (current?.availableStock ?? 0), type: 'WEEKLY_REVIEW', reason: 'Revisión semanal', actorUserId, referenceId: reviewId } });
+        }
+      }
+
+      return reviewId;
+    };
+
+    return this.transaction ? review(this.transaction) : getPrisma().$transaction(review, { timeout: 20000 });
+  }
+
+  async findLastWeeklyReviewAt(storeId: string): Promise<Date | null> {
+    const prisma = this.transaction ?? getPrisma();
+    const last = await prisma.stockMovement.findFirst({
+      where: { storeId, type: 'WEEKLY_REVIEW' },
+      orderBy: { createdAt: 'desc' },
+      select: { createdAt: true },
+    });
+
+    return last?.createdAt ?? null;
   }
 }

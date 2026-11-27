@@ -16,12 +16,15 @@ export type Product = {
     priceCents: number;
     basePreparationSeconds: number;
     isActive: boolean;
+    dietaryTags?: string[];
+    allergens?: string[];
+    allergensVerified?: boolean;
 };
 
 export type NewProduct = Omit<Product, 'id'>;
 
 export type ProductChanges = Partial<
-    Pick<Product, 'categoryId' | 'name' | 'description' | 'priceCents' | 'basePreparationSeconds'>
+    Pick<Product, 'categoryId' | 'name' | 'description' | 'priceCents' | 'basePreparationSeconds' | 'dietaryTags' | 'allergens' | 'allergensVerified'>
 >;
 
 const INVALID_NAME_CODE = 'INVALID_PRODUCT_NAME';
@@ -34,6 +37,9 @@ export function createNewProduct(input: {
     description?: string | null;
     priceCents: number;
     basePreparationSeconds: number;
+    dietaryTags?: string[];
+    allergens?: string[];
+    allergensVerified?: boolean;
     }): NewProduct {
     return {
         storeId: input.storeId,
@@ -43,6 +49,9 @@ export function createNewProduct(input: {
         priceCents: validatePriceCents(input.priceCents),
         basePreparationSeconds: validatePreparationSeconds(input.basePreparationSeconds),
         isActive: true,
+        dietaryTags: cleanDietaryTags(input.dietaryTags),
+        allergens: cleanLabels(input.allergens),
+        allergensVerified: input.allergensVerified ?? false,
     };
 }
 
@@ -61,7 +70,24 @@ export function updateProduct(product: Product, changes: ProductChanges): Produc
         changes.basePreparationSeconds === undefined
             ? product.basePreparationSeconds
             : validatePreparationSeconds(changes.basePreparationSeconds),
+        dietaryTags: changes.dietaryTags === undefined ? product.dietaryTags ?? [] : cleanDietaryTags(changes.dietaryTags),
+        allergens: changes.allergens === undefined ? product.allergens ?? [] : cleanLabels(changes.allergens),
+        allergensVerified: changes.allergensVerified ?? product.allergensVerified ?? false,
     };
+}
+
+function cleanLabels(values?: string[]): string[] {
+    if (!values) return [];
+    return [...new Map(values.map(value => value.trim()).filter(Boolean).map(value => [value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase(), value.slice(0, 80)])).values()].slice(0, 30);
+}
+
+function cleanDietaryTags(values?: string[]): string[] {
+    const labels = cleanLabels(values?.map(value => value.trim().toUpperCase()));
+    if (labels.some(value => !['VEGETARIAN', 'VEGAN', 'GLUTEN_FREE'].includes(value))) {
+        throw new DomainError('INVALID_PRODUCT_DIETARY_TAG', 'Las etiquetas dietarias permitidas son vegetariana, vegana y sin TACC.');
+    }
+    if (labels.includes('VEGAN') && !labels.includes('VEGETARIAN')) labels.push('VEGETARIAN');
+    return labels;
 }
 
 export function deactivateProduct(product: Product): Product {

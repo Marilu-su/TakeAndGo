@@ -44,7 +44,8 @@ import { createCustomerRouter } from './modules/customer/infrastructure/http/cus
 import { createCustomerStoreRouter } from './modules/customer/infrastructure/http/customerStoreRoutes';
 import { createStoreManagementRouter } from './modules/organization/infrastructure/http/storeManagementRoutes';
 import { createPrismaStoreManagement } from './modules/organization/infrastructure/organizationModule';
-import { createPrismaListCustomerStores, createPrismaAssociateCustomerToStore } from './modules/customer/infrastructure/customerModule';
+import { createPrismaListCustomerStores, createPrismaAssociateCustomerToStore, createPrismaCustomerPreferences } from './modules/customer/infrastructure/customerModule';
+import { createCustomerPreferencesRouter } from './modules/customer/infrastructure/http/customerPreferencesRoutes';
 import {
   createPrismaRegisterCustomer,
   type RegisterCustomer,
@@ -76,11 +77,20 @@ import { createMeniaModule } from './modules/menia/infrastructure/meniaModule';
 import { createMeniaRouter, meniaJsonErrorHandler } from './modules/menia/infrastructure/http/meniaRoutes';
 import type { MeniaUseCases } from './modules/menia/application/meniaUseCases';
 
+// Módulo Pagos (MVP-06)
+import {
+  createPaymentModule,
+  type PaymentModule,
+} from './modules/payment/infrastructure/paymentModule';
+
+import { createPaymentRouter } from './modules/payment/infrastructure/http/paymentRoutes';
+
 export type AppDependencies = {
   checkDatabase: () => Promise<boolean>;
   resolveActor: ActorResolver;
   resolveIdentity: IdentityResolver;
   registerCustomer: RegisterCustomer;
+  customerPreferences: ReturnType<typeof createPrismaCustomerPreferences>;
   createStore: CreateStore;
   categoryUseCases: CategoryUseCases;
   productUseCases: ProductUseCases;
@@ -92,6 +102,7 @@ export type AppDependencies = {
   pickupModule: PickupModule;
   meniaUseCases: MeniaUseCases;
 
+  paymentModule: PaymentModule;
 };
 
 function defaultDependencies(): AppDependencies {
@@ -111,6 +122,7 @@ function defaultDependencies(): AppDependencies {
     resolveActor: auth.resolveActor,
     resolveIdentity: auth.resolveIdentity,
     registerCustomer: createPrismaRegisterCustomer(),
+    customerPreferences: createPrismaCustomerPreferences(),
     createStore: createPrismaCreateStore(),
     categoryUseCases: createPrismaCategoryUseCases(),
     productUseCases: createPrismaProductUseCases(),
@@ -122,6 +134,10 @@ function defaultDependencies(): AppDependencies {
     pickupModule,
     meniaUseCases: createMeniaModule(),
 
+    paymentModule: createPaymentModule({
+      orderRepository: orderModule.orderRepository,
+      releaseExpiredReservations: orderModule.releaseExpiredReservationsUseCase,
+    }),
   };
 }
 
@@ -172,6 +188,7 @@ export function createApp(overrides: Partial<AppDependencies> = {}) {
     listStores: createPrismaListCustomerStores(),
     associateStore: createPrismaAssociateCustomerToStore(),
   }));
+  app.use('/api/v1', createCustomerPreferencesRouter(dependencies.resolveActor, dependencies.customerPreferences));
 
   app.use(
     '/api/v1',
@@ -186,6 +203,7 @@ export function createApp(overrides: Partial<AppDependencies> = {}) {
     createOrganizationRouter({
       createStore: dependencies.createStore,
       resolveActor: dependencies.resolveActor,
+      resolveIdentity: dependencies.resolveIdentity,
     }),
   );
 
@@ -218,6 +236,7 @@ export function createApp(overrides: Partial<AppDependencies> = {}) {
     createStoreCatalogRouter({
       useCases: dependencies.storeCatalogUseCases,
       resolveActor: dependencies.resolveActor,
+      getCustomerPreferences: userId => dependencies.customerPreferences.get(userId),
     }),
   );
 
@@ -228,6 +247,7 @@ export function createApp(overrides: Partial<AppDependencies> = {}) {
       resolveActor: dependencies.resolveActor,
       viewCatalog: dependencies.storeCatalogUseCases.viewStoreCatalog,
       listOrders: customerId => new PrismaOrderRepository().findByCustomer(customerId),
+      getCustomerPreferences: userId => dependencies.customerPreferences.get(userId),
     }),
   );
 
@@ -249,6 +269,15 @@ app.use(
   }),
 );
 
+// Rutas de Pagos (MVP-06)
+app.use(
+  '/api/v1',
+  createPaymentRouter({
+    resolveActor: dependencies.resolveActor,
+    findOrder: orderId => dependencies.orderModule.orderRepository.findById(orderId),
+    paymentModule: dependencies.paymentModule,
+  }),
+);
 
   app.use((_req, res) => {
     res.status(404).json({

@@ -58,7 +58,22 @@ async findByOrderId(orderId: string): Promise<Payment | null> {
       data: { providerPaymentId },
     });
   }
-  
+
+  async saveCheckout(
+    id: string,
+    checkout: { providerPreferenceId: string; checkoutUrl: string },
+  ): Promise<Payment> {
+    const prisma = getPrisma();
+
+    return prisma.payment.update({
+      where: { id },
+      data: {
+        providerPreferenceId: checkout.providerPreferenceId,
+        checkoutUrl: checkout.checkoutUrl,
+      },
+    });
+  }
+
 async transitionStatus(
   id: string,
   expectedStatus: Payment['status'],
@@ -83,4 +98,17 @@ async transitionStatus(
   return this.findById(id);
 }
 
+  /** Pagos pendientes, con checkout iniciado, de pedidos vencidos entre `since` y `now`. */
+  async findPendingOfExpiredOrders(since: Date, now: Date): Promise<Payment[]> {
+    const prisma = getPrisma();
+
+    return prisma.payment.findMany({
+      where: {
+        status: 'PENDING',
+        checkoutUrl: { not: null },
+        expiresAt: { gte: since, lte: now },
+        order: { status: 'EXPIRED' },
+      },
+    });
+  }
 }

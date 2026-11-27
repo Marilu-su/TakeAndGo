@@ -12,6 +12,9 @@ type ProductRecord = {
     priceCents: number;
     basePreparationSeconds: number;
     isActive: boolean;
+    dietaryTags: string[];
+    allergens: string[];
+    allergensVerified: boolean;
 };
 
 function toDomain(record: ProductRecord): Product {
@@ -24,6 +27,9 @@ function toDomain(record: ProductRecord): Product {
         priceCents: record.priceCents,
         basePreparationSeconds: record.basePreparationSeconds,
         isActive: record.isActive,
+        dietaryTags: record.dietaryTags,
+        allergens: record.allergens,
+        allergensVerified: record.allergensVerified,
     };
 }
 
@@ -64,6 +70,9 @@ export class PrismaProductRepository implements ProductRepositoryPort {
             priceCents: product.priceCents,
             basePreparationSeconds: product.basePreparationSeconds,
             isActive: product.isActive,
+            dietaryTags: product.dietaryTags ?? [],
+            allergens: product.allergens ?? [],
+            allergensVerified: product.allergensVerified ?? false,
             },
         });
 
@@ -88,6 +97,9 @@ export class PrismaProductRepository implements ProductRepositoryPort {
             priceCents: product.priceCents,
             basePreparationSeconds: product.basePreparationSeconds,
             isActive: product.isActive,
+            dietaryTags: product.dietaryTags ?? [],
+            allergens: product.allergens ?? [],
+            allergensVerified: product.allergensVerified ?? false,
             },
         });
 
