@@ -88,7 +88,7 @@ test('devuelve ventanas ISO del día local para un cliente autorizado en SIS001'
 });
 
 test('fuera del horario digital devuelve una lista vacía para hoy', async () => {
-  for (const now of ['2026-11-27T07:59:59-03:00', '2026-11-27T21:00:00-03:00']) {
+  for (const now of ['2026-11-27T07:59:59-03:00', '2026-11-27T21:30:00-03:00']) {
     const { app } = fixture({ now });
     await request(app).get(url()).expect(200, { requiresPickupWindow: true, windows: [] });
   }

@@ -51,13 +51,13 @@ test('la tolerancia dura cinco minutos adicionales', async () => {
   assert.equal(first.toleranceUntil.getTime() - first.promisedTo.getTime(), 5 * 60_000);
 });
 
-test('justo antes del cierre digital permite retirar después de las 21:00', async () => {
+test('permite retirar después de las 21:00', async () => {
   const [first] = await listAt('2026-11-27T20:59:59.999-03:00');
   assert.equal(first.promisedFrom.toISOString(), '2026-11-28T00:20:00.000Z');
 });
 
-test('exactamente a las 21:00 no ofrece ventanas', async () => {
-  assert.deepEqual(await listAt('2026-11-27T21:00:00-03:00'), []);
+test('exactamente a las 21:30 no ofrece ventanas', async () => {
+  assert.deepEqual(await listAt('2026-11-27T21:30:00-03:00'), []);
 });
 
 test('excluye tolerancias que llegan al cierre operativo o lo superan', async () => {
@@ -83,7 +83,7 @@ test('interpreta apertura y cierre en la zona del buffet para instantes UTC', as
   assert.deepEqual(await listAt('2026-11-27T10:59:00Z'), []);
   const [first] = await listAt('2026-11-27T11:00:00Z');
   assert.equal(first.promisedFrom.toISOString(), '2026-11-27T11:20:00.000Z');
-  assert.deepEqual(await listAt('2026-11-28T00:00:00Z'), []);
+  assert.deepEqual(await listAt('2026-11-28T00:30:00Z'), []);
 });
 
 test('un buffet sin configuración no hereda el horario de demo', async () => {
