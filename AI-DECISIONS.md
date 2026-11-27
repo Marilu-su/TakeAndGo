@@ -894,3 +894,35 @@ Se verificó:
 
 - La compensación existente no reintentaba nunca un reembolso que había fallado (quedaba PENDIENTE para siempre). Ahora, si quedó pendiente más de un minuto, se reintenta; mientras es reciente se respeta, por si otro proceso lo está haciendo.
 - El proceso corre dentro del servidor: la API desplegada tiene que quedar siempre encendida durante la demo (se coordina con MVP-01).
+
+---
+
+### 2026-11-27 — Pedidos: ventana de retiro para hoy
+
+- **TDD / Issue:** T11 / TDD-0007 / MVP-09 (#104)
+- **Autora humana:** Macarena Romero Olmo
+- **Herramienta/modelo:** Codex (OpenAI), basado en GPT-6
+- **Prompt / instrucción utilizada:** Implementar por bloques la consulta, selección y reserva de una ventana de retiro de hoy, y verificar el flujo en PostgreSQL descartable.
+
+#### Problema
+
+El flujo existente podía reservar pedidos y stock. Faltaba ofrecer una ventana del día y comprobarla al reservar.
+
+#### Contexto dado a la IA
+
+- Master, TDD-0005, TDD-0007 y TDD-0008, y contrato MVP-05.
+- Horario de demo de SIS001 y alcance de factibilidad temporal.
+
+#### Propuesta de la IA
+
+- Compartir las reglas temporales entre consulta y creación. Revalidar después del bloqueo del buffet y calcular el vencimiento de pago con la misma lectura del reloj.
+- Reutilizar el checkout existente y actualizar las opciones al abrir el resumen del carrito.
+
+#### Validación humana
+
+Se revisaron y aprobaron los bloques A a E.2. El equipo confirmó la interpretación de RN-057 y RN-059. La evidencia de las 99 pruebas y los límites del ensayo están en el [informe de E.2](docs/contracts/MVP-09-integracion-E2.md).
+
+#### Correcciones o cambios hechos por el equipo
+
+- Se eligió resolver SIS001 por código y exigir la selección para el buffet de demo habilitado.
+- Se mantuvo la capacidad de cocina como bloqueo y se pospuso el recorrido con autenticación real y la verificación pública.

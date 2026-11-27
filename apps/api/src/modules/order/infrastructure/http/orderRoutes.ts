@@ -6,6 +6,7 @@ import { DomainError } from '../../../../shared/domain/DomainError';
 import type { StoreCatalogUseCases } from '../../../catalog/infrastructure/catalogModule';
 import type { Order } from '../../domain/order';
 import type { CreateOrderItemRequest } from '../../application/createOrderUseCase';
+import { parsePromisedFrom } from '../../application/validatePickupWindow';
 import { filterStoreCatalog } from '../../../catalog/domain/storeCatalog';
 import type { CustomerPreferences } from '../../../customer/infrastructure/customerModule';
 
@@ -36,7 +37,7 @@ export function createOrderRouter(orderModule: OrderModule, deps: OrderHttpDepen
 
   router.post('/orders', async (req, res) => {
     const actor = await customer(req);
-    const { storeId, items } = req.body ?? {};
+    const { storeId, items, promisedFrom } = req.body ?? {};
     if (typeof storeId !== 'string' || !Array.isArray(items) || items.length === 0) throw new DomainError('INVALID_REQUEST', 'Indicá buffet y productos');
     const preferences = await deps.getCustomerPreferences(actor.userId);
     const catalog = filterStoreCatalog(await deps.viewCatalog(actor, storeId), preferences.dietaryRestrictions, preferences.allergies);
@@ -57,7 +58,12 @@ export function createOrderRouter(orderModule: OrderModule, deps: OrderHttpDepen
     }, 0);
     if (!Number.isSafeInteger(total) || total > 2147483647) throw new DomainError('INVALID_REQUEST', 'El total supera el máximo admitido');
     try {
-      const order = await orderModule.createOrderUseCase.execute({ storeId, customerId: actor.userId, items: checked });
+      const order = await orderModule.createOrderUseCase.execute({
+        storeId,
+        customerId: actor.userId,
+        items: checked,
+        ...(promisedFrom === undefined ? {} : { promisedFrom: parsePromisedFrom(promisedFrom) }),
+      });
       res.status(201).json(toPublicOrder(order));
     } catch (cause) {
       if (cause instanceof Error && cause.message.startsWith('Stock insuficiente')) throw new DomainError('INSUFFICIENT_STOCK', 'El stock cambió. Actualizá el catálogo y revisá el pedido.');

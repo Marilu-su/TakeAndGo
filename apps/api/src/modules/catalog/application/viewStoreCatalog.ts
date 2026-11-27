@@ -9,7 +9,7 @@ type Dependencies = {
     memberships: CustomerMembershipPort;
 };
 
-export function makeViewStoreCatalog({ getStoreCatalog, memberships }: Dependencies) {
+export function makeRequireStoreCatalogAccess(memberships: CustomerMembershipPort) {
     async function canView(actor: Actor, storeId: string): Promise<boolean> {
         if (isStoreStaff(actor, storeId)) {
         return true;
@@ -23,11 +23,18 @@ export function makeViewStoreCatalog({ getStoreCatalog, memberships }: Dependenc
         return false;
     }
 
-    return async function viewStoreCatalog(actor: Actor, storeId: string): Promise<StoreCatalog> {
+    return async function requireStoreCatalogAccess(actor: Actor, storeId: string): Promise<void> {
         if (!(await canView(actor, storeId))) {
         throw new DomainError('FORBIDDEN', 'No tiene acceso al catálogo de este buffet');
         }
+    };
+}
 
+export function makeViewStoreCatalog({ getStoreCatalog, memberships }: Dependencies) {
+    const requireStoreCatalogAccess = makeRequireStoreCatalogAccess(memberships);
+
+    return async function viewStoreCatalog(actor: Actor, storeId: string): Promise<StoreCatalog> {
+        await requireStoreCatalogAccess(actor, storeId);
         return getStoreCatalog(storeId);
     };
 }
