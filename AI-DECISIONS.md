@@ -736,6 +736,27 @@ Verificación automatizada: 326 pruebas backend aprobadas, ninguna fallida y 3 o
 
 **Validación humana:** pendiente.
 
+### 2026-11-10 — C3-01: comunicación vertical de MenIA
+
+**TDD / Issue:** C3-01, especificación suministrada en el chat para el bloque de Ivo.
+**Herramienta:** Codex. **Validación humana:** pendiente de revisión del equipo.
+
+Se implementa un módulo hexagonal con puertos de lectura de buffet/asociación y
+un `MeniaResponder` determinístico reemplazable en C3-02. La API valida el Actor
+CUSTOMER, asociación y buffet ACTIVE. Un GET de contexto carga datos reales sin
+iniciar conversaciones. El POST acepta únicamente texto de hasta 2000 unidades
+UTF-16; no persiste mensajes ni ejecuta acciones. La interfaz utiliza sesión existente,
+estado temporal por buffet y reintentos sin duplicar mensajes. No se modifica el
+inicio global del cliente ni se integra un LLM.
+
+Se agregan pruebas de dominio/aplicación, HTTP, estado y componentes, incluyendo
+React → Express por HTTP real con identidad de prueba. Se añaden únicamente
+dependencias de desarrollo para el DOM de pruebas. Alcance, archivos, resultados y
+limitaciones de validación documentados en `docs/C3-01-MENIA.md`.
+
+La rama `codex/C3-01-menia` fue autorizada explícitamente por el usuario desde
+`origin/develop`; los commits atómicos responden a su instrucción directa, que
+prevalece sobre la prohibición anterior contenida en la especificación adjunta.
 ---
 
 ### 2026-11-18 — Stock: reposición, historial y revisión semanal
@@ -774,6 +795,10 @@ Se verificó:
 - El documento funcional no define qué registra el sistema en la revisión de los lunes; se definió como carga de unidades contadas por el administrador del buffet. Queda abierto si también deben poder hacerla los empleados.
 - La semana se calcula en hora de Argentina (UTC-3), ya que los buffets objetivo están en el país; la zona horaria por buffet queda para T06.
 - Los fakes de `orderStock.test.ts` están desactualizados respecto de la interfaz de pedidos (errores de tipos solo en el editor); no se corrigieron por estar fuera del alcance de T07.
+
+### T08 — Check agregado de PR y políticas de infraestructura
+
+Codex propuso reutilizar las suites de API y web en un workflow de PR sin filtros de rutas a nivel de evento. Se verificó localmente la selección de suites y el resultado agregado con 27 casos. La revisión humana, la ejecución en GitHub y la activación de protecciones están pendientes. El [documento de infraestructura T08](docs/architecture/T08-INFRAESTRUCTURA-CI-CD.md) registra la decisión, la evidencia anterior de frontend y los pendientes de autenticación, npm audit y fuentes.
 
 ---
 
