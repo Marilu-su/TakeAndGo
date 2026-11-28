@@ -3,7 +3,8 @@ import { ApiError } from './api';
 
 export const MAX_MENIA_MESSAGE_LENGTH = 2000;
 export type MeniaContext = { storeId: string; storeName: string; organizationId: string };
-export type ChatMessage = { role: 'user' | 'assistant'; text: string };
+export type MeniaCard = { type: 'product'; id: string; title: string };
+export type ChatMessage = { role: 'user' | 'assistant'; text: string; cards?: MeniaCard[] };
 export type MeniaResponse = {
   message: { role: 'assistant'; text: string };
   cards: unknown[];
@@ -20,6 +21,17 @@ export type ConversationState = {
 export type MeniaRequest = <T>(path: string, options?: RequestInit) => Promise<T>;
 export const meniaPath = (storeId: string) => `/buffets/${encodeURIComponent(storeId)}/menia`;
 export const validMeniaMessage = (text: string) => !!text.trim() && text.length <= MAX_MENIA_MESSAGE_LENGTH;
+
+function parseCards(raw: unknown[]): MeniaCard[] {
+  return raw.filter(
+    (item): item is MeniaCard =>
+      typeof item === 'object' &&
+      item !== null &&
+      (item as MeniaCard).type === 'product' &&
+      typeof (item as MeniaCard).id === 'string' &&
+      typeof (item as MeniaCard).title === 'string',
+  );
+}
 
 export function createMeniaConversation(storeId: string, request: MeniaRequest = sessionRequest) {
   let state: ConversationState = { messages: [], pending: false, error: '', retryable: false, forbidden: false };
@@ -47,7 +59,8 @@ export function createMeniaConversation(storeId: string, request: MeniaRequest =
           !Array.isArray(response.cards) || !Array.isArray(response.actions)) {
         throw new Error('La respuesta de MenIA no está disponible. Podés reintentar.');
       }
-      update({ messages: [...state.messages, response.message] });
+      const cards = parseCards(response.cards);
+      update({ messages: [...state.messages, { ...response.message, ...(cards.length ? { cards } : {}) }] });
     } catch (cause) {
       const status = cause instanceof ApiError ? cause.status : undefined;
       const forbidden = status === 401 || status === 403 || status === 404;

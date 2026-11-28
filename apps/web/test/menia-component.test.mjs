@@ -132,3 +132,4 @@ test('MenIA integración: la pantalla conversa con Express mediante HTTP real y 
   const denied = await fetchReal(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/stores/integration-store/menia/context`);
   assert.equal(denied.status, 401);
 });
+
