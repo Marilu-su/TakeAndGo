@@ -1,4 +1,4 @@
-import 'dotenv/config';
+import '../../support/checkTestDatabase';
 
 import assert from 'node:assert/strict';
 import { createHash, randomUUID } from 'node:crypto';
@@ -8,18 +8,9 @@ import { getPrisma } from '../../../src/infrastructure/database/prisma';
 import { PrismaPaymentOrderStockAdapter } from '../../../src/modules/payment/infrastructure/prismaPaymentOrderStockAdapter';
 import { PrismaConfirmPickupAdapter } from '../../../src/modules/pickup/infrastructure/prismaConfirmPickupAdapter';
 
-function isLocalDatabase(): boolean {
-  try {
-    const url = new URL(process.env.DATABASE_URL ?? '');
-    return url.hostname === '127.0.0.1' && url.port === '5434' && url.pathname === '/takeandgo';
-  } catch {
-    return false;
-  }
-}
-
 test(
   'stock en PostgreSQL: un producto sin control de stock no traba el vencimiento, el rechazo ni el retiro',
-  { skip: !isLocalDatabase() ? 'Requiere PostgreSQL local de Take&Go' : false },
+  { skip: !process.env.DATABASE_URL ? 'Requiere PostgreSQL local de Take&Go' : false },
   async () => {
     const prisma = getPrisma();
     const adapter = new PrismaPaymentOrderStockAdapter();
