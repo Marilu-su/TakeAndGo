@@ -72,11 +72,11 @@ body {
   font-family: var(--font-geist-sans), Arial, sans-serif;
 }
 
-.tg-entry-grid, .tg-health { width: min(100%, 66rem); margin-inline: auto; }
+.tg-entry-grid, .tg-health { width: min(100%, 88rem); margin-inline: auto; }
 
 .tg-entry-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   border: 1px solid var(--tg-line);
   border-radius: 1.75rem;
   overflow: hidden;
@@ -125,7 +125,7 @@ body {
 
 .tg-mark { width: 5rem; height: 5rem; }
 
-.tg-access { display: grid; align-content: center; gap: 1rem; padding: clamp(1.5rem, 5vw, 3.25rem); }
+.tg-access { display: grid; min-width: 0; align-content: center; gap: 1rem; padding: clamp(1.5rem, 5vw, 3.25rem); }
 .tg-access h1, .tg-access h2 { font-size: clamp(1.65rem, 3vw, 2.4rem); line-height: 1.06; letter-spacing: -.045em; }
 .tg-access > p, .tg-staff p { color: var(--tg-muted); }
 .tg-links { display: grid; gap: .65rem; }
@@ -147,9 +147,40 @@ body {
 .tg-auth input { background: #fafaf7; color: var(--tg-ink); border-color: #969f91; }
 .tg-auth form > a { justify-self: start; text-decoration: underline; text-underline-offset: .2em; }
 
-@media (max-width: 700px) {
-  .tg-entry-grid { grid-template-columns: minmax(0, 1fr); }
-  .tg-hero { gap: .7rem; }
-  .tg-brand-link { gap: .7rem; }
+@media (min-width: 48rem) {
+  .tg-entry-grid {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    min-height: 32rem;
+  }
+
+  .tg-auth .tg-entry-grid {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  }
+
+  .tg-auth .tg-access {
+    width: min(100%, 36rem);
+    justify-self: center;
+  }
+}
+
+@media (min-width: 64rem) {
+  .tg-links {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tg-org { grid-column: 1 / -1; }
+}
+
+@media (max-width: 47.999rem) {
+  .tg-entry { align-content: start; }
+  .tg-hero { gap: .75rem; padding: 1.5rem; }
+  .tg-mark { width: 3.5rem; height: 3.5rem; }
+
+  .tg-brand-link {
+    grid-auto-flow: column;
+    align-items: center;
+    gap: .75rem;
+  }
+
   .tg-hero p br { display: none; }
 }
