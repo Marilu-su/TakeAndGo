@@ -50,7 +50,19 @@ model Store {
   additionStocks AdditionStock[]
   stockMovements StockMovement[]
 
+  pickupSchedule StorePickupSchedule?
+
   @@index([organizationId])
+}
+
+model StorePickupSchedule {
+  storeId                   String @id
+  timeZone                  String
+  opensAtMinute             Int
+  digitalClosesAtMinute     Int
+  operationalClosesAtMinute Int
+
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
 }
 
 model Customer {

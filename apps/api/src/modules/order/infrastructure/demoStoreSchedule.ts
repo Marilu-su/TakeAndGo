@@ -1,11 +1,11 @@
 import type { StorePickupScheduleSource } from '../application/listPickupWindowsUseCase';
 import type { StorePickupSchedule } from '../domain/pickupWindow';
-import type { StoreRepositoryPort } from '../../organization/application/ports';
+import type { PrismaStoreRepository } from '../../organization/infrastructure/prismaStoreRepository';
 import { createStoreCode } from '../../organization/domain/storeCode';
 
 const DEMO_STORE_CODE = createStoreCode('SIS001');
 
-const DEMO_SCHEDULE: StorePickupSchedule = {
+export const DEMO_SCHEDULE: StorePickupSchedule = {
   timeZone: 'America/Argentina/Buenos_Aires',
   opensAtMinute: 8 * 60,
   digitalClosesAtMinute: 21 * 60 + 30,
@@ -25,13 +25,13 @@ export function createDemoStoreSchedule(demoStoreId: string): StorePickupSchedul
 }
 
 export function createResolvedDemoStoreSchedule(
-  stores: Pick<StoreRepositoryPort, 'findByCode'>,
+  stores: Pick<PrismaStoreRepository, 'findPickupScheduleByCode'>,
 ): StorePickupScheduleSource {
   return {
     async findByStoreId(storeId) {
-      const demoStore = await stores.findByCode(DEMO_STORE_CODE);
-      if (demoStore?.status !== 'ACTIVE') return null;
-      return createDemoStoreSchedule(demoStore.id).findByStoreId(storeId);
+      const demoStore = await stores.findPickupScheduleByCode(DEMO_STORE_CODE);
+      if (demoStore?.id !== storeId || demoStore.status !== 'ACTIVE') return null;
+      return demoStore.pickupSchedule;
     },
   };
 }

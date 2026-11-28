@@ -5,9 +5,8 @@ import request from 'supertest';
 import { createApp } from '../../../src/app';
 import { makeRequireStoreCatalogAccess } from '../../../src/modules/catalog/application/viewStoreCatalog';
 import { ListPickupWindowsUseCase } from '../../../src/modules/order/application/listPickupWindowsUseCase';
-import { createResolvedDemoStoreSchedule } from '../../../src/modules/order/infrastructure/demoStoreSchedule';
+import { createResolvedDemoStoreSchedule, DEMO_SCHEDULE } from '../../../src/modules/order/infrastructure/demoStoreSchedule';
 import type { StoreStatus } from '../../../src/modules/organization/domain/store';
-import { createStoreCode } from '../../../src/modules/organization/domain/storeCode';
 import type { Actor } from '../../../src/shared/auth/actor';
 
 const demoStoreId = 'demo-test-id';
@@ -24,14 +23,12 @@ function fixture({
 } = {}) {
   const lookups: string[] = [];
   const schedules = createResolvedDemoStoreSchedule({
-    async findByCode(code) {
+    async findPickupScheduleByCode(code) {
       lookups.push(code);
       return status === null ? null : {
         id: demoStoreId,
-        code: createStoreCode('SIS001'),
-        name: 'Buffet Sistemas',
-        organizationId: 'org-test',
         status,
+        pickupSchedule: DEMO_SCHEDULE,
       };
     },
   });

@@ -121,7 +121,7 @@ function defaultDependencies(): AppDependencies {
 
   const stockModule = createStockModule();
   const pickupSchedules = createResolvedDemoStoreSchedule({
-    findByCode: code => new PrismaStoreRepository(getPrisma()).findByCode(code),
+    findPickupScheduleByCode: code => new PrismaStoreRepository(getPrisma()).findPickupScheduleByCode(code),
   });
   const orderModule = createOrderModule(stockModule.stockRepository, pickupSchedules);
   const pickupWindows = new ListPickupWindowsUseCase(pickupSchedules);

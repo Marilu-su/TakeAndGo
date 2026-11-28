@@ -52,8 +52,8 @@ describe('MVP-09 con PostgreSQL descartable', {
 
   after(async () => { await prisma?.$disconnect(); });
 
-  async function withFixture(run: (fixture: Awaited<ReturnType<typeof setup>>) => Promise<void>) {
-    const fixture = await setup();
+  async function withFixture(run: (fixture: Awaited<ReturnType<typeof setup>>) => Promise<void>, now = clock) {
+    const fixture = await setup(now);
     try {
       await run(fixture);
     } finally {
@@ -61,7 +61,7 @@ describe('MVP-09 con PostgreSQL descartable', {
     }
   }
 
-  async function setup() {
+  async function setup(now: () => Date) {
     const client = getPrisma();
     const tag = randomUUID();
     const { category, product, customer } = await client.$transaction(async tx => {
@@ -78,13 +78,13 @@ describe('MVP-09 con PostgreSQL descartable', {
     const stock = new PrismaStockRepository();
     const schedules = createResolvedDemoStoreSchedule(new PrismaStoreRepository(client));
     const orderModule = createOrderModule(stock, schedules);
-    const windows = new ListPickupWindowsUseCase(schedules, clock);
+    const windows = new ListPickupWindowsUseCase(schedules, now);
     const app = createApp({
       resolveActor: async () => ({ role: 'CUSTOMER', userId: customer.id }),
       orderModule: {
         ...orderModule,
         createOrderUseCase: new CreateOrderUseCase(
-          orderModule.orderRepository, stock, undefined, placeReservedOrder, schedules, clock,
+          orderModule.orderRepository, stock, undefined, placeReservedOrder, schedules, now,
         ),
       },
       pickupWindows: {
@@ -116,6 +116,28 @@ describe('MVP-09 con PostgreSQL descartable', {
     });
     return { app, product, post, state, clean };
   }
+
+  test('lee el horario persistido de SIS001 y aplica apertura y cierre al listar y reservar', async () => {
+    let instant = '2026-11-29T07:59:59-03:00';
+    await withFixture(async ({ app, post, product, state }) => {
+      await getPrisma().productStock.update({ where: { productId: product.id }, data: { availableStock: 2 } });
+      const availability = () => request(app).get(`/api/v1/stores/${storeId}/pickup-windows`).expect(200);
+      assert.deepEqual((await availability()).body.windows, []);
+      instant = '2026-11-29T08:00:00-03:00';
+      assert.equal((await availability()).body.windows[0].promisedFrom, '2026-11-29T11:20:00.000Z');
+      instant = '2026-11-29T21:29:00-03:00';
+      const [last] = (await availability()).body.windows;
+      assert.equal(last.promisedFrom, '2026-11-30T00:49:00.000Z');
+      assert.equal(last.toleranceUntil, '2026-11-30T00:59:00.000Z');
+      await post(1, last.promisedFrom).expect(201);
+      const beforeClose = await state();
+      instant = '2026-11-29T21:30:00-03:00';
+      assert.deepEqual((await availability()).body.windows, []);
+      const rejected = await post(1, last.promisedFrom).expect(409);
+      assert.equal(rejected.body.code, 'PICKUP_WINDOW_UNAVAILABLE');
+      assert.deepEqual(await state(), beforeClose);
+    }, () => new Date(instant));
+  });
 
   const initial = { orders: 0, availableStock: 1, reservedStock: 0, movements: [] };
 

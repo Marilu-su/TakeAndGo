@@ -2,6 +2,8 @@ import 'dotenv/config';
 
 import { getPrisma } from '../src/infrastructure/database/prisma';
 
+import { DEMO_SCHEDULE } from '../src/modules/order/infrastructure/demoStoreSchedule';
+
 const SEED_ORGANIZATION_ID = '11111111-1111-4111-8111-111111111111';
 const SEED_STORE_CODE = 'SIS001';
 
@@ -72,6 +74,12 @@ async function main() {
             code: SEED_STORE_CODE,
             status: 'ACTIVE',
         },
+    });
+
+    await prisma.storePickupSchedule.upsert({
+        where: { storeId: store.id },
+        update: {},
+        create: { storeId: store.id, ...DEMO_SCHEDULE },
     });
 
     for (const category of SEED_CATEGORIES) {
