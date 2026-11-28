@@ -8,6 +8,7 @@ import type {
   ConfirmPickupPort,
   ConfirmPickupResult,
 } from '../application/confirmPickupPort';
+import { isUntrackedStock } from '../../stock/infrastructure/untrackedStock';
 
 export class PrismaConfirmPickupAdapter
   implements ConfirmPickupPort
@@ -155,11 +156,12 @@ export class PrismaConfirmPickupAdapter
             },
           });
 
-          if (updated.count !== 1) {
+          if (updated.count !== 1 && !(await isUntrackedStock(tx, input.storeId, { productId: item.productId }))) {
             throw new Error('STOCK_RESERVATION_CONFLICT');
           }
 
-          await tx.stockMovement.create({
+          // Sin control de stock en el buffet: no se reservó, no hay nada que mover.
+          if (updated.count === 1) await tx.stockMovement.create({
             data: {
               storeId: input.storeId,
               productId: item.productId,
@@ -190,11 +192,12 @@ export class PrismaConfirmPickupAdapter
             },
           });
 
-          if (updated.count !== 1) {
+          if (updated.count !== 1 && !(await isUntrackedStock(tx, input.storeId, { additionId: addition.additionId }))) {
             throw new Error('STOCK_RESERVATION_CONFLICT');
           }
 
-          await tx.stockMovement.create({
+          // Sin control de stock en el buffet: no se reservó, no hay nada que mover.
+          if (updated.count === 1) await tx.stockMovement.create({
             data: {
               storeId: input.storeId,
               additionId: addition.additionId,
