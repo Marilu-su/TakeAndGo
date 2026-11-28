@@ -3,10 +3,10 @@ import test from 'node:test';
 import { gateFailures, selectSuites } from './pr-check.mjs';
 
 const selections = [
-  ['API', ['apps/api/src/app.ts'], { api: true, web: false }],
+  ['API', ['apps/api/src/app.ts'], { api: true, web: true }],
   ['frontend', ['apps/web/src/app/page.tsx'], { api: false, web: true }],
   ['mixto', ['apps/api/package.json', 'apps/web/package-lock.json'], { api: true, web: true }],
-  ['documental', ['docs/architecture/T08.md', 'CONTRIBUTING.md', 'apps/web/README.md'], { api: false, web: false }],
+  ['documental', ['docs/architecture/T08.md', 'CONTRIBUTING.md', 'apps/web/README.md', 'apps/api/README.md'], { api: false, web: false }],
   ['runtime compartido', ['.node-version'], { api: true, web: true }],
   ['atributos del repo', ['.gitattributes'], { api: true, web: true }],
   ['orquestador', ['.github/workflows/pr-ci.yml'], { api: true, web: true }],
@@ -56,9 +56,17 @@ for (const result of ['failure', 'cancelled', 'skipped', '']) {
   });
 }
 
-test('Rechaza el fallo de web en un PR mixto aunque API pase', () => {
-  assert.equal(gateFailures({ ...passing, webSelected: 'true', webResult: 'failure' }).length, 1);
-});
+for (const webResult of ['skipped', 'failure']) {
+  test(`Rechaza Web CI con resultado ${webResult} cuando un cambio en API selecciona ambas suites`, () => {
+    const { api, web } = selectSuites(['apps/api/src/app.ts']);
+    assert.deepEqual(gateFailures({
+      ...passing,
+      apiSelected: String(api),
+      webSelected: String(web),
+      webResult,
+    }), [`Web: se esperaba success, resultado ${webResult}`]);
+  });
+}
 
 test('Rechaza selección ausente o inválida', () => {
   assert.equal(gateFailures({ ...passing, apiSelected: '', webSelected: 'yes' }).length, 2);

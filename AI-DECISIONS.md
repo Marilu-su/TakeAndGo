@@ -1041,3 +1041,32 @@ Se revisaron y aprobaron los bloques B1, B2, C1 y C2. El [contrato de MVP-12](do
 #### Correcciones o cambios hechos por el equipo
 
 Se conservó el `200` para la repetición válida como decisión provisional. Queda pendiente acordar si #109 requiere un rechazo HTTP además del rechazo operativo.
+
+---
+
+### 2026-11-27 — CI de API e integración web de MenIA
+
+- **TDD / Issue:** T08 / T32 / TDD-0006 / MVP-03 (#99)
+- **Autor humano:** Equipo Take&Go
+- **Herramienta/modelo:** Codex (OpenAI), basado en GPT-6
+- **Prompt / instrucción utilizada:** Ejecutar Web CI ante cambios de API y comprobar que el check agregado rechace fallos u omisiones de la suite.
+
+#### Problema
+
+La integración web de MenIA levanta Express e importa código de apps/api. El selector anterior permitía omitir Web CI en PR con cambios de API.
+
+#### Contexto dado a la IA
+
+Documentación de T08, selector de PR CI y dependencia de la integración web de MenIA documentada en el PR #127.
+
+#### Propuesta de la IA
+
+Seleccionar API y Web ante cambios no documentales en apps/api. Mantener solo API para un cambio aislado en api-ci.yml, solo Web para cambios de frontend y omitir ambas suites en PR documentales.
+
+#### Validación humana
+
+Revisión manual pendiente. En la verificación local, node --test .github/ci/pr-check.test.mjs pasó 28/28 pruebas, incluidas la omisión y la falla de Web CI cuando ambas suites están seleccionadas.
+
+#### Correcciones o cambios hechos por el equipo
+
+El equipo definió las excepciones para cambios aislados del workflow de API y para Markdown dentro de apps/api.
