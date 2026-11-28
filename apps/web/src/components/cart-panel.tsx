@@ -79,7 +79,7 @@ export function CartPanel({ lines, change, storeId }: { lines: CartLine[]; chang
             <button className="secondary" onClick={resource.reload}>Actualizar horarios</button>
           </>
         )}
-        <p>Al confirmar se crea una reserva de stock. Los pagos se incorporan en otra etapa.</p>
+        <p>Al confirmar, se reserva tu pedido durante 5 minutos para que puedas realizar el pago.</p>
         <button disabled={busy || !canConfirm} onClick={place}>{busy ? 'Creando reserva…' : 'Confirmar pedido'}</button>
       </div>}
     </>}
