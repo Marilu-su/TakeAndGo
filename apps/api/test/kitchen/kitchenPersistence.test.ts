@@ -1,5 +1,5 @@
 
-import 'dotenv/config';
+import '../support/checkTestDatabase';
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -11,31 +11,10 @@ import { StartPreparationUseCase } from '../../src/modules/kitchen/application/s
 import { FinishPreparationUseCase } from '../../src/modules/kitchen/application/finishPreparationUseCase';
 import type { Actor } from '../../src/shared/auth/actor';
 
-function isLocalTestDatabase(): boolean {
-  const databaseUrl = process.env.DATABASE_URL;
-
-  if (!databaseUrl) {
-    return false;
-  }
-
-  try {
-    const url = new URL(databaseUrl);
-
-    return (
-      url.protocol === 'postgresql:' &&
-      url.hostname === '127.0.0.1' &&
-      url.port === '5434' &&
-      url.pathname === '/takeandgo'
-    );
-  } catch {
-    return false;
-  }
-}
-
 test(
   'inicia y finaliza preparación, persistiendo los datos en PostgreSQL',
   {
-    skip: !isLocalTestDatabase()
+    skip: !process.env.DATABASE_URL
       ? 'Requiere la base PostgreSQL local de Take&Go'
       : false,
   },

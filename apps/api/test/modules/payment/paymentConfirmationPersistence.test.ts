@@ -1,4 +1,4 @@
-import 'dotenv/config';
+import '../../support/checkTestDatabase';
 
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
@@ -12,18 +12,9 @@ import type { PaymentStatusPort, ProviderPayment } from '../../../src/modules/pa
 import { PrismaPaymentOrderStockAdapter } from '../../../src/modules/payment/infrastructure/prismaPaymentOrderStockAdapter';
 import { PrismaPaymentRepository } from '../../../src/modules/payment/infrastructure/prismaPaymentRepository';
 
-function isLocalDatabase(): boolean {
-  try {
-    const url = new URL(process.env.DATABASE_URL ?? '');
-    return url.hostname === '127.0.0.1' && url.port === '5434' && url.pathname === '/takeandgo';
-  } catch {
-    return false;
-  }
-}
-
 test(
   'confirmación de pago en PostgreSQL: avisos duplicados y simultáneos se aplican una sola vez',
-  { skip: !isLocalDatabase() ? 'Requiere PostgreSQL local de Take&Go' : false },
+  { skip: !process.env.DATABASE_URL ? 'Requiere PostgreSQL local de Take&Go' : false },
   async () => {
     const prisma = getPrisma();
     const repository = new PrismaPaymentRepository();
