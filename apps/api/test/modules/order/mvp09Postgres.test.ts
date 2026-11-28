@@ -1,3 +1,4 @@
+import '../../support/checkTestDatabase';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { after, before, describe, test } from 'node:test';

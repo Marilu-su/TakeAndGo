@@ -1,5 +1,5 @@
 
-import 'dotenv/config';
+import './support/checkTestDatabase';
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -8,35 +8,10 @@ import { randomUUID } from 'node:crypto';
 import { getPrisma } from '../src/infrastructure/database/prisma';
 import { PrismaPaymentRepository } from '../src/modules/payment/infrastructure/prismaPaymentRepository';
 
-const LOCAL_DB_HOST = '127.0.0.1';
-const LOCAL_DB_PORT = '5434';
-const LOCAL_DB_NAME = 'takeandgo';
-
-function isLocalTestDatabase(): boolean {
-  const databaseUrl = process.env.DATABASE_URL;
-
-  if (!databaseUrl) {
-    return false;
-  }
-
-  try {
-    const url = new URL(databaseUrl);
-
-    return (
-      url.protocol === 'postgresql:' &&
-      url.hostname === LOCAL_DB_HOST &&
-      url.port === LOCAL_DB_PORT &&
-      url.pathname === `/${LOCAL_DB_NAME}`
-    );
-  } catch {
-    return false;
-  }
-}
-
 test(
   'guarda y recupera un pago en PostgreSQL',
   {
-    skip: !isLocalTestDatabase()
+    skip: !process.env.DATABASE_URL
       ? 'Requiere la base PostgreSQL local de Take&Go'
       : false,
   },

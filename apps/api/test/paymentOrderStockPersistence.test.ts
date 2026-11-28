@@ -1,5 +1,5 @@
 
-import 'dotenv/config';
+import './support/checkTestDatabase';
 
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
@@ -9,25 +9,10 @@ import { getPrisma } from '../src/infrastructure/database/prisma';
 import { ProcessPaymentResultUseCase } from '../src/modules/payment/application/processPaymentResultUseCase';
 import { PrismaPaymentOrderStockAdapter } from '../src/modules/payment/infrastructure/prismaPaymentOrderStockAdapter';
 
-function isLocalDatabase(): boolean {
-  try {
-    const url = new URL(process.env.DATABASE_URL ?? '');
-
-    return (
-      url.protocol === 'postgresql:' &&
-      url.hostname === '127.0.0.1' &&
-      url.port === '5434' &&
-      url.pathname === '/takeandgo'
-    );
-  } catch {
-    return false;
-  }
-}
-
 test(
   'integra pagos, pedidos y stock en PostgreSQL',
   {
-    skip: !isLocalDatabase()
+    skip: !process.env.DATABASE_URL
       ? 'Requiere PostgreSQL local de Take&Go'
       : false,
   },

@@ -1,4 +1,4 @@
-import 'dotenv/config';
+import '../../support/checkTestDatabase';
 
 import { after, test } from 'node:test';
 import assert from 'node:assert/strict';

@@ -1,5 +1,5 @@
 
-import 'dotenv/config';
+import '../support/checkTestDatabase';
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
