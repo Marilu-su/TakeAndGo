@@ -6,6 +6,7 @@ import { makeMeniaUseCases } from '../src/modules/menia/application/meniaUseCase
 import type { MeniaDependencies } from '../src/modules/menia/application/ports';
 import { DeterministicMeniaResponder } from '../src/modules/menia/infrastructure/deterministicResponder';
 import { LlmMeniaResponder } from '../src/modules/menia/infrastructure/llmResponder';
+import { createMeniaModule } from '../src/modules/menia/infrastructure/meniaModule';
 import { buildStoreCatalog } from '../src/modules/catalog/domain/storeCatalog';
 import type { Actor } from '../src/shared/auth/actor';
 import { DomainError } from '../src/shared/domain/DomainError';
@@ -388,6 +389,57 @@ test('MenIA LlmMeniaResponder: recomienda solo productos del catálogo y filtra 
   );
   const res = await useCases.sendMessage(actor, 'store-1', { message: 'Algo dulce' });
   assert.deepEqual(res.cards, [{ type: 'product', id: 'prod-1', title: 'Medialuna de manteca' }]);
+});
+
+test('MenIA: createMeniaModule pasa productos disponibles del catálogo al cliente LLM', async () => {
+  const module = createMeniaModule({
+    getStore: async id => ({ id, name: 'Buffet de prueba', organizationId: 'org-1', status: 'ACTIVE' }),
+    listCustomerStores: async () => [{ id: 'store-1' }],
+    getCatalog: async storeId => ({
+      storeId,
+      categories: [
+        {
+          id: 'cat-1',
+          name: 'Cafetería',
+          products: [
+            {
+              id: 'prod-1',
+              name: 'Medialuna de manteca',
+              description: null,
+              priceCents: 150000,
+              basePreparationSeconds: 120,
+              dietaryTags: [],
+              allergens: [],
+              allergensVerified: true,
+              additions: [],
+            },
+          ],
+        },
+      ],
+    }),
+    responder: new LlmMeniaResponder({
+      generateRecommendation: async prompt => {
+        assert.deepEqual(prompt.availableProducts, [
+          {
+            id: 'prod-1',
+            categoryName: 'Cafetería',
+            name: 'Medialuna de manteca',
+            description: null,
+            priceCents: 150000,
+            dietaryTags: [],
+            allergens: [],
+          },
+        ]);
+        return { text: 'Te sugiero una medialuna.', recommendedProductIds: ['prod-1'] };
+      },
+    }),
+  });
+
+  const result = await module.sendMessage(actor, 'store-1', { message: 'Algo dulce' });
+
+  assert.deepEqual(result.cards, [
+    { type: 'product', id: 'prod-1', title: 'Medialuna de manteca' },
+  ]);
 });
 
 test('MenIA LlmMeniaResponder: falla de forma controlada ante error o respuesta vacía del proveedor', async () => {

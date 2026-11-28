@@ -18,7 +18,7 @@ export class GeminiMeniaClient implements MeniaModelClient {
 
   constructor(config: GeminiMeniaClientConfig) {
     this.apiKey = config.apiKey.trim();
-    this.model = config.model.trim() || 'gemini-2.5-flash';
+    this.model = config.model.trim() || 'gemini-3.5-flash-lite';
     this.timeoutMs = config.timeoutMs ?? 12000;
   }
 
