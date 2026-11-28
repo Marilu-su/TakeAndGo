@@ -9,7 +9,11 @@ export function selectSuites(paths) {
     if (path.startsWith('docs/') || (!path.startsWith('.github/') && /\.md$/i.test(path))) {
       continue;
     }
-    if (path.startsWith('apps/api/') || path === '.github/workflows/api-ci.yml') {
+    if (path.startsWith('apps/api/')) {
+      suites.api = true;
+      // La integración web de MenIA ejecuta código de la API.
+      suites.web = true;
+    } else if (path === '.github/workflows/api-ci.yml') {
       suites.api = true;
     } else if (
       path.startsWith('apps/web/') ||
