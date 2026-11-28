@@ -4,6 +4,7 @@ import type {
   PaymentOrderStockPort,
   PaymentResult,
 } from '../application/processPaymentResultUseCase';
+import { isUntrackedStock } from '../../stock/infrastructure/untrackedStock';
 
 export class PrismaPaymentOrderStockAdapter
   implements PaymentOrderStockPort
@@ -114,11 +115,12 @@ export class PrismaPaymentOrderStockAdapter
               },
             });
 
-            if (updated.count !== 1) {
+            if (updated.count !== 1 && !(await isUntrackedStock(tx, order.storeId, { productId: item.productId }))) {
               throw new Error('STOCK_RESERVATION_CONFLICT');
             }
 
-            await tx.stockMovement.create({
+            // Sin control de stock en el buffet: no se reservó, no hay nada que mover.
+            if (updated.count === 1) await tx.stockMovement.create({
               data: {
                 storeId: order.storeId,
                 productId: item.productId,
@@ -148,11 +150,12 @@ export class PrismaPaymentOrderStockAdapter
               },
             });
 
-            if (updated.count !== 1) {
+            if (updated.count !== 1 && !(await isUntrackedStock(tx, order.storeId, { additionId: addition.additionId }))) {
               throw new Error('STOCK_RESERVATION_CONFLICT');
             }
 
-            await tx.stockMovement.create({
+            // Sin control de stock en el buffet: no se reservó, no hay nada que mover.
+            if (updated.count === 1) await tx.stockMovement.create({
               data: {
                 storeId: order.storeId,
                 additionId: addition.additionId,
@@ -234,11 +237,12 @@ export class PrismaPaymentOrderStockAdapter
             },
           });
 
-          if (updated.count !== 1) {
+          if (updated.count !== 1 && !(await isUntrackedStock(tx, order.storeId, { productId: item.productId }))) {
             throw new Error('STOCK_RESERVATION_CONFLICT');
           }
 
-          await tx.stockMovement.create({
+          // Sin control de stock en el buffet: no se reservó, no hay nada que mover.
+          if (updated.count === 1) await tx.stockMovement.create({
             data: {
               storeId: order.storeId,
               productId: item.productId,
@@ -268,11 +272,12 @@ export class PrismaPaymentOrderStockAdapter
             },
           });
 
-          if (updated.count !== 1) {
+          if (updated.count !== 1 && !(await isUntrackedStock(tx, order.storeId, { additionId: addition.additionId }))) {
             throw new Error('STOCK_RESERVATION_CONFLICT');
           }
 
-          await tx.stockMovement.create({
+          // Sin control de stock en el buffet: no se reservó, no hay nada que mover.
+          if (updated.count === 1) await tx.stockMovement.create({
             data: {
               storeId: order.storeId,
               additionId: addition.additionId,
