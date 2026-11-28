@@ -6,6 +6,8 @@
 .user { align-self: flex-end; background: #047857; color: white; border-bottom-right-radius: .2rem; }
 .assistant { align-self: flex-start; border: 1px solid #9ca3af66; background: #9ca3af12; border-bottom-left-radius: .2rem; }
 .speaker { font-size: .8rem; font-weight: 700; margin-bottom: .35rem; }
+.recommendations { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .65rem; list-style: none; padding: 0; }
+.recommendationCard { border: 1px solid #04785755; background: #04785712; border-radius: .6rem; padding: .35rem .65rem; font-size: .85rem; font-weight: 600; }
 .composer { justify-content: space-between; }
 @media (max-width: 480px) {
   .chat { padding: .9rem; }

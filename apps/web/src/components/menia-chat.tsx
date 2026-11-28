@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useResource } from '@/lib/use-resource';
-import { createMeniaConversation, MAX_MENIA_MESSAGE_LENGTH, validMeniaMessage, type MeniaContext } from '@/lib/menia';
+import { createMeniaConversation, MAX_MENIA_MESSAGE_LENGTH, meniaPath, validMeniaMessage, type MeniaContext } from '@/lib/menia';
 import { ResourceState } from './resource-state';
 import styles from './menia-chat.module.css';
 
@@ -17,14 +17,42 @@ export function MeniaChat({ storeId }: { storeId: string }) {
     </nav>
     <header className="form-stack"><div><p className="muted">Tu asistente en este buffet</p><h1>MenIA</h1></div>
       {context && <div><h2>{context.storeName}</h2><p className="muted">Organización: {context.organizationId}</p></div>}
-      <p>La interpretación inteligente estará disponible próximamente. Por ahora podés enviar mensajes y continuar comprando desde el catálogo.</p>
+      <p>Consultá por opciones disponibles del buffet. Esta conversación es temporal y no crea ni modifica pedidos.</p>
     </header>
     <ResourceState {...resource} retry={resource.reload} />
     {context && <MeniaConversation key={storeId} context={context} />}
   </main>;
 }
 
-export function MeniaConversation({ context }: { context: MeniaContext }) {
+export function MeniaCatalogAssistant({ storeId, onSelectProduct }: { storeId: string; onSelectProduct?: (title: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const resource = useResource<MeniaContext>(open ? `/api/v1/stores/${encodeURIComponent(storeId)}/menia/context` : null);
+  const context = resource.data?.storeId === storeId ? resource.data : undefined;
+  return <section className="panel form-stack" aria-label="Asistente MenIA en catálogo">
+    <div className={`actions ${styles.composer}`}>
+      <div>
+        <h2>¿No sabés qué pedir? Consultá a MenIA</h2>
+        <p className="muted">Pedí recomendaciones del catálogo disponible sin salir de tu compra.</p>
+      </div>
+      <div className="actions">
+        <button type="button" className="secondary" onClick={() => setOpen(prev => !prev)}>
+          {open ? 'Ocultar consulta' : 'Consultar a MenIA'}
+        </button>
+        <Link className="button" href={meniaPath(storeId)}>Abrir MenIA</Link>
+      </div>
+    </div>
+    {open && <>
+      {resource.loading && <p role="status" className="muted">Cargando asistente…</p>}
+      {resource.error && <div role="alert" className="error form-stack">
+        <p>MenIA no está disponible en este momento. Podés seguir comprando desde el catálogo.</p>
+        <button type="button" className="secondary" onClick={resource.reload}>Reintentar asistente</button>
+      </div>}
+      {context && <MeniaConversation key={storeId} context={context} onSelectProduct={onSelectProduct} />}
+    </>}
+  </section>;
+}
+
+export function MeniaConversation({ context, onSelectProduct }: { context: MeniaContext; onSelectProduct?: (title: string) => void }) {
   const [conversation] = useState(() => createMeniaConversation(context.storeId));
   const state = useSyncExternalStore(conversation.subscribe, conversation.getSnapshot, conversation.getSnapshot);
   const [draft, setDraft] = useState('');
@@ -43,7 +71,15 @@ export function MeniaConversation({ context }: { context: MeniaContext }) {
     <div role="log" aria-label="Mensajes de la conversación" aria-live="polite" aria-relevant="additions" className={styles.messages}>
       {state.messages.length === 0 && <div className={styles.empty}><h2>¿Querés hacer una consulta?</h2><p>Escribí tu primer mensaje para comenzar. Esta conversación es temporal y corresponde solo a este buffet.</p></div>}
       {state.messages.map((message, index) => <article key={index} className={`${styles.bubble} ${message.role === 'user' ? styles.user : styles.assistant}`}>
-        <p className={styles.speaker}>{message.role === 'user' ? 'Vos' : 'MenIA'}</p><p>{message.text}</p>
+        <p className={styles.speaker}>{message.role === 'user' ? 'Vos' : 'MenIA'}</p>
+        <p>{message.text}</p>
+        {message.cards && message.cards.length > 0 && <ul className={styles.recommendations} aria-label="Productos recomendados">
+          {message.cards.map(card => <li key={card.id}>
+            {onSelectProduct
+              ? <button type="button" className={styles.recommendationCard} onClick={() => onSelectProduct(card.title)}>{card.title}</button>
+              : <span className={styles.recommendationCard}>{card.title}</span>}
+          </li>)}
+        </ul>}
       </article>)}
       <div ref={bottom} />
     </div>
