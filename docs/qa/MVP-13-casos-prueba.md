@@ -93,17 +93,19 @@ La verificación de estos límites en el despliegue público queda pendiente de 
 
 ## CP-05 — QR reutilizado
 
-**Objetivo y trazabilidad.** Demostrar una sola entrega física y un solo consumo. #109, #57, RN-113 a RN-116 y CA-03 de TDD-0010.
+**Objetivo y trazabilidad.** Demostrar una sola entrega física y un solo consumo. #109, #57 y RN-113 a RN-116. [CA-03 de TDD-0010](../reference/v2/tdds/TDD-0010_RETIRO_QR_Y_FALLBACK_MANUAL.md#ca-03--token-reutilizado) · [Contrato MVP-12](../contracts/MVP-12-retiro-qr-manual.md#contrato-http)
 
 **Roles, datos y dependencias.** Titular y staff de SIS001. Pedido nuevo llevado a `READY_FOR_PICKUP` por el flujo normal en el ensayo público. Para el ensayo aislado se puede preparar un fixture listo. Usar su QR vigente y capturar saldos antes de confirmar.
 
 | Paso | Acción | Resultado esperado |
 | --- | --- | --- |
-| 1 | Generar QR como titular y confirmar una vez como staff. | `COMPLETED`, con `pickedUpAt`, actor y método QR registrados. El token queda consumido. El reservado baja y se agrega `ORDER_FULFILLED` por cada línea aplicable. El disponible no vuelve a bajar. |
-| 2 | Presentar la misma credencial para el mismo pedido y buffet. Registrar versión y respuesta. | En `develop`, la repetición exacta puede devolver `200` con el `COMPLETED` y fecha originales. La UI de staff puede mostrar «Retiro confirmado» en ambas respuestas. La propuesta provisional del checkpoint local devuelve `alreadyPickedUp: false` en la primera y `true` en la repetida, ambas `200`. Este resultado sigue pendiente de acuerdo como criterio de aceptación de #109. |
-| 3 | Comparar inventario, uso del token y auditoría con la primera entrega. | El segundo intento no autoriza otra entrega física. Fecha y actor originales, stock y movimientos permanecen iguales. Registrar el mensaje observado y cualquier diferencia entre el criterio operativo y el HTTP. |
+| 1 | Generar QR como titular y confirmar una vez como staff. | HTTP `200` con `alreadyPickedUp: false` y estado `COMPLETED`. La interfaz muestra «Retiro confirmado.». Se registran fecha, actor y método QR, y se consume el token. Baja el stock reservado y se agrega `ORDER_FULFILLED` por cada línea aplicable. El disponible permanece igual. |
+| 2 | Presentar la misma credencial para el mismo pedido y buffet. Registrar versión y respuesta. | HTTP `200` con `alreadyPickedUp: true`, estado `COMPLETED` y `pickedUpAt` original. La interfaz muestra «Pedido ya retirado. No entregar nuevamente.». |
+| 3 | Comparar inventario, uso del token y auditoría con la primera entrega. | Se conservan el uso original del token, la fecha, el actor y el método de retiro. Los saldos y el conteo de movimientos permanecen iguales tras el reintento. |
 
-**Evidencia y cierre.** Guardar estados, método, hora, actor y conteo de movimientos antes, después y al repetir, con el QR oculto. Conservar el pedido completado y descartar la credencial del material de prueba. **Estado: integración local aprobada en el checkpoint. Navegador, escáner y público pendientes. El rechazo HTTP estricto queda pendiente de acuerdo.**
+**Criterio pendiente.** CA-03 pide rechazar el QR reutilizado y la sección de idempotencia del TDD indica devolver el estado existente en un reintento. La implementación devuelve HTTP `200` y la interfaz advierte al staff que no debe volver a entregar el pedido. El equipo aún debe acordar si ese rechazo operativo satisface #109 o si exige un error HTTP. [Pendientes de MVP-12](../contracts/MVP-12-retiro-qr-manual.md#cumplimiento-y-pendientes-de-109)
+
+**Evidencia y cierre.** Guardar respuesta HTTP, mensaje de interfaz, auditoría, saldos y movimientos antes, después y al repetir, con el QR oculto. Conservar el pedido completado. **Estado: integración local aprobada en el checkpoint. Navegador, escáner y público pendientes.**
 
 ## CP-06 — Permisos entre buffets
 
@@ -122,15 +124,15 @@ La verificación de estos límites en el despliegue público queda pendiente de 
 
 ## CP-07 — Retiro por código manual
 
-**Objetivo y trazabilidad.** Verificar el mecanismo manual en un pedido distinto del QR. #109 y RN-117 a RN-118.
+**Objetivo y trazabilidad.** Verificar el mecanismo manual en un pedido distinto del QR. #109 y RN-117 a RN-118. [CA-04 de TDD-0010](../reference/v2/tdds/TDD-0010_RETIRO_QR_Y_FALLBACK_MANUAL.md#ca-04--retiro-manual) · [Contrato MVP-12](../contracts/MVP-12-retiro-qr-manual.md#contrato-http)
 
 **Roles, datos y dependencias.** Cliente titular, staff autorizado de SIS001 y pedido nuevo `READY_FOR_PICKUP`. Generarlo por el flujo normal en público y por fixture únicamente en integración aislada.
 
 | Paso | Acción | Resultado esperado |
 | --- | --- | --- |
-| 1 | Generar código manual desde el detalle listo. | Se muestran 12 caracteres. El persistido es el hash. La evidencia de almacenamiento corresponde a la integración aislada. |
-| 2 | Ingresarlo en cocina y confirmar. | La búsqueda autorizada devuelve el pedido listo y la confirmación devuelve `200`. El pedido queda `COMPLETED` con fecha, actor y método `MANUAL`. El reservado baja una vez, el disponible se conserva y se registran los movimientos `ORDER_FULFILLED`. |
-| 3 | Buscar nuevamente el código. Si se prueba la confirmación directa autorizada, repetirla por separado. | La búsqueda del pedido completado devuelve `404`. La confirmación directa repetida puede devolver `200` idempotente, con `alreadyPickedUp: true` en el checkpoint. Se conservan auditoría y stock. |
+| 1 | Generar el código manual como titular desde el detalle del pedido listo. | La emisión devuelve HTTP `201` y la interfaz muestra un código de 12 caracteres Base64URL. Se persiste su hash SHA-256. La comprobación de almacenamiento corresponde a la integración aislada. |
+| 2 | Ingresar el código en el formulario de retiro de cocina y confirmar la entrega como staff del buffet. | La búsqueda devuelve HTTP `200` con el pedido en `READY_FOR_PICKUP`. La confirmación devuelve HTTP `200` con `alreadyPickedUp: false` y la interfaz muestra «Retiro confirmado.». El pedido queda `COMPLETED` con fecha, actor y método `MANUAL`. El reservado baja una vez, el disponible se conserva y se registran los movimientos `ORDER_FULFILLED`. |
+| 3 | Volver a ingresar el mismo código en el formulario. Si se valida el reintento directo, enviar por separado la confirmación autorizada para el mismo pedido y buffet. | La búsqueda solo incluye pedidos listos y devuelve HTTP `404` para el pedido completado. El formulario se detiene en la búsqueda. La confirmación directa con el código exacto devuelve HTTP `200` con `alreadyPickedUp: true`, estado `COMPLETED` y fecha original. La auditoría, los saldos y los movimientos permanecen iguales. |
 
 **Evidencia y cierre.** Guardar resultado de búsqueda y confirmación, auditoría y movimientos por referencia con el código oculto. Conservar el pedido completado. **Estado: integración local aprobada en el checkpoint. Navegador y entorno público pendientes.**
 
@@ -144,8 +146,8 @@ Completar una fila por caso y por ejecución. Estados permitidos: aprobado, fall
 | CP-02 | — | — | — | Rechazo, cancelación y liberación única | — | No ejecutado | — | — |
 | CP-03 | — | — | — | Expiración, checkout bloqueado y liberación única | — | No ejecutado | — | — |
 | CP-04 | — | — | — | Aviso duplicado sin efectos adicionales | — | No ejecutado | — | — |
-| CP-05 | — | — | — | Repetición sin segunda entrega ni consumo | — | No ejecutado | — | — |
+| CP-05 | — | — | — | HTTP `200` con `alreadyPickedUp: true`, alerta y sin segundo consumo ni cambios de auditoría | — | No ejecutado | — | — |
 | CP-06 | — | — | — | Staff ajeno rechazado | — | No ejecutado | — | — |
-| CP-07 | — | — | — | Retiro manual único y búsqueda posterior rechazada | — | No ejecutado | — | — |
+| CP-07 | — | — | — | Retiro manual único, búsqueda posterior `404` y confirmación directa repetida idempotente | — | No ejecutado | — | — |
 
 **Fuentes de reglas y alcance.** [Master](../reference/v2/TAKEANDGO_MASTER_V2_0.md) · [TDD-0005](../reference/v2/tdds/TDD-0005_INVENTARIO_RESERVAS_Y_MOVIMIENTOS.md) · [TDD-0007](../reference/v2/tdds/TDD-0007_PEDIDOS_VENTANAS_PAGO_Y_REEMBOLSO.md) · [TDD-0009](../reference/v2/tdds/TDD-0009_COCINA_Y_VENTA_PRESENCIAL.md) · [TDD-0010](../reference/v2/tdds/TDD-0010_RETIRO_QR_Y_FALLBACK_MANUAL.md) · [#52](https://github.com/Marilu-su/TakeAndGo/issues/52) · [#57](https://github.com/Marilu-su/TakeAndGo/issues/57) · [#104](https://github.com/Marilu-su/TakeAndGo/issues/104) · [#106](https://github.com/Marilu-su/TakeAndGo/issues/106) · [#107](https://github.com/Marilu-su/TakeAndGo/issues/107) · [#109](https://github.com/Marilu-su/TakeAndGo/issues/109) · [#115](https://github.com/Marilu-su/TakeAndGo/issues/115).
