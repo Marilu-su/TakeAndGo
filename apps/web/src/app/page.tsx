@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { BrandMark } from "@/components/brand-mark";
 import { getHealth, type HealthResponse } from "@/lib/health";
 
 type HealthState =
@@ -42,31 +43,34 @@ export default function Home() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-8 p-8">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold">Take&amp;Go</h1>
-        <p className="mt-2 text-lg opacity-70">
-          Plataforma SaaS de Take Away Inteligente
-        </p>
+    <main className="tg-entry">
+      <div className="tg-entry-grid">
+        <header className="tg-hero">
+          <BrandMark />
+          <h1>Take<span>&amp;</span>Go</h1>
+          <p>Pedí por adelantado.<br /> Retirá en tu buffet.</p>
+        </header>
+
+        <section className="tg-access">
+          <h2>¿Qué querés hacer?</h2>
+          <p>Elegí cómo usar Take&amp;Go. Los accesos de administración requieren una cuenta habilitada.</p>
+          <nav aria-label="Accesos de Take&Go" className="tg-links">
+            <Link className="button" href="/registro">Quiero comprar</Link>
+            <Link className="button secondary" href="/login">Ya tengo una cuenta</Link>
+            <div className="tg-org">
+              <Link href="/registro?destino=organizacion">Crear una organización</Link>
+              <Link href="/login?destino=organizacion">Ya tengo una cuenta y quiero crear una organización</Link>
+            </div>
+          </nav>
+          <section className="tg-staff">
+            <h3 className="font-semibold">¿Trabajás en un buffet?</h3>
+            <p className="mt-2 text-sm opacity-70">Ingresá con la cuenta que te habilitó tu organización. Los permisos los asigna un administrador.</p>
+            <Link className="tg-text-link" href="/login">Acceso para personal y administradores</Link>
+          </section>
+        </section>
       </div>
 
-      <section className="panel form-stack w-full max-w-sm">
-        <h2>¿Qué querés hacer?</h2>
-        <p>Elegí cómo usar Take&amp;Go. Los accesos de administración requieren una cuenta habilitada.</p>
-        <nav aria-label="Accesos de Take&Go" className="form-stack">
-          <Link className="button" href="/registro">Quiero comprar</Link>
-          <Link className="button secondary" href="/registro?destino=organizacion">Crear una organización</Link>
-          <Link className="button secondary" href="/login?destino=organizacion">Ya tengo una cuenta y quiero crear una organización</Link>
-          <Link className="button secondary" href="/login">Ya tengo una cuenta</Link>
-        </nav>
-        <section className="mt-6 border-t border-gray-300 pt-5">
-          <h3 className="font-semibold">¿Trabajás en un buffet?</h3>
-          <p className="mt-2 text-sm opacity-70">Ingresá con la cuenta que te habilitó tu organización. Los permisos los asigna un administrador.</p>
-          <Link className="mt-4 inline-block" href="/login">Acceso para personal y administradores</Link>
-        </section>
-      </section>
-
-      <section className="w-full max-w-sm rounded-xl border border-gray-300 p-6">
+      <section className="tg-health">
         <h2 className="mb-4 text-lg font-semibold">Estado del sistema</h2>
 
         {health.kind === "loading" && <p>🟡 Consultando backend...</p>}
@@ -93,7 +97,7 @@ export default function Home() {
         <button
           onClick={handleRetry}
           disabled={health.kind === "loading"}
-          className="mt-6 w-full rounded-lg border border-gray-300 px-4 py-2 font-medium hover:bg-gray-100 disabled:opacity-50 dark:hover:bg-gray-800"
+          className="secondary"
         >
           Volver a consultar
         </button>

@@ -1,6 +1,7 @@
 'use client';
 import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
+import { BrandMark } from '@/components/brand-mark';
 import { useRouter } from 'next/navigation';
 import { authClient } from '@/lib/auth/client';
 import { getActor, sessionRequest } from '@/lib/session';
@@ -50,13 +51,21 @@ export function AuthForm({ register = false }: { register?: boolean }) {
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'No se pudo completar la operación.'); }
     finally { setBusy(false); }
   }
-  return <main className="auth-page"><form className="panel form-stack" onSubmit={submit}>
-    <Link href="/" className="brand">Take&amp;Go</Link><h1>{register ? 'Crear cuenta' : 'Bienvenido de nuevo'}</h1>
-    {register && <label>Nombre<input name="name" required maxLength={120} autoComplete="name" /></label>}
-    <label>Correo electrónico<input name="email" type="email" required autoComplete="email" /></label>
-    <label>Contraseña<input name="password" type="password" required minLength={8} autoComplete={register ? 'new-password' : 'current-password'} /></label>
-    {error && <p role="alert" className="error">{error}</p>}
-    <button disabled={busy}>{busy ? 'Procesando…' : register ? 'Registrarme' : 'Ingresar'}</button>
-    <Link href={register ? '/login' : '/registro'}>{register ? 'Ya tengo cuenta' : 'Crear una cuenta'}</Link>
-  </form></main>;
+  return <main className="tg-entry tg-auth">
+    <div className="tg-entry-grid">
+      <div className="tg-hero">
+        <Link href="/" className="tg-brand-link"><BrandMark /><span>Take&amp;Go</span></Link>
+        <p>Pedí por adelantado.<br /> Retirá en tu buffet.</p>
+      </div>
+      <form className="tg-access form-stack" onSubmit={submit}>
+        <h1>{register ? 'Crear cuenta' : 'Bienvenido de nuevo'}</h1>
+        {register && <label>Nombre<input name="name" required maxLength={120} autoComplete="name" /></label>}
+        <label>Correo electrónico<input name="email" type="email" required autoComplete="email" /></label>
+        <label>Contraseña<input name="password" type="password" required minLength={8} autoComplete={register ? 'new-password' : 'current-password'} /></label>
+        {error && <p role="alert" className="error">{error}</p>}
+        <button disabled={busy}>{busy ? 'Procesando…' : register ? 'Registrarme' : 'Ingresar'}</button>
+        <Link href={register ? '/login' : '/registro'}>{register ? 'Ya tengo cuenta' : 'Crear una cuenta'}</Link>
+      </form>
+    </div>
+  </main>;
 }
